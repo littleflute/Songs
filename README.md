@@ -1,4 +1,6 @@
-[v0.0.5](https://github.com/littleflute/Songs/edit/master/README.md)
+[v0.0.6](https://github.com/littleflute/Songs/edit/master/README.md)
+
+[Songs of the 1940s](Songs of the 1940s) [106M]
 
 [Songs of the 1970s] [204M]
 
