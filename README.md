@@ -1,4 +1,4 @@
-[v0.0.7](https://github.com/littleflute/Songs/edit/master/README.md)
+[v0.0.8](https://github.com/littleflute/Songs/edit/master/README.md)
 
 106 + 204 + 164 + 120 + 167 = 594 + 167 = 761 M
 
@@ -11,3 +11,9 @@ Vh1 100 Greatest Hard Rock Songs [164M]
 Rise Again A Group Singing Songbook [120M]
 
 [Grateful Dead Guitar Anthology](Grateful Dead Guitar Anthology) [167M]
+
+
+<script src="https://www.w3schools.com/lib/w3.js"></script>
+<script src="https://littleflute.github.io/JavaScript/blclass.js" ></script>
+<script src="https://littleflute.github.io/JavaScript/blApp.js"></script>
+<script src="blAppPlx.js"></script>
