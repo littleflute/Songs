@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机点歌单 | 每日推荐100首</title>
+    <title>小笛点歌单</title>
     <style>
         :root {
             --primary: #6a11cb;
@@ -82,6 +82,98 @@
             opacity: 0.8;
         }
 
+        .float-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        .window-header {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px 15px 0 0;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-title {
+            font-weight: bold;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0.8;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .window-content {
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .toggle-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 25px;
+            color: var(--text);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+            z-index: 1001;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .playlist-textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            resize: none;
+        }
+
+        .save-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 20px;
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .save-btn:hover {
+            transform: scale(1.02);
+        }
+
         @media (max-width: 480px) {
             .song-title {
                 font-size: 1rem;
@@ -89,13 +181,29 @@
             .song-artist {
                 font-size: 0.8rem;
             }
+            .float-window {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">今日推荐歌单🎵</h1>
+        <h1 class="title">小笛点歌单v0.12🎵</h1>
         <div class="song-list" id="songList"></div>
+    </div>
+
+    <button class="toggle-btn" id="toggleBtn">控制面板</button>
+    <div class="float-window" id="floatWindow">
+        <div class="window-header" id="windowHeader">
+            <div class="window-title">控制面板</div>
+            <div class="close-btn" id="closeBtn">×</div>
+        </div>
+        <div class="window-content">
+            <p>编辑歌单（每行格式：序号. 歌曲名 - 歌手）</p>
+            <textarea class="playlist-textarea" id="playlistTextarea"></textarea>
+            <button class="save-btn" id="saveBtn">保存并更新歌单</button>
+        </div>
     </div>
 
     <script>
@@ -112,6 +220,8 @@
                              "(深情版)", "(电影主题曲)", "(夏日特别版)"];
 
             const songList = document.getElementById('songList');
+            const playlistTextarea = document.getElementById('playlistTextarea');
+            let playlistText = '';
             
             for(let i = 1; i <= 100; i++) {
                 const title = titles[Math.floor(Math.random() * titles.length)];
@@ -128,16 +238,127 @@
                     </div>
                 `;
                 songList.appendChild(songItem);
+
+                playlistText += `${i.toString().padStart(2, '0')}. ${title}${modifier} - ${artist}\n`;
+            }
+
+            playlistTextarea.value = playlistText;
+        }
+
+        // 解析歌单文本
+        const parsePlaylistText = (text) => {
+            const lines = text.split('\n');
+            const songs = [];
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) continue;
+                
+                const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.+)$/);
+                if (match) {
+                    const [, , title, artist] = match;
+                    songs.push({ title, artist });
+                }
+            }
+            return songs;
+        }
+
+        // 更新歌曲列表
+        const updateSongList = (songs) => {
+            const songList = document.getElementById('songList');
+            songList.innerHTML = '';
+            
+            songs.forEach((song, index) => {
+                const songItem = document.createElement('div');
+                songItem.className = 'song-item';
+                songItem.innerHTML = `
+                    <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                    </div>
+                `;
+                songList.appendChild(songItem);
+            });
+        }
+
+        // 窗口拖动功能
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        const floatWindow = document.getElementById('floatWindow');
+        const windowHeader = document.getElementById('windowHeader');
+
+        windowHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = floatWindow.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            
+            floatWindow.style.transform = 'none';
+            floatWindow.style.left = rect.left + 'px';
+            floatWindow.style.top = rect.top + 'px';
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            if (isDragging) {
+                const maxX = window.innerWidth - floatWindow.offsetWidth;
+                const maxY = window.innerHeight - floatWindow.offsetHeight;
+
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+
+                floatWindow.style.left = `${newX}px`;
+                floatWindow.style.top = `${newY}px`;
             }
         }
 
-        // 页面加载时生成歌曲
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        // 窗口显示控制
+        const toggleBtn = document.getElementById('toggleBtn');
+        const closeBtn = document.getElementById('closeBtn');
+
+        toggleBtn.addEventListener('click', () => {
+            floatWindow.style.display = floatWindow.style.display === 'block' ? 'none' : 'block';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            floatWindow.style.display = 'none';
+        });
+
+        // 保存功能
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const text = document.getElementById('playlistTextarea').value;
+            const songs = parsePlaylistText(text);
+            
+            // 更新歌曲列表
+            updateSongList(songs);
+            
+            // 更新文本域内容（重新生成规范格式）
+            const newText = songs.map((song, index) => 
+                `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}`
+            ).join('\n');
+            
+            document.getElementById('playlistTextarea').value = newText;
+        });
+
+        // 初始化生成
         window.addEventListener('DOMContentLoaded', generateSongs);
     </script>
 </body>
 </html>
+    
 <!--
-设计一个网页
-生成一个漂亮的点歌单，随机生成100首歌
-手机上可完美演示
+升级以上代码可以编辑歌单更新。
+return all new code
 -->
