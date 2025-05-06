@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小笛点歌单</title>
+    <title>小笛点歌单v0.14</title>
     <style>
         :root {
             --primary: #6a11cb;
@@ -41,11 +41,12 @@
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            gap: 5px;
+            flex-wrap: wrap;
         }
 
         .sort-buttons button {
             padding: 8px 15px;
-            margin: 0 5px;
             background: rgba(255, 255, 255, 0.1);
             border: none;
             border-radius: 5px;
@@ -117,6 +118,11 @@
             z-index: 1000;
         }
 
+        .print-window {
+            width: 800px;
+            height: 600px;
+        }
+
         .window-header {
             padding: 15px;
             background: rgba(255, 255, 255, 0.1);
@@ -147,6 +153,18 @@
             overflow-y: auto;
         }
 
+        .print-content {
+            height: calc(100% - 100px);
+            padding: 20px;
+        }
+
+        #printCanvas {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 5px;
+        }
+
         .toggle-btn {
             position: fixed;
             bottom: 30px;
@@ -160,6 +178,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: transform 0.2s;
             z-index: 1001;
+        }
+
+        .toggle-btn.print-btn {
+            right: 180px;
         }
 
         .toggle-btn:hover {
@@ -205,22 +227,35 @@
             .float-window {
                 width: 90%;
             }
+            .print-window {
+                width: 95%;
+                height: 70vh;
+            }
+            .toggle-btn {
+                bottom: 20px;
+                right: 20px;
+            }
+            .toggle-btn.print-btn {
+                right: 140px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title">小笛点歌单v0.13🎵</h1>
+        <h1 class="title">小笛点歌单v0.14🎵</h1>
         <div class="sort-buttons">
-            <button id="sortByOriginal">按原始顺序排序</button>
-            <button id="sortByTitle">按歌名排序</button>
-            <button id="sortByArtist">按歌手排序</button>
-            <button id="sortByNumber">按歌曲序号排序</button>
+            <button id="sortByOriginal">原始顺序</button>
+            <button id="sortByTitle">按歌名</button>
+            <button id="sortByArtist">按歌手</button>
+            <button id="sortByNumber">按序号</button>
         </div>
         <div class="song-list" id="songList"></div>
     </div>
 
     <button class="toggle-btn" id="toggleBtn">控制面板</button>
+    <button class="toggle-btn print-btn" id="togglePrintBtn">打印视图</button>
+    
     <div class="float-window" id="floatWindow">
         <div class="window-header" id="windowHeader">
             <div class="window-title">控制面板</div>
@@ -229,11 +264,23 @@
         <div class="window-content">
             <p>编辑歌单（每行格式：序号. 歌曲名 - 歌手 #颜色）</p>
             <textarea class="playlist-textarea" id="playlistTextarea"></textarea>
-            <button class="save-btn" id="saveBtn">保存并更新歌单</button>
+            <button class="save-btn" id="saveBtn">保存并更新</button>
+        </div>
+    </div>
+
+    <div class="float-window print-window" id="printWindow">
+        <div class="window-header" id="printHeader">
+            <div class="window-title">打印视图</div>
+            <div class="close-btn" id="closePrintBtn">×</div>
+        </div>
+        <div class="window-content print-content">
+            <canvas id="printCanvas"></canvas>
+            <button class="save-btn" id="printBtn" style="margin-top:15px">生成打印预览</button>
         </div>
     </div>
 
     <script>
+        let currentSongs = [];
         const initialSongs = [
             { title: "与你到永久", artist: "伍佰", color: "#ffffff" },
             { title: "大约在冬季", artist: "齐秦", color: "#ffffff" },
@@ -289,7 +336,7 @@
             { title: "Yesterday once more", artist: "英文", color: "#ffffff" },
             { title: "Yellow submarine", artist: "英文", color: "#ffffff" },
             { title: "The sound of silence", artist: "英文", color: "#ffffff" },
-            { title: "ElCondorPasa秃鹰飞去", artist: "英文", color: "#ffffff" },
+            { title: "El Condor Pasa", artist: "英文", color: "#ffffff" },
             { title: "I don't like to sleep alone", artist: "英文", color: "#ffffff" },
             { title: "蜗牛与黄鹂鸟", artist: "", color: "#ffffff" },
             { title: "让我们荡起双桨", artist: "", color: "#ffffff" },
@@ -301,14 +348,19 @@
             { title: "春天里", artist: "汪峰", color: "#ffffff" }
         ];
 
+        // DOM元素
         const songList = document.getElementById('songList');
         const playlistTextarea = document.getElementById('playlistTextarea');
-        const sortByOriginalBtn = document.getElementById('sortByOriginal');
-        const sortByTitleBtn = document.getElementById('sortByTitle');
-        const sortByArtistBtn = document.getElementById('sortByArtist');
-        const sortByNumberBtn = document.getElementById('sortByNumber');
+        const printCanvas = document.getElementById('printCanvas');
+        const ctx = printCanvas.getContext('2d');
 
-        const generateSongs = (songs) => {
+        // 初始化画布尺寸（A4尺寸 794x1123像素）
+        printCanvas.width = 794;
+        printCanvas.height = 1123;
+
+        // 生成歌曲列表
+        function generateSongs(songs) {
+            currentSongs = [...songs];
             songList.innerHTML = '';
             let playlistText = '';
 
@@ -316,7 +368,7 @@
                 const songItem = document.createElement('div');
                 songItem.className = 'song-item';
                 songItem.innerHTML = `
-                    <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
+                    <div class="song-number">${String(index + 1).padStart(2, '0')}</div>
                     <div class="song-info">
                         <div class="song-title">${song.title}</div>
                         <div class="song-artist" style="color: ${song.color || '#ffffff'}">${song.artist}</div>
@@ -325,23 +377,23 @@
                 songList.appendChild(songItem);
 
                 const colorPart = song.color !== '#ffffff' ? ` #${song.color.replace('#','')}` : '';
-                playlistText += `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}${colorPart}\n`;
+                playlistText += `${String(index + 1).padStart(2, '0')}. ${song.title} - ${song.artist}${colorPart}\n`;
             });
 
             playlistTextarea.value = playlistText;
         }
 
         // 解析歌单文本
-        const parsePlaylistText = (text) => {
+        function parsePlaylistText(text) {
             const lines = text.split('\n');
             const songs = [];
             for (const line of lines) {
                 const trimmedLine = line.trim();
                 if (!trimmedLine) continue;
 
-                const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.+?)(?:\s+#([0-9a-fA-F]{3,6}))?$/);
+                const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.*?)(?:\s+#([0-9a-fA-F]{3,6}))?$/);
                 if (match) {
-                    const [, , title, artist, color] = match;
+                    const [_, number, title, artist, color] = match;
                     songs.push({ 
                         title, 
                         artist,
@@ -352,129 +404,148 @@
             return songs;
         }
 
-        // 更新歌曲列表
-        const updateSongList = (songs) => {
-            songList.innerHTML = '';
+        // 打印视图渲染
+        function renderPrintView() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+            
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(`小笛点歌单 - 第 1 页`, 50, 50);
 
-            songs.forEach((song, index) => {
-                const songItem = document.createElement('div');
-                songItem.className = 'song-item';
-                songItem.innerHTML = `
-                    <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
-                    <div class="song-info">
-                        <div class="song-title">${song.title}</div>
-                        <div class="song-artist" style="color: ${song.color || '#ffffff'}">${song.artist}</div>
-                    </div>
-                `;
-                songList.appendChild(songItem);
+            ctx.font = '18px Arial';
+            const lineHeight = 24;
+            const margin = 50;
+            const columnWidth = 320;
+            let currentColumn = 0;
+            let currentRow = 0;
+
+            currentSongs.forEach((song, index) => {
+                if (currentRow > 38) {
+                    currentColumn++;
+                    currentRow = 0;
+                }
+                if (currentColumn > 1) {
+                    ctx.fillText(`小笛点歌单 - 第 2 页`, 50, 50);
+                    currentColumn = 0;
+                }
+
+                ctx.fillStyle = song.color || 'black';
+                ctx.fillText(
+                    `${String(index + 1).padStart(2, '0')}. ${song.title} - ${song.artist}`,
+                    margin + (columnWidth * currentColumn),
+                    margin + 60 + (currentRow * lineHeight)
+                );
+                currentRow++;
             });
         }
 
         // 窗口拖动功能
-        let isDragging = false;
-        let offsetX, offsetY;
+        function makeDraggable(header, window) {
+            let isDragging = false;
+            let offsetX, offsetY;
 
-        const floatWindow = document.getElementById('floatWindow');
-        const windowHeader = document.getElementById('windowHeader');
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                const rect = window.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
 
-        windowHeader.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            const rect = floatWindow.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
+                window.style.transform = 'none';
+                window.style.left = `${rect.left}px`;
+                window.style.top = `${rect.top}px`;
 
-            floatWindow.style.transform = 'none';
-            floatWindow.style.left = rect.left + 'px';
-            floatWindow.style.top = rect.top + 'px';
+                const mouseMoveHandler = (e) => {
+                    if (!isDragging) return;
+                    const maxX = window.innerWidth - window.offsetWidth;
+                    const maxY = window.innerHeight - window.offsetHeight;
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+                    let newX = e.clientX - offsetX;
+                    let newY = e.clientY - offsetY;
+
+                    newX = Math.max(0, Math.min(newX, maxX));
+                    newY = Math.max(0, Math.min(newY, maxY));
+
+                    window.style.left = `${newX}px`;
+                    window.style.top = `${newY}px`;
+                };
+
+                const mouseUpHandler = () => {
+                    isDragging = false;
+                    document.removeEventListener('mousemove', mouseMoveHandler);
+                    document.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+            });
+        }
+
+        // 事件监听
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const text = playlistTextarea.value;
+            const songs = parsePlaylistText(text);
+            generateSongs(songs);
         });
 
-        function onMouseMove(e) {
-            if (isDragging) {
-                const maxX = window.innerWidth - floatWindow.offsetWidth;
-                const maxY = window.innerHeight - floatWindow.offsetHeight;
-
-                let newX = e.clientX - offsetX;
-                let newY = e.clientY - offsetY;
-
-                newX = Math.max(0, Math.min(newX, maxX));
-                newY = Math.max(0, Math.min(newY, maxY));
-
-                floatWindow.style.left = `${newX}px`;
-                floatWindow.style.top = `${newY}px`;
-            }
-        }
-
-        function onMouseUp() {
-            isDragging = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-
-        // 窗口显示控制
-        const toggleBtn = document.getElementById('toggleBtn');
-        const closeBtn = document.getElementById('closeBtn');
-
-        toggleBtn.addEventListener('click', () => {
+        document.getElementById('toggleBtn').addEventListener('click', () => {
+            const floatWindow = document.getElementById('floatWindow');
             floatWindow.style.display = floatWindow.style.display === 'block' ? 'none' : 'block';
         });
 
-        closeBtn.addEventListener('click', () => {
-            floatWindow.style.display = 'none';
+        document.getElementById('togglePrintBtn').addEventListener('click', () => {
+            const printWindow = document.getElementById('printWindow');
+            printWindow.style.display = 'block';
+            renderPrintView();
         });
 
-        // 保存功能
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const text = document.getElementById('playlistTextarea').value;
-            const songs = parsePlaylistText(text);
-
-            // 更新歌曲列表
-            updateSongList(songs);
-
-            // 更新文本域内容（重新生成规范格式）
-            const newText = songs.map((song, index) => {
-                const colorPart = song.color !== '#ffffff' ? ` #${song.color.replace('#','')}` : '';
-                return `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}${colorPart}`;
-            }).join('\n');
-
-            document.getElementById('playlistTextarea').value = newText;
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            document.getElementById('floatWindow').style.display = 'none';
         });
 
-        // 排序功能
-        const sortByOriginal = () => {
-            generateSongs(initialSongs);
-        }
+        document.getElementById('closePrintBtn').addEventListener('click', () => {
+            document.getElementById('printWindow').style.display = 'none';
+        });
 
-        const sortByTitle = () => {
-            const sortedSongs = [...initialSongs].sort((a, b) => a.title.localeCompare(b.title));
-            generateSongs(sortedSongs);
-        }
+        document.getElementById('printBtn').addEventListener('click', () => {
+            const dataUrl = printCanvas.toDataURL('image/png');
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html>
+                    <head>
+                        <title>打印歌单</title>
+                        <style>
+                            @media print {
+                                @page { margin: 0; size: A4; }
+                                body { margin: 0; }
+                                img { width: 100%; height: auto; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <img src="${dataUrl}">
+                    </body>
+                </html>
+            `);
+            printWin.document.close();
+            printWin.print();
+        });
 
-        const sortByArtist = () => {
-            const sortedSongs = [...initialSongs].sort((a, b) => a.artist.localeCompare(b.artist));
-            generateSongs(sortedSongs);
-        }
+        // 初始化排序功能
+        document.getElementById('sortByOriginal').addEventListener('click', () => generateSongs(initialSongs));
+        document.getElementById('sortByTitle').addEventListener('click', () => generateSongs([...initialSongs].sort((a,b) => a.title.localeCompare(b.title))));
+        document.getElementById('sortByArtist').addEventListener('click', () => generateSongs([...initialSongs].sort((a,b) => a.artist.localeCompare(b.artist))));
+        document.getElementById('sortByNumber').addEventListener('click', () => generateSongs(initialSongs));
 
-        const sortByNumber = () => {
-            const sortedSongs = [...initialSongs];
-            generateSongs(sortedSongs);
-        }
-
-        sortByOriginalBtn.addEventListener('click', sortByOriginal);
-        sortByTitleBtn.addEventListener('click', sortByTitle);
-        sortByArtistBtn.addEventListener('click', sortByArtist);
-        sortByNumberBtn.addEventListener('click', sortByNumber);
-
-        // 初始化生成
+        // 初始化
         window.addEventListener('DOMContentLoaded', () => {
-            sortByOriginal();
+            generateSongs(initialSongs);
+            makeDraggable(document.getElementById('windowHeader'), document.getElementById('floatWindow'));
+            makeDraggable(document.getElementById('printHeader'), document.getElementById('printWindow'));
         });
     </script>
 </body>
 </html>
-    
     
 <!--
 升级以上代码，
