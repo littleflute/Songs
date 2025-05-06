@@ -195,10 +195,6 @@
             transform: scale(1.02);
         }
 
-        .color-picker {
-            margin-top: 10px;
-        }
-
         @media (max-width: 480px) {
             .song-title {
                 font-size: 1rem;
@@ -214,10 +210,12 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="title">小笛点歌单v0.12🎵</h1>
+        <h1 class="title">小笛点歌单v0.13🎵</h1>
         <div class="sort-buttons">
+            <button id="sortByOriginal">按原始顺序排序</button>
             <button id="sortByTitle">按歌名排序</button>
             <button id="sortByArtist">按歌手排序</button>
+            <button id="sortByNumber">按歌曲序号排序</button>
         </div>
         <div class="song-list" id="songList"></div>
     </div>
@@ -229,46 +227,90 @@
             <div class="close-btn" id="closeBtn">×</div>
         </div>
         <div class="window-content">
-            <p>编辑歌单（每行格式：序号. 歌曲名 - 歌手）</p>
+            <p>编辑歌单（每行格式：序号. 歌曲名 - 歌手 #颜色）</p>
             <textarea class="playlist-textarea" id="playlistTextarea"></textarea>
-            <label for="artistColorPicker">歌手颜色:</label>
-            <input type="color" class="color-picker" id="artistColorPicker" value="#ffffff">
             <button class="save-btn" id="saveBtn">保存并更新歌单</button>
         </div>
     </div>
 
     <script>
         const initialSongs = [
-            { title: "夜空中", artist: "周杰伦" },
-            { title: "追光者", artist: "林俊杰" },
-            { title: "起风了", artist: "邓紫棋" },
-            { title: "星辰大海", artist: "五月天" },
-            { title: "孤勇者", artist: "陈奕迅" },
-            { title: "平凡之路", artist: "Taylor Swift" },
-            { title: "光年之外", artist: "Ed Sheeran" },
-            { title: "告白气球", artist: "Billie Eilish" },
-            { title: "青花瓷", artist: "Adele" },
-            { title: "七里香", artist: "王菲" },
-            { title: "晴天", artist: "李荣浩" },
-            { title: "十年", artist: "毛不易" },
-            { title: "后来", artist: "薛之谦" },
-            { title: "小幸运", artist: "张惠妹" },
-            { title: "演员", artist: "孙燕姿" },
-            { title: "成都", artist: "蔡依林" },
-            { title: "海阔天空", artist: "Beyond" },
-            { title: "红玫瑰", artist: "陈奕迅" }
+            { title: "与你到永久", artist: "伍佰", color: "#ffffff" },
+            { title: "大约在冬季", artist: "齐秦", color: "#ffffff" },
+            { title: "如果再回到从前", artist: "", color: "#ffffff" },
+            { title: "再回首", artist: "", color: "#ffffff" },
+            { title: "童年", artist: "", color: "#ffffff" },
+            { title: "光阴的故事", artist: "", color: "#ffffff" },
+            { title: "真心英雄", artist: "", color: "#ffffff" },
+            { title: "我是一只小小鸟", artist: "", color: "#ffffff" },
+            { title: "突然的自我", artist: "", color: "#ffffff" },
+            { title: "水手", artist: "", color: "#ffffff" },
+            { title: "星星点灯", artist: "", color: "#ffffff" },
+            { title: "成都", artist: "", color: "#ffffff" },
+            { title: "真的爱你", artist: "", color: "#ffffff" },
+            { title: "光辉岁月", artist: "", color: "#ffffff" },
+            { title: "海阔天空", artist: "", color: "#ffffff" },
+            { title: "恋曲1990", artist: "", color: "#ffffff" },
+            { title: "朋友别哭", artist: "", color: "#ffffff" },
+            { title: "站台", artist: "", color: "#ffffff" },
+            { title: "路灯下的小姑娘", artist: "", color: "#ffffff" },
+            { title: "十年", artist: "", color: "#ffffff" },
+            { title: "蓝莲花", artist: "", color: "#ffffff" },
+            { title: "西海情歌", artist: "", color: "#ffffff" },
+            { title: "留什么给你", artist: "", color: "#ffffff" },
+            { title: "浪人情歌", artist: "", color: "#ffffff" },
+            { title: "白鸽", artist: "", color: "#ffffff" },
+            { title: "祝你一路顺风", artist: "", color: "#ffffff" },
+            { title: "爱", artist: "", color: "#ffffff" },
+            { title: "朋友", artist: "臧天朔", color: "#ffffff" },
+            { title: "恰似你的温柔", artist: "", color: "#ffffff" },
+            { title: "驿动的心", artist: "", color: "#ffffff" },
+            { title: "老男孩", artist: "", color: "#ffffff" },
+            { title: "失恋阵线联盟", artist: "", color: "#ffffff" },
+            { title: "众人划桨开大船", artist: "付笛声", color: "#ffffff" },
+            { title: "我的故乡在南方", artist: "原创", color: "#ff6666" },
+            { title: "请你放心的走", artist: "原创", color: "#ff6666" },
+            { title: "唱自己的歌，走自己的路", artist: "原创", color: "#ff6666" },
+            { title: "南方雨季", artist: "原创", color: "#ff6666" },
+            { title: "近视歌手", artist: "原创", color: "#ff6666" },
+            { title: "关于学院路", artist: "原创", color: "#ff6666" },
+            { title: "彩色的梦", artist: "原创", color: "#ff6666" },
+            { title: "城市的夜晚", artist: "原创", color: "#ff6666" },
+            { title: "辞职之歌", artist: "原创", color: "#ff6666" },
+            { title: "程序员之歌", artist: "原创", color: "#ff6666" },
+            { title: "我想有个家", artist: "", color: "#ffffff" },
+            { title: "故乡", artist: "许巍", color: "#ffffff" },
+            { title: "张三的歌", artist: "", color: "#ffffff" },
+            { title: "凡人歌", artist: "李宗盛", color: "#ffffff" },
+            { title: "鬼迷心窍", artist: "李宗盛", color: "#ffffff" },
+            { title: "大海", artist: "张雨生", color: "#ffffff" },
+            { title: "我的未来不是梦", artist: "张雨生", color: "#ffffff" },
+            { title: "500 miles", artist: "英文", color: "#ffffff" },
+            { title: "Yesterday once more", artist: "英文", color: "#ffffff" },
+            { title: "Yellow submarine", artist: "英文", color: "#ffffff" },
+            { title: "The sound of silence", artist: "英文", color: "#ffffff" },
+            { title: "ElCondorPasa秃鹰飞去", artist: "英文", color: "#ffffff" },
+            { title: "I don't like to sleep alone", artist: "英文", color: "#ffffff" },
+            { title: "蜗牛与黄鹂鸟", artist: "", color: "#ffffff" },
+            { title: "让我们荡起双桨", artist: "", color: "#ffffff" },
+            { title: "听妈妈讲过去的事情", artist: "", color: "#ffffff" },
+            { title: "我们的节日", artist: "", color: "#ffffff" },
+            { title: "同桌的你", artist: "", color: "#ffffff" },
+            { title: "睡在我上铺的兄弟", artist: "", color: "#ffffff" },
+            { title: "外面的世界", artist: "齐秦", color: "#ffffff" },
+            { title: "春天里", artist: "汪峰", color: "#ffffff" }
         ];
 
         const songList = document.getElementById('songList');
         const playlistTextarea = document.getElementById('playlistTextarea');
+        const sortByOriginalBtn = document.getElementById('sortByOriginal');
         const sortByTitleBtn = document.getElementById('sortByTitle');
         const sortByArtistBtn = document.getElementById('sortByArtist');
-        const artistColorPicker = document.getElementById('artistColorPicker');
+        const sortByNumberBtn = document.getElementById('sortByNumber');
 
         const generateSongs = (songs) => {
             songList.innerHTML = '';
             let playlistText = '';
-            const artistColor = artistColorPicker.value;
 
             songs.forEach((song, index) => {
                 const songItem = document.createElement('div');
@@ -277,12 +319,13 @@
                     <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
                     <div class="song-info">
                         <div class="song-title">${song.title}</div>
-                        <div class="song-artist" style="color: ${artistColor};">${song.artist}</div>
+                        <div class="song-artist" style="color: ${song.color || '#ffffff'}">${song.artist}</div>
                     </div>
                 `;
                 songList.appendChild(songItem);
 
-                playlistText += `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}\n`;
+                const colorPart = song.color !== '#ffffff' ? ` #${song.color.replace('#','')}` : '';
+                playlistText += `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}${colorPart}\n`;
             });
 
             playlistTextarea.value = playlistText;
@@ -296,10 +339,14 @@
                 const trimmedLine = line.trim();
                 if (!trimmedLine) continue;
 
-                const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.+)$/);
+                const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.+?)(?:\s+#([0-9a-fA-F]{3,6}))?$/);
                 if (match) {
-                    const [, , title, artist] = match;
-                    songs.push({ title, artist });
+                    const [, , title, artist, color] = match;
+                    songs.push({ 
+                        title, 
+                        artist,
+                        color: color ? `#${color}` : '#ffffff'
+                    });
                 }
             }
             return songs;
@@ -308,7 +355,6 @@
         // 更新歌曲列表
         const updateSongList = (songs) => {
             songList.innerHTML = '';
-            const artistColor = artistColorPicker.value;
 
             songs.forEach((song, index) => {
                 const songItem = document.createElement('div');
@@ -317,7 +363,7 @@
                     <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
                     <div class="song-info">
                         <div class="song-title">${song.title}</div>
-                        <div class="song-artist" style="color: ${artistColor};">${song.artist}</div>
+                        <div class="song-artist" style="color: ${song.color || '#ffffff'}">${song.artist}</div>
                     </div>
                 `;
                 songList.appendChild(songItem);
@@ -388,14 +434,19 @@
             updateSongList(songs);
 
             // 更新文本域内容（重新生成规范格式）
-            const newText = songs.map((song, index) => 
-                `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}`
-            ).join('\n');
+            const newText = songs.map((song, index) => {
+                const colorPart = song.color !== '#ffffff' ? ` #${song.color.replace('#','')}` : '';
+                return `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}${colorPart}`;
+            }).join('\n');
 
             document.getElementById('playlistTextarea').value = newText;
         });
 
         // 排序功能
+        const sortByOriginal = () => {
+            generateSongs(initialSongs);
+        }
+
         const sortByTitle = () => {
             const sortedSongs = [...initialSongs].sort((a, b) => a.title.localeCompare(b.title));
             generateSongs(sortedSongs);
@@ -406,18 +457,19 @@
             generateSongs(sortedSongs);
         }
 
+        const sortByNumber = () => {
+            const sortedSongs = [...initialSongs];
+            generateSongs(sortedSongs);
+        }
+
+        sortByOriginalBtn.addEventListener('click', sortByOriginal);
         sortByTitleBtn.addEventListener('click', sortByTitle);
         sortByArtistBtn.addEventListener('click', sortByArtist);
+        sortByNumberBtn.addEventListener('click', sortByNumber);
 
         // 初始化生成
         window.addEventListener('DOMContentLoaded', () => {
-            sortByTitle();
-        });
-
-        // 颜色选择器改变事件
-        artistColorPicker.addEventListener('change', () => {
-            const currentSongs = parsePlaylistText(playlistTextarea.value);
-            updateSongList(currentSongs);
+            sortByOriginal();
         });
     </script>
 </body>
@@ -426,6 +478,6 @@
     
 <!--
 升级以上代码，
-让歌手颜色可以 编辑。默认为白色。
+添加一个按钮可以切换一个可移动窗口。窗口里充满画布。在画布上把现有歌单渲染成适合打印为A4纸的图片
 return all new code
 -->
