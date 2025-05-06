@@ -1,1 +1,143 @@
-a
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机点歌单 | 每日推荐100首</title>
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --text: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--text);
+            font-family: 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .song-list {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .song-item:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .song-number {
+            width: 30px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .song-info {
+            flex: 1;
+            padding-left: 15px;
+        }
+
+        .song-title {
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+
+        .song-artist {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            .song-title {
+                font-size: 1rem;
+            }
+            .song-artist {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">今日推荐歌单🎵</h1>
+        <div class="song-list" id="songList"></div>
+    </div>
+
+    <script>
+        const generateSongs = () => {
+            const titles = ["夜空中", "追光者", "起风了", "星辰大海", "孤勇者", "平凡之路", 
+                           "光年之外", "告白气球", "青花瓷", "七里香", "晴天", "十年", 
+                           "后来", "小幸运", "演员", "成都", "海阔天空", "红玫瑰"];
+            
+            const artists = ["周杰伦", "林俊杰", "邓紫棋", "五月天", "陈奕迅", "Taylor Swift", 
+                           "Ed Sheeran", "Billie Eilish", "Adele", "王菲", "李荣浩", 
+                           "毛不易", "薛之谦", "张惠妹", "孙燕姿", "蔡依林"];
+
+            const modifiers = ["(Live版)", "(Remix)", "(Acoustic)", "(钢琴版)", 
+                             "(深情版)", "(电影主题曲)", "(夏日特别版)"];
+
+            const songList = document.getElementById('songList');
+            
+            for(let i = 1; i <= 100; i++) {
+                const title = titles[Math.floor(Math.random() * titles.length)];
+                const artist = artists[Math.floor(Math.random() * artists.length)];
+                const modifier = Math.random() > 0.7 ? modifiers[Math.floor(Math.random() * modifiers.length)] : '';
+                
+                const songItem = document.createElement('div');
+                songItem.className = 'song-item';
+                songItem.innerHTML = `
+                    <div class="song-number">${i.toString().padStart(2, '0')}</div>
+                    <div class="song-info">
+                        <div class="song-title">${title}${modifier}</div>
+                        <div class="song-artist">${artist}</div>
+                    </div>
+                `;
+                songList.appendChild(songItem);
+            }
+        }
+
+        // 页面加载时生成歌曲
+        window.addEventListener('DOMContentLoaded', generateSongs);
+    </script>
+</body>
+</html>
+<!--
+设计一个网页
+生成一个漂亮的点歌单，随机生成100首歌
+手机上可完美演示
+-->
