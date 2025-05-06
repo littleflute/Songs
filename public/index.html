@@ -37,6 +37,27 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
+        .sort-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .sort-buttons button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .sort-buttons button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
         .song-list {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -174,6 +195,10 @@
             transform: scale(1.02);
         }
 
+        .color-picker {
+            margin-top: 10px;
+        }
+
         @media (max-width: 480px) {
             .song-title {
                 font-size: 1rem;
@@ -190,6 +215,10 @@
 <body>
     <div class="container">
         <h1 class="title">小笛点歌单v0.12🎵</h1>
+        <div class="sort-buttons">
+            <button id="sortByTitle">按歌名排序</button>
+            <button id="sortByArtist">按歌手排序</button>
+        </div>
         <div class="song-list" id="songList"></div>
     </div>
 
@@ -202,45 +231,59 @@
         <div class="window-content">
             <p>编辑歌单（每行格式：序号. 歌曲名 - 歌手）</p>
             <textarea class="playlist-textarea" id="playlistTextarea"></textarea>
+            <label for="artistColorPicker">歌手颜色:</label>
+            <input type="color" class="color-picker" id="artistColorPicker" value="#ffffff">
             <button class="save-btn" id="saveBtn">保存并更新歌单</button>
         </div>
     </div>
 
     <script>
-        const generateSongs = () => {
-            const titles = ["夜空中", "追光者", "起风了", "星辰大海", "孤勇者", "平凡之路", 
-                           "光年之外", "告白气球", "青花瓷", "七里香", "晴天", "十年", 
-                           "后来", "小幸运", "演员", "成都", "海阔天空", "红玫瑰"];
-            
-            const artists = ["周杰伦", "林俊杰", "邓紫棋", "五月天", "陈奕迅", "Taylor Swift", 
-                           "Ed Sheeran", "Billie Eilish", "Adele", "王菲", "李荣浩", 
-                           "毛不易", "薛之谦", "张惠妹", "孙燕姿", "蔡依林"];
+        const initialSongs = [
+            { title: "夜空中", artist: "周杰伦" },
+            { title: "追光者", artist: "林俊杰" },
+            { title: "起风了", artist: "邓紫棋" },
+            { title: "星辰大海", artist: "五月天" },
+            { title: "孤勇者", artist: "陈奕迅" },
+            { title: "平凡之路", artist: "Taylor Swift" },
+            { title: "光年之外", artist: "Ed Sheeran" },
+            { title: "告白气球", artist: "Billie Eilish" },
+            { title: "青花瓷", artist: "Adele" },
+            { title: "七里香", artist: "王菲" },
+            { title: "晴天", artist: "李荣浩" },
+            { title: "十年", artist: "毛不易" },
+            { title: "后来", artist: "薛之谦" },
+            { title: "小幸运", artist: "张惠妹" },
+            { title: "演员", artist: "孙燕姿" },
+            { title: "成都", artist: "蔡依林" },
+            { title: "海阔天空", artist: "Beyond" },
+            { title: "红玫瑰", artist: "陈奕迅" }
+        ];
 
-            const modifiers = ["(Live版)", "(Remix)", "(Acoustic)", "(钢琴版)", 
-                             "(深情版)", "(电影主题曲)", "(夏日特别版)"];
+        const songList = document.getElementById('songList');
+        const playlistTextarea = document.getElementById('playlistTextarea');
+        const sortByTitleBtn = document.getElementById('sortByTitle');
+        const sortByArtistBtn = document.getElementById('sortByArtist');
+        const artistColorPicker = document.getElementById('artistColorPicker');
 
-            const songList = document.getElementById('songList');
-            const playlistTextarea = document.getElementById('playlistTextarea');
+        const generateSongs = (songs) => {
+            songList.innerHTML = '';
             let playlistText = '';
-            
-            for(let i = 1; i <= 100; i++) {
-                const title = titles[Math.floor(Math.random() * titles.length)];
-                const artist = artists[Math.floor(Math.random() * artists.length)];
-                const modifier = Math.random() > 0.7 ? modifiers[Math.floor(Math.random() * modifiers.length)] : '';
-                
+            const artistColor = artistColorPicker.value;
+
+            songs.forEach((song, index) => {
                 const songItem = document.createElement('div');
                 songItem.className = 'song-item';
                 songItem.innerHTML = `
-                    <div class="song-number">${i.toString().padStart(2, '0')}</div>
+                    <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
                     <div class="song-info">
-                        <div class="song-title">${title}${modifier}</div>
-                        <div class="song-artist">${artist}</div>
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist" style="color: ${artistColor};">${song.artist}</div>
                     </div>
                 `;
                 songList.appendChild(songItem);
 
-                playlistText += `${i.toString().padStart(2, '0')}. ${title}${modifier} - ${artist}\n`;
-            }
+                playlistText += `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}\n`;
+            });
 
             playlistTextarea.value = playlistText;
         }
@@ -252,7 +295,7 @@
             for (const line of lines) {
                 const trimmedLine = line.trim();
                 if (!trimmedLine) continue;
-                
+
                 const match = trimmedLine.match(/^(\d+)\.\s+(.+?)\s+-\s+(.+)$/);
                 if (match) {
                     const [, , title, artist] = match;
@@ -264,9 +307,9 @@
 
         // 更新歌曲列表
         const updateSongList = (songs) => {
-            const songList = document.getElementById('songList');
             songList.innerHTML = '';
-            
+            const artistColor = artistColorPicker.value;
+
             songs.forEach((song, index) => {
                 const songItem = document.createElement('div');
                 songItem.className = 'song-item';
@@ -274,7 +317,7 @@
                     <div class="song-number">${(index + 1).toString().padStart(2, '0')}</div>
                     <div class="song-info">
                         <div class="song-title">${song.title}</div>
-                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-artist" style="color: ${artistColor};">${song.artist}</div>
                     </div>
                 `;
                 songList.appendChild(songItem);
@@ -293,11 +336,11 @@
             const rect = floatWindow.getBoundingClientRect();
             offsetX = e.clientX - rect.left;
             offsetY = e.clientY - rect.top;
-            
+
             floatWindow.style.transform = 'none';
             floatWindow.style.left = rect.left + 'px';
             floatWindow.style.top = rect.top + 'px';
-            
+
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
         });
@@ -340,25 +383,49 @@
         document.getElementById('saveBtn').addEventListener('click', () => {
             const text = document.getElementById('playlistTextarea').value;
             const songs = parsePlaylistText(text);
-            
+
             // 更新歌曲列表
             updateSongList(songs);
-            
+
             // 更新文本域内容（重新生成规范格式）
             const newText = songs.map((song, index) => 
                 `${(index + 1).toString().padStart(2, '0')}. ${song.title} - ${song.artist}`
             ).join('\n');
-            
+
             document.getElementById('playlistTextarea').value = newText;
         });
 
+        // 排序功能
+        const sortByTitle = () => {
+            const sortedSongs = [...initialSongs].sort((a, b) => a.title.localeCompare(b.title));
+            generateSongs(sortedSongs);
+        }
+
+        const sortByArtist = () => {
+            const sortedSongs = [...initialSongs].sort((a, b) => a.artist.localeCompare(b.artist));
+            generateSongs(sortedSongs);
+        }
+
+        sortByTitleBtn.addEventListener('click', sortByTitle);
+        sortByArtistBtn.addEventListener('click', sortByArtist);
+
         // 初始化生成
-        window.addEventListener('DOMContentLoaded', generateSongs);
+        window.addEventListener('DOMContentLoaded', () => {
+            sortByTitle();
+        });
+
+        // 颜色选择器改变事件
+        artistColorPicker.addEventListener('change', () => {
+            const currentSongs = parsePlaylistText(playlistTextarea.value);
+            updateSongList(currentSongs);
+        });
     </script>
 </body>
 </html>
     
+    
 <!--
-升级以上代码可以编辑歌单更新。
+升级以上代码，
+让歌手颜色可以 编辑。默认为白色。
 return all new code
 -->
