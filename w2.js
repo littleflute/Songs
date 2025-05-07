@@ -1,3 +1,13 @@
+const express = require('express');
+const puppeteer = require('puppeteer');
+const mammoth = require('mammoth');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const port = 3002;
+
+const htmlContent = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -51,12 +61,55 @@
     </footer>
 </body>
 </html>
-    
-<!--
-生成一个Note js服务器程序，把以上网页内容生成一个。Word文档文档格式尽可能与这个网页一致
-写一篇公众号文章分析汪峰专辑《人海》
-制作一个网页，完美的分析汪峰新专辑《人海》。在手机上可以演示。
-制作一个网页，渲染文章，在手机上可以演示。
+`;
 
-制作一个网页，有一画布充满页面，画布上画一张海报，主题是汪峰专辑《人海》，在手机上可以演示。
--->
+app.get('/', (req, res) => {
+    const page = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载 Word 文档</title>
+</head>
+<body>
+    <a href="/download-word">点击下载汪峰《人海》专辑分析 Word 文档</a>
+</body>
+</html>
+    `;
+    res.send(page);
+});
+
+app.get('/download-word', async (req, res) => {
+    try {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.setContent(htmlContent);
+        const pdfPath = path.join(__dirname, 'output.pdf');
+        await page.pdf({ path: pdfPath, format: 'A4' });
+        await browser.close();
+
+        const result = await mammoth.convertToDocx({ path: pdfPath });
+        const wordPath = path.join(__dirname, 'output.docx');
+        fs.writeFileSync(wordPath, result.value);
+
+        res.download(wordPath, 'output.docx', (err) => {
+            if (err) {
+                console.error('下载出错:', err);
+                res.status(500).send('下载出错');
+            }
+            fs.unlinkSync(pdfPath);
+            fs.unlinkSync(wordPath);
+        });
+    } catch (error) {
+        console.error('生成 Word 文档出错:', error);
+        res.status(500).send('生成 Word 文档出错');
+    }
+});
+
+app.listen(port, () => {
+    console.log(`服务器运行在 http://localhost:${port}`);
+});
+    
+    
+// 生成 Word 文档出错: TypeError: mammoth.convertToDocx is not a function
