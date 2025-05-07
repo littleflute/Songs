@@ -239,9 +239,70 @@
                 right: 140px;
             }
         }
+
+        /* 新增导航按钮和菜单样式 */
+        .nav-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 5px;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.2s;
+            z-index: 1002;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-menu {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1001;
+        }
+
+        .nav-menu ul {
+            list-style-type: none;
+            padding: 10px;
+        }
+
+        .nav-menu li {
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-menu a {
+            color: var(--text);
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
+    <!-- 新增导航按钮 -->
+    <button class="nav-button" id="navButton">导航</button>
+    <!-- 新增导航菜单 -->
+    <div class="nav-menu" id="navMenu">
+        <ul>
+            <li><a href="#">首页</a></li>
+            <li><a href="wangFeng_renHai.html">wangFeng_renHai</a></li> 
+        </ul>
+    </div>
+
     <div class="container">
         <h1 class="title">小笛点歌单v0.14🎵</h1>
         <div class="sort-buttons">
@@ -537,6 +598,12 @@
         document.getElementById('sortByArtist').addEventListener('click', () => generateSongs([...initialSongs].sort((a,b) => a.artist.localeCompare(b.artist))));
         document.getElementById('sortByNumber').addEventListener('click', () => generateSongs(initialSongs));
 
+        // 新增导航按钮事件监听
+        document.getElementById('navButton').addEventListener('click', () => {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.style.display = navMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
         // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             generateSongs(initialSongs);
@@ -547,8 +614,9 @@
 </body>
 </html>
     
+    
 <!--
 升级以上代码，
-添加一个按钮可以切换一个可移动窗口。窗口里充满画布。在画布上把现有歌单渲染成适合打印为A4纸的图片
-return all new code
+在网页右上角有一个固定的按钮，点击这个按钮可以弹出一个导航菜单，菜单里有一些导航链接。
+return all new code so that i can run it on this page.
 -->

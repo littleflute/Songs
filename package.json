@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/littleflute/Songs#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mammoth": "^1.9.0",
+    "puppeteer": "^24.8.1"
   }
 }
