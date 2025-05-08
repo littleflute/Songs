@@ -18,9 +18,12 @@
   },
   "homepage": "https://github.com/littleflute/Songs#readme",
   "dependencies": {
+    "docx": "^9.5.0",
+    "docxtemplater": "^3.61.1",
     "express": "^5.1.0",
     "html-docx-js": "^0.3.1",
     "mammoth": "^1.9.0",
+    "pizzip": "^3.1.8",
     "puppeteer": "^24.8.1"
   }
 }
