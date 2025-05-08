@@ -5,7 +5,7 @@ const Docxtemplater = require('docxtemplater');
 const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
-const { Document, Packer, Paragraph, TextRun } = require('docx');
+const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -19,16 +19,32 @@ function createTemplate() {
                 children: [
                     new Paragraph({
                         children: [
-                            new TextRun('{title}')
+                            new TextRun({
+                                text: '{title}',
+                                bold: true,
+                                size: 36, 
+                                heading: HeadingLevel.HEADING_1 
+                            })
                         ]
                     }),
-                    ...Array.from({ length: 10 }, (_, i) => new Paragraph({
-                        children: [
-                            new TextRun(`{paragraphTitle${i + 1}}`),
-                            new TextRun('\n'),
-                            new TextRun(`{paragraphContent${i + 1}}`)
-                        ]
-                    }))
+                    ...Array.from({ length: 10 }, (_, i) => {
+                        const titleParagraph = new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: `{paragraphTitle${i + 1}}`,
+                                    bold: true,
+                                    size: 24, 
+                                    heading: HeadingLevel.HEADING_2 
+                                })
+                            ]
+                        });
+                        const contentParagraph = new Paragraph({
+                            children: [
+                                new TextRun(`{paragraphContent${i + 1}}`)
+                            ]
+                        });
+                        return [titleParagraph, contentParagraph];
+                    }).flat()
                 ]
             }
         ]
@@ -115,9 +131,11 @@ app.post('/download', (req, res) => {
         };
 
         for (let i = 1; i <= 10; i++) {
-            if (req.body[`paragraphTitle${i}`] && req.body[`paragraphContent${i}`]) {
-                data[`paragraphTitle${i}`] = req.body[`paragraphTitle${i}`];
-                data[`paragraphContent${i}`] = req.body[`paragraphContent${i}`];
+            const titleKey = `paragraphTitle${i}`;
+            const contentKey = `paragraphContent${i}`;
+            if (req.body[titleKey] && req.body[contentKey]) {
+                data[titleKey] = req.body[titleKey];
+                data[contentKey] = req.body[contentKey];
             }
         }
 
@@ -140,8 +158,8 @@ app.post('/download', (req, res) => {
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
-});       
+});        
 /**
  *  
- *  文章的题目,段落标题。 应该醒目
+ *   段落标题 与内容分开
  */
