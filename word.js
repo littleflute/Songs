@@ -5,8 +5,10 @@ const Docxtemplater = require('docxtemplater');
 const PizZip = require('pizzip');
 const fs = require('fs');
 const path = require('path');
-const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, WidthType } = require('docx');
 const bodyParser = require('body-parser');
+const sharp = require('sharp'); // 用于图像处理
+
 class C4TestPage{
     #drawingCode(){
         let html = `// Canvas 绘图逻辑
@@ -48,10 +50,10 @@ function stopDrawing() {
 }
 
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}`;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);}`;
       return html;
     }
+    
     #drawCss(){
         let html = `#id_4_div_canvas_wrap {
     margin-top: 10px;
@@ -62,6 +64,7 @@ function clearCanvas() {
 }`;
        return html;
     }
+    
     makeHtml(docTitle,title1,content1) {
         let jsDraw = this.#drawingCode();
         let cssDraw = this.#drawCss();
@@ -104,10 +107,16 @@ function clearCanvas() {
                         background: #ddd;
                         margin-bottom: 10px;
                     }
+                    .canvas-image-preview {
+                        max-width: 100%;
+                        margin-top: 5px;
+                        border: 1px solid #ccc;
+                    }
                 </style>
             </head>
             <body>
-                <form action="/download" method="post">
+                <form action="/download" method="post" id="mainForm">
+                    <input type="hidden" id="canvasImages" name="canvasImages" value="">
                     <label for="title">文章标题:</label><br>
                     <input type="text" id="title" name="title" value="${docTitle}"  required><br>
                     <div id="paragraphs">
@@ -116,10 +125,11 @@ function clearCanvas() {
                             <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="${title1}" required><br>
                             <label for="paragraphContent1">段落内容 1:</label><br>
                             <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required>${content1}</textarea><br>
+                            <div id="paragraph1Images"></div>
                         </div>
                     </div>
                     <button type="button" onclick="addParagraph()">添加新段落</button><br>
-                    <button type="button" id="id_4_btn_add_pic_from_id_4_canvas" >add pic </button><br>
+                    <button type="button" id="id_4_btn_add_pic_from_id_4_canvas" onclick="addCanvasImage()">添加画布图片</button><br>
                     <input type="submit" value="生成并下载 Word 文件">
                 </form>
                 <!-- 固定工具栏 -->
@@ -136,11 +146,15 @@ function clearCanvas() {
                             height="150"
                             style="border: 1px solid #000; background: white;"
                         ></canvas>
+                        <button onclick="clearCanvas()">清除画布</button>
                     </div>
                 </div>
                 <script>
                     ${jsDraw}
                     let paragraphCount = 1;
+                    let canvasImageCount = 0;
+                    const canvasImages = [];
+                    
                     function addParagraph() {
                         paragraphCount++;
                         const paragraphsDiv = document.getElementById('paragraphs');
@@ -151,8 +165,63 @@ function clearCanvas() {
                             <input type="text" id="paragraphTitle\${paragraphCount}" name="paragraphTitle\${paragraphCount}" required><br>
                             <label for="paragraphContent\${paragraphCount}">段落内容 \${paragraphCount}:</label><br>
                             <textarea id="paragraphContent\${paragraphCount}" name="paragraphContent\${paragraphCount}" rows="4" cols="50" required></textarea><br>
+                            <div id="paragraph\${paragraphCount}Images"></div>
                         \`;
                         paragraphsDiv.appendChild(newParagraph);
+                    }
+                    
+                    function addCanvasImage() {
+                        const canvas = document.getElementById('id_4_canvas');
+                        const imageDataUrl = canvas.toDataURL('image/png');
+                        
+                        if (!imageDataUrl) {
+                            alert('画布为空，无法添加图片');
+                            return;
+                        }
+                        
+                        // 获取当前活动段落（最后一个段落）
+                        const activeParagraphNum = document.querySelectorAll('.paragraph').length;
+                        const targetDiv = document.getElementById(\`paragraph\${activeParagraphNum}Images\`);
+                        
+                        // 为图片生成唯一ID
+                        const imageId = \`canvasImage\${canvasImageCount++}\`;
+                        
+                        // 添加预览
+                        const previewImg = document.createElement('img');
+                        previewImg.src = imageDataUrl;
+                        previewImg.className = 'canvas-image-preview';
+                        previewImg.id = imageId;
+                        
+                        // 添加删除按钮
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = '删除图片';
+                        deleteBtn.onclick = function() {
+                            targetDiv.removeChild(previewImg);
+                            targetDiv.removeChild(deleteBtn);
+                            // 从数组中移除
+                            const index = canvasImages.findIndex(img => img.id === imageId);
+                            if (index !== -1) {
+                                canvasImages.splice(index, 1);
+                            }
+                            updateCanvasImagesInput();
+                        };
+                        
+                        targetDiv.appendChild(previewImg);
+                        targetDiv.appendChild(deleteBtn);
+                        
+                        // 保存图片数据
+                        canvasImages.push({
+                            id: imageId,
+                            dataUrl: imageDataUrl,
+                            paragraph: activeParagraphNum
+                        });
+                        
+                        updateCanvasImagesInput();
+                    }
+                    
+                    function updateCanvasImagesInput() {
+                        const canvasImagesInput = document.getElementById('canvasImages');
+                        canvasImagesInput.value = JSON.stringify(canvasImages);
                     }
 
                     // 窗口切换和拖动逻辑
@@ -200,6 +269,7 @@ function clearCanvas() {
         return html;
     }
 }
+
 class C4GithubAPI{
     async #apiRequest(currentRepo, method, endpoint, data) {
         const xdToken = "ghp_2BF" + "JztcBlHHOkBybs" + "UVJZGHQ4S" + "wvFR0poLqc";
@@ -236,6 +306,7 @@ class C4GithubAPI{
         }
     }
 }
+
 const oTestPage = new C4TestPage();
 const oGHAPI = new C4GithubAPI();
 
@@ -308,7 +379,7 @@ app.get('/', (req, res) => {
 
 app.get('/test', async (req, res) => {
     try {
-        const i1 =   await oGHAPI.getIssue1();
+        const i1 = await oGHAPI.getIssue1();
         const title1 = i1.title|| '使用issue的内容作为默认值，如果没有内容则为空 ';
         const content1 = i1.body || '使用issue的内容作为默认值，如果没有内容则为空字符串';  
         const docTitle = "Word 测试文章";
@@ -319,41 +390,123 @@ app.get('/test', async (req, res) => {
         res.status(500).send("获取 GitHub 数据时出错");
     }
 });
+
 // 下载路由
-app.post('/download', (req, res) => {
+app.post('/download', async (req, res) => {
     try {
-        const content = fs.readFileSync(path.resolve(__dirname, 'template.docx'), 'binary');
-        const zip = new PizZip(content);
-        const doc = new Docxtemplater(zip);
-
-        const data = {
-            title: req.body.title
-        };
-
+        // 创建一个存储所有 sections 的数组
+        const sections = [];
+        
+        // 添加标题
+        sections.push({
+            children: [
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: req.body.title,
+                            bold: true,
+                            size: 36,
+                            heading: HeadingLevel.HEADING_1
+                        })
+                    ]
+                })
+            ]
+        });
+        
+        // 处理段落
         for (let i = 1; i <= 10; i++) {
             const titleKey = `paragraphTitle${i}`;
             const contentKey = `paragraphContent${i}`;
+            
             if (req.body[titleKey] && req.body[contentKey]) {
-                data[titleKey] = req.body[titleKey];
-                data[contentKey] = req.body[contentKey];
+                // 添加段落标题
+                sections.push({
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: req.body[titleKey],
+                                    bold: true,
+                                    size: 24,
+                                    heading: HeadingLevel.HEADING_2
+                                })
+                            ]
+                        })
+                    ]
+                });
+                
+                // 添加段落内容
+                sections.push({
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun(req.body[contentKey])
+                            ]
+                        })
+                    ]
+                });
+                
+                // 处理该段落的图片
+                if (req.body.canvasImages) {
+                    const canvasImages = JSON.parse(req.body.canvasImages);
+                    const paragraphImages = canvasImages.filter(img => img.paragraph === i);
+                    
+                    for (const img of paragraphImages) {
+                        // 从 dataURL 中提取 base64 数据
+                        const base64Data = img.dataUrl.replace(/^data:image\/png;base64,/, '');
+                        const buffer = Buffer.from(base64Data, 'base64');
+                        
+                        // 使用 sharp 处理图像（调整大小等）
+                        const resizedImage = await sharp(buffer)
+                            .resize({ width: 400 }) // 调整宽度为 400px，保持比例
+                            .png()
+                            .toBuffer();
+                        
+                        // 添加图像到文档
+                        sections.push({
+                            children: [
+                                new Paragraph({
+                                    children: [
+                                        new ImageRun({
+                                            data: resizedImage,
+                                            transformation: {
+                                                width: 400,
+                                                height: 150,
+                                            },
+                                        })
+                                    ]
+                                })
+                            ]
+                        });
+                    }
+                }
             }
         }
-
-        doc.render(data);
-
-        const buf = doc.getZip().generate({ type: 'nodebuffer' });
-        const filePath = path.join(__dirname, 'sample1.docx');
-        fs.writeFileSync(filePath, buf);
-
+        
+        // 创建一个新的 Document 实例，传递 sections 数组
+        const doc = new Document({
+            creator: "Canvas绘图工具",
+            title: req.body.title || "无标题文档",
+            description: "通过Canvas绘图生成的文档",
+            subject: "Canvas绘图文档",
+            keywords: ["Canvas", "绘图", "文档"],
+            sections: sections // 传递构建好的 sections 数组
+        });
+        
+        // 生成文档
+        const buffer = await Packer.toBuffer(doc);
+        
+        // 设置响应头
         res.setHeader('Content-disposition', 'attachment; filename=sample1.docx');
         res.setHeader('Content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        const filestream = fs.createReadStream(filePath);
-        filestream.pipe(res);
+        
+        // 发送文件
+        res.send(buffer);
     } catch (error) {
         console.error('生成 DOCX 文件时出错:', error);
         res.status(500).send('生成 DOCX 文件时出错');
     }
-});
+});     
 
 // 启动服务器
 app.listen(port, () => {
