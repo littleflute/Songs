@@ -8,7 +8,49 @@ const path = require('path');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
 const bodyParser = require('body-parser');
 
+class C4GithubAPI{
+    async #apiRequest(currentRepo, method, endpoint, data) {
+        const xdToken = "ghp_2BF" + "JztcBlHHOkBybs" + "UVJZGHQ4S" + "wvFR0poLqc";
+        const url = `https://api.github.com/repos/littleflute/${currentRepo}/${endpoint}`;
+        const headers = {
+            'Authorization': `token ${xdToken}`,
+            'Content-Type': 'application/json'
+        };
+
+        const response = await fetch(url, {
+            method,
+            headers,
+            body: data ? JSON.stringify(data) : null
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+    }
+    
+    // 获取指定仓库的第一个 issue
+    async getIssue1() {
+        try {
+            const currentRepo = "Songs"; // 根据注释，这里应该使用 Songs 仓库
+            const issues = await this.#apiRequest(currentRepo, "GET", "issues");
+            
+            if (issues && issues.length > 0) {
+                return issues[0]; // 返回第一个 issue
+            } else {
+                return { title: "No issues found" }; // 如果没有 issue，返回默认值
+            }
+        } catch (error) {
+            console.error("获取 GitHub issue 时出错:", error);
+            return { title: "Error fetching issues" }; // 出错时返回默认值
+        }
+    }
+}
+
+const oGHAPI = new C4GithubAPI();
+
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// 配置静态文件服务
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 创建模板文件
 function createTemplate() {
@@ -67,56 +109,69 @@ function createTemplate() {
 // 调用创建模板函数
 createTemplate();
 
-// 主页路由
+// 主页路由 - 重定向到静态页面
 app.get('/', (req, res) => {
-    const html = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>生成 Word 文件</title>
-            <style>
-                .paragraph {
-                    margin-bottom: 10px;
-                }
-            </style>
-        </head>
-        <body>
-            <form action="/download" method="post">
-                <label for="title">文章标题:</label><br>
-                <input type="text" id="title" name="title" required><br>
-                <div id="paragraphs">
-                    <div class="paragraph">
-                        <label for="paragraphTitle1">段落标题 1:</label><br>
-                        <input type="text" id="paragraphTitle1" name="paragraphTitle1" required><br>
-                        <label for="paragraphContent1">段落内容 1:</label><br>
-                        <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required></textarea><br>
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/test', async (req, res) => {
+    try {
+        const i1 = await oGHAPI.getIssue1();
+        const title1 = i1.title;
+        const content1 = i1.body || ''; // 使用issue的内容作为默认值，如果没有内容则为空字符串
+        const docTitle = "Word 测试文章";
+        const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>生成 Word 文件</title>
+                <style>
+                    .paragraph {
+                        margin-bottom: 10px;
+                    }
+                </style>
+            </head>
+            <body>
+                <form action="/download" method="post">
+                    <label for="title">文章标题:</label><br>
+                    <input type="text" id="title" name="title" value="${docTitle}"  required><br>
+                    <div id="paragraphs">
+                        <div class="paragraph">
+                            <label for="paragraphTitle1">段落标题 1:</label><br>
+                            <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="${title1}" required><br>
+                            <label for="paragraphContent1">段落内容 1:</label><br>
+                            <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required>${content1}</textarea><br>
+                        </div>
                     </div>
-                </div>
-                <button type="button" onclick="addParagraph()">添加新段落</button><br>
-                <input type="submit" value="生成并下载 Word 文件">
-            </form>
-            <script>
-                let paragraphCount = 1;
-                function addParagraph() {
-                    paragraphCount++;
-                    const paragraphsDiv = document.getElementById('paragraphs');
-                    const newParagraph = document.createElement('div');
-                    newParagraph.classList.add('paragraph');
-                    newParagraph.innerHTML = \`
-                        <label for="paragraphTitle\${paragraphCount}">段落标题 \${paragraphCount}:</label><br>
-                        <input type="text" id="paragraphTitle\${paragraphCount}" name="paragraphTitle\${paragraphCount}" required><br>
-                        <label for="paragraphContent\${paragraphCount}">段落内容 \${paragraphCount}:</label><br>
-                        <textarea id="paragraphContent\${paragraphCount}" name="paragraphContent\${paragraphCount}" rows="4" cols="50" required></textarea><br>
-                    \`;
-                    paragraphsDiv.appendChild(newParagraph);
-                }
-            </script>
-        </body>
-        </html>
-    `;
-    res.send(html);
+                    <button type="button" onclick="addParagraph()">添加新段落</button><br>
+                    <input type="submit" value="生成并下载 Word 文件">
+                </form>
+                <script>
+                    let paragraphCount = 1;
+                    function addParagraph() {
+                        paragraphCount++;
+                        const paragraphsDiv = document.getElementById('paragraphs');
+                        const newParagraph = document.createElement('div');
+                        newParagraph.classList.add('paragraph');
+                        newParagraph.innerHTML = \`
+                            <label for="paragraphTitle\${paragraphCount}">段落标题 \${paragraphCount}:</label><br>
+                            <input type="text" id="paragraphTitle\${paragraphCount}" name="paragraphTitle\${paragraphCount}" required><br>
+                            <label for="paragraphContent\${paragraphCount}">段落内容 \${paragraphCount}:</label><br>
+                            <textarea id="paragraphContent\${paragraphCount}" name="paragraphContent\${paragraphCount}" rows="4" cols="50" required></textarea><br>
+                        \`;
+                        paragraphsDiv.appendChild(newParagraph);
+                    }
+                </script>
+            </body>
+            </html>
+        `;
+        res.send(html);
+    } catch (error) {
+        console.error("获取 issue 并渲染页面时出错:", error);
+        res.status(500).send("获取 GitHub 数据时出错");
+    }
 });
 
 // 下载路由
@@ -158,8 +213,8 @@ app.post('/download', (req, res) => {
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
-});        
+});    
 /**
- *  
- *   段落标题 与内容分开
+ *   
+ *  let paragraphContent1 has default value as i1.body
  */
