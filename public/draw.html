@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自由手绘Canvas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        neutral: '#F8FAFC',
+                        dark: '#1E293B'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .canvas-container {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+                border-radius: 0.75rem;
+            }
+            .tool-btn {
+                @apply flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 hover:shadow-md;
+            }
+            .tool-btn.active {
+                @apply bg-primary text-white;
+            }
+            .color-picker {
+                @apply w-8 h-8 rounded-full cursor-pointer transition-all duration-200 hover:scale-110;
+            }
+            .slider {
+                @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+            }
+            .slider::-webkit-slider-thumb {
+                @apply appearance-none w-5 h-5 rounded-full bg-primary cursor-pointer;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-neutral min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-paint-brush text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-dark">自由手绘工具</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="save-btn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center">
+                    <i class="fa fa-save mr-2"></i>保存
+                </button>
+                <button id="clear-btn" class="bg-gray-200 hover:bg-gray-300 text-dark px-4 py-2 rounded-lg transition-all duration-200 flex items-center">
+                    <i class="fa fa-trash mr-2"></i>清空
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <!-- 工具栏 -->
+        <div class="w-full md:w-64 flex flex-col gap-4">
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <h2 class="font-semibold text-lg mb-3 flex items-center">
+                    <i class="fa fa-sliders text-primary mr-2"></i>绘图设置
+                </h2>
+                <div class="space-y-4">
+                    <!-- 画笔大小 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">画笔大小</label>
+                        <input type="range" id="brush-size" min="1" max="50" value="5" class="slider">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>细</span>
+                            <span id="brush-size-value">5px</span>
+                            <span>粗</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 不透明度 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">不透明度</label>
+                        <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" class="slider">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>透明</span>
+                            <span id="opacity-value">100%</span>
+                            <span>不透明</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 颜色选择 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择颜色</label>
+                        <div class="grid grid-cols-5 gap-2">
+                            <div class="color-picker bg-black" data-color="black"></div>
+                            <div class="color-picker bg-red-500" data-color="red"></div>
+                            <div class="color-picker bg-blue-500" data-color="blue"></div>
+                            <div class="color-picker bg-green-500" data-color="green"></div>
+                            <div class="color-picker bg-yellow-500" data-color="yellow"></div>
+                            <div class="color-picker bg-purple-500" data-color="purple"></div>
+                            <div class="color-picker bg-pink-500" data-color="pink"></div>
+                            <div class="color-picker bg-orange-500" data-color="orange"></div>
+                            <div class="color-picker bg-gray-500" data-color="gray"></div>
+                            <input type="color" id="custom-color" class="w-8 h-8 rounded-full cursor-pointer p-0 border-none" value="#165DFF">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <h2 class="font-semibold text-lg mb-3 flex items-center">
+                    <i class="fa fa-tools text-primary mr-2"></i>绘图工具
+                </h2>
+                <div class="grid grid-cols-4 gap-2">
+                    <button class="tool-btn active" id="brush" title="画笔">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button class="tool-btn" id="eraser" title="橡皮擦">
+                        <i class="fa fa-eraser"></i>
+                    </button>
+                    <button class="tool-btn" id="line" title="直线">
+                        <i class="fa fa-minus"></i>
+                    </button>
+                    <button class="tool-btn" id="rectangle" title="矩形">
+                        <i class="fa fa-square-o"></i>
+                    </button>
+                    <button class="tool-btn" id="circle" title="圆形">
+                        <i class="fa fa-circle-o"></i>
+                    </button>
+                    <button class="tool-btn" id="text" title="文字">
+                        <i class="fa fa-font"></i>
+                    </button>
+                    <button class="tool-btn" id="undo" title="撤销">
+                        <i class="fa fa-undo"></i>
+                    </button>
+                    <button class="tool-btn" id="redo" title="重做">
+                        <i class="fa fa-repeat"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 画布区域 -->
+        <div class="flex-grow">
+            <div class="bg-white rounded-xl shadow-sm p-4 h-full flex flex-col">
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 class="font-semibold text-lg flex items-center">
+                        <i class="fa fa-image text-primary mr-2"></i>画布区域
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">当前工具:</span>
+                        <span id="current-tool" class="font-medium">画笔</span>
+                    </div>
+                </div>
+                <div class="flex-grow relative canvas-container bg-gray-50 overflow-hidden">
+                    <canvas id="drawing-canvas" class="w-full h-full"></canvas>
+                    
+                    <!-- 文字输入框 (隐藏状态) -->
+                    <input type="text" id="text-input" class="absolute hidden px-2 py-1 border border-gray-300 rounded text-sm" placeholder="输入文字">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>© 2025 自由手绘工具 | 使用HTML5 Canvas构建</p>
+        </div>
+    </footer>
+
+    <script>
+        // 获取DOM元素
+        const canvas = document.getElementById('drawing-canvas');
+        const ctx = canvas.getContext('2d');
+        const brushSize = document.getElementById('brush-size');
+        const brushSizeValue = document.getElementById('brush-size-value');
+        const opacity = document.getElementById('opacity');
+        const opacityValue = document.getElementById('opacity-value');
+        const colorPickers = document.querySelectorAll('.color-picker');
+        const customColor = document.getElementById('custom-color');
+        const clearBtn = document.getElementById('clear-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const toolBtns = document.querySelectorAll('.tool-btn');
+        const currentTool = document.getElementById('current-tool');
+        const textInput = document.getElementById('text-input');
+        
+        // 绘图状态
+        let isDrawing = false;
+        let currentToolType = 'brush';
+        let lastX = 0;
+        let lastY = 0;
+        let hue = 0;
+        let isErasing = false;
+        let textMode = false;
+        let shapes = []; // 存储所有绘制的图形，用于撤销/重做
+        let historyIndex = -1; // 当前历史记录索引
+        
+        // 设置画布尺寸
+        function resizeCanvas() {
+            // 使用父容器的尺寸
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            // 重新绘制所有图形
+            redrawCanvas();
+        }
+        
+        // 初始化画布
+        function initCanvas() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 设置默认绘图样式
+            ctx.lineWidth = brushSize.value;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = opacity.value;
+            ctx.strokeStyle = '#165DFF';
+            
+            // 事件监听
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // 移动端支持
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) { // 只处理单指触摸
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    startDrawing({
+                        clientX: touch.clientX - rect.left,
+                        clientY: touch.clientY - rect.top
+                    });
+                    e.preventDefault(); // 防止页面滚动
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    draw({
+                        clientX: touch.clientX - rect.left,
+                        clientY: touch.clientY - rect.top
+                    });
+                    e.preventDefault();
+                }
+            });
+            
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            // 文字输入处理
+            textInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    addText();
+                }
+            });
+            
+            // 初始化工具按钮
+            initToolButtons();
+            
+            // 初始化颜色选择器
+            initColorPickers();
+            
+            // 初始化滑块
+            initSliders();
+            
+            // 初始化保存和清空按钮
+            initActionButtons();
+        }
+        
+        // 初始化工具按钮
+        function initToolButtons() {
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有按钮的活动状态
+                    toolBtns.forEach(b => b.classList.remove('active'));
+                    
+                    // 添加当前按钮的活动状态
+                    btn.classList.add('active');
+                    
+                    // 更新当前工具
+                    currentToolType = btn.id;
+                    currentTool.textContent = btn.title || btn.id;
+                    
+                    // 特殊工具处理
+                    isErasing = currentToolType === 'eraser';
+                    textMode = currentToolType === 'text';
+                    
+                    // 如果切换到文字工具，隐藏文字输入框
+                    if (!textMode) {
+                        textInput.classList.add('hidden');
+                    }
+                });
+            });
+        }
+        
+        // 初始化颜色选择器
+        function initColorPickers() {
+            colorPickers.forEach(picker => {
+                picker.addEventListener('click', () => {
+                    const color = picker.getAttribute('data-color');
+                    ctx.strokeStyle = color;
+                    customColor.value = color;
+                });
+            });
+            
+            customColor.addEventListener('input', () => {
+                ctx.strokeStyle = customColor.value;
+            });
+        }
+        
+        // 初始化滑块
+        function initSliders() {
+            brushSize.addEventListener('input', () => {
+                ctx.lineWidth = brushSize.value;
+                brushSizeValue.textContent = `${brushSize.value}px`;
+            });
+            
+            opacity.addEventListener('input', () => {
+                ctx.globalAlpha = opacity.value;
+                opacityValue.textContent = `${Math.round(opacity.value * 100)}%`;
+            });
+        }
+        
+        // 初始化保存和清空按钮
+        function initActionButtons() {
+            clearBtn.addEventListener('click', clearCanvas);
+            saveBtn.addEventListener('click', saveDrawing);
+            
+            // 撤销/重做按钮
+            document.getElementById('undo').addEventListener('click', undo);
+            document.getElementById('redo').addEventListener('click', redo);
+        }
+        
+        // 开始绘图
+        function startDrawing(e) {
+            if (textMode) {
+                // 文字模式下，显示输入框
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                textInput.style.left = `${x}px`;
+                textInput.style.top = `${y}px`;
+                textInput.classList.remove('hidden');
+                textInput.focus();
+                return;
+            }
+            
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+            
+            // 如果是橡皮擦，设置特殊样式
+            if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            
+            // 记录当前状态
+            if (currentToolType === 'brush' || currentToolType === 'eraser') {
+                shapes.push({
+                    type: currentToolType,
+                    points: [{ x: lastX, y: lastY }],
+                    strokeStyle: isErasing ? 'rgba(0,0,0,0)' : ctx.strokeStyle,
+                    lineWidth: ctx.lineWidth,
+                    globalAlpha: ctx.globalAlpha,
+                    globalCompositeOperation: ctx.globalCompositeOperation
+                });
+                historyIndex = shapes.length - 1;
+            } else if (['line', 'rectangle', 'circle'].includes(currentToolType)) {
+                shapes.push({
+                    type: currentToolType,
+                    startX: lastX,
+                    startY: lastY,
+                    endX: lastX,
+                    endY: lastY,
+                    strokeStyle: ctx.strokeStyle,
+                    lineWidth: ctx.lineWidth,
+                    globalAlpha: ctx.globalAlpha
+                });
+                historyIndex = shapes.length - 1;
+            }
+        }
+        
+        // 绘制
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.beginPath();
+            
+            if (currentToolType === 'brush' || currentToolType === 'eraser') {
+                // 自由绘制
+                const currentShape = shapes[shapes.length - 1];
+                currentShape.points.push({ x, y });
+                
+                // 清除画布并重新绘制所有内容
+                redrawCanvas();
+                
+                // 绘制当前路径
+                ctx.moveTo(currentShape.points[0].x, currentShape.points[0].y);
+                for (let i = 1; i < currentShape.points.length; i++) {
+                    ctx.lineTo(currentShape.points[i].x, currentShape.points[i].y);
+                }
+                ctx.stroke();
+            } else if (['line', 'rectangle', 'circle'].includes(currentToolType)) {
+                // 清除画布并重新绘制所有内容
+                redrawCanvas();
+                
+                // 更新当前形状的结束点
+                const currentShape = shapes[shapes.length - 1];
+                currentShape.endX = x;
+                currentShape.endY = y;
+                
+                // 绘制当前形状
+                drawShape(currentShape);
+            }
+            
+            ctx.closePath();
+        }
+        
+        // 绘制形状
+        function drawShape(shape) {
+            ctx.beginPath();
+            ctx.strokeStyle = shape.strokeStyle;
+            ctx.lineWidth = shape.lineWidth;
+            ctx.globalAlpha = shape.globalAlpha;
+            
+            if (shape.type === 'line') {
+                ctx.moveTo(shape.startX, shape.startY);
+                ctx.lineTo(shape.endX, shape.endY);
+                ctx.stroke();
+            } else if (shape.type === 'rectangle') {
+                const width = shape.endX - shape.startX;
+                const height = shape.endY - shape.startY;
+                ctx.rect(shape.startX, shape.startY, width, height);
+                ctx.stroke();
+            } else if (shape.type === 'circle') {
+                const radius = Math.sqrt(
+                    Math.pow(shape.endX - shape.startX, 2) + 
+                    Math.pow(shape.endY - shape.startY, 2)
+                );
+                ctx.arc(shape.startX, shape.startY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (shape.type === 'text') {
+                ctx.font = `${shape.fontSize}px Inter`;
+                ctx.fillStyle = shape.fillStyle;
+                ctx.fillText(shape.text, shape.x, shape.y);
+            } else if (shape.type === 'brush' || shape.type === 'eraser') {
+                // 设置合成操作
+                ctx.globalCompositeOperation = shape.globalCompositeOperation;
+                
+                // 绘制自由路径
+                ctx.moveTo(shape.points[0].x, shape.points[0].y);
+                for (let i = 1; i < shape.points.length; i++) {
+                    ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                }
+                ctx.stroke();
+                
+                // 恢复合成操作
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            
+            ctx.closePath();
+        }
+        
+        // 添加文字
+        function addText() {
+            const text = textInput.value.trim();
+            if (!text) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = parseInt(textInput.style.left);
+            const y = parseInt(textInput.style.top);
+            
+            shapes.push({
+                type: 'text',
+                text,
+                x,
+                y,
+                fontSize: 16,
+                fillStyle: ctx.strokeStyle
+            });
+            
+            textInput.value = '';
+            textInput.classList.add('hidden');
+            historyIndex = shapes.length - 1;
+            redrawCanvas();
+        }
+        
+        // 停止绘图
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        // 重新绘制画布
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制所有保存的形状
+            for (let i = 0; i <= historyIndex; i++) {
+                drawShape(shapes[i]);
+            }
+        }
+        
+        // 清空画布
+        function clearCanvas() {
+            if (confirm('确定要清空画布吗？此操作不可撤销。')) {
+                shapes = [];
+                historyIndex = -1;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        
+        // 保存绘图
+        function saveDrawing() {
+            const link = document.createElement('a');
+            link.download = 'my_drawing.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // 撤销
+        function undo() {
+            if (historyIndex >= 0) {
+                historyIndex--;
+                redrawCanvas();
+            }
+        }
+        
+        // 重做
+        function redo() {
+            if (historyIndex < shapes.length - 1) {
+                historyIndex++;
+                redrawCanvas();
+            }
+        }
+        
+        // 启动应用
+        initCanvas();
+    </script>
+</body>
+</html>
+    
