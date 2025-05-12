@@ -131,6 +131,33 @@ app.get('/test', async (req, res) => {
                     .paragraph {
                         margin-bottom: 10px;
                     }
+                    #toolbar {
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        background: #eee;
+                        padding: 10px;
+                        text-align: center;
+                        z-index: 1000;
+                    }
+                    #movableWindow {
+                        display: none;
+                        position: fixed;
+                        background: white;
+                        border: 1px solid #000;
+                        padding: 20px;
+                        cursor: move;
+                        z-index: 1001;
+                        width: 300px;
+                        height: 200px;
+                    }
+                    #windowHeader {
+                        cursor: move;
+                        padding: 5px;
+                        background: #ddd;
+                        margin-bottom: 10px;
+                    }
                 </style>
             </head>
             <body>
@@ -148,6 +175,15 @@ app.get('/test', async (req, res) => {
                     <button type="button" onclick="addParagraph()">添加新段落</button><br>
                     <input type="submit" value="生成并下载 Word 文件">
                 </form>
+                <!-- 固定工具栏 -->
+                <div id="toolbar">
+                    <button onclick="toggleWindow()">切换窗口</button>
+                </div>
+                <!-- 可移动窗口 -->
+                <div id="movableWindow">
+                    <div id="windowHeader">拖动此处移动窗口</div>
+                    <div>窗口内容...</div>
+                </div>
                 <script>
                     let paragraphCount = 1;
                     function addParagraph() {
@@ -163,6 +199,44 @@ app.get('/test', async (req, res) => {
                         \`;
                         paragraphsDiv.appendChild(newParagraph);
                     }
+
+                    // 窗口切换和拖动逻辑
+                    let isDragging = false;
+                    let startX, startY, initialX, initialY;
+                    const movableWindow = document.getElementById('movableWindow');
+                    const windowHeader = document.getElementById('windowHeader');
+
+                    windowHeader.addEventListener('mousedown', (e) => {
+                        isDragging = true;
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        initialX = movableWindow.offsetLeft;
+                        initialY = movableWindow.offsetTop;
+                        e.preventDefault();
+                    });
+
+                    document.addEventListener('mousemove', (e) => {
+                        if (isDragging) {
+                            const dx = e.clientX - startX;
+                            const dy = e.clientY - startY;
+                            movableWindow.style.left = \`\${initialX + dx}px\`;
+                            movableWindow.style.top = \`\${initialY + dy}px\`;
+                        }
+                    });
+
+                    document.addEventListener('mouseup', () => {
+                        isDragging = false;
+                    });
+
+                    function toggleWindow() {
+                        movableWindow.style.display = movableWindow.style.display === 'none' ? 'block' : 'none';
+                        // 初始化窗口位置（例如居中）
+                        if (movableWindow.style.display === 'block') {
+                            movableWindow.style.left = '50%';
+                            movableWindow.style.top = '50%';
+                            movableWindow.style.transform = 'translate(-50%, -50%)';
+                        }
+                    }
                 </script>
             </body>
             </html>
@@ -173,7 +247,6 @@ app.get('/test', async (req, res) => {
         res.status(500).send("获取 GitHub 数据时出错");
     }
 });
-
 // 下载路由
 app.post('/download', (req, res) => {
     try {
