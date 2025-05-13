@@ -514,5 +514,7 @@ app.listen(port, () => {
 });    
 /**
  *   
- *  code id_4_btn_add_pic_from_id_4_canvas
+ *  升级 C4TestPage
+ *  生成更漂亮的页面
+ * return all new code
  */
