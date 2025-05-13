@@ -12,56 +12,60 @@ const sharp = require('sharp'); // 用于图像处理
 class C4TestPage{
     #drawingCode(){
         let html = `// Canvas 绘图逻辑
-const canvas = document.getElementById('id_4_canvas');
-const ctx = canvas.getContext('2d');
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
 
-// 初始化画布样式
-ctx.strokeStyle = '#000000';
-ctx.lineWidth = 2;
-ctx.lineJoin = 'round';
-ctx.lineCap = 'round';
+            // 初始化画布样式
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
 
-// 事件监听器
-canvas.addEventListener('mousedown', startDrawing);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDrawing);
-canvas.addEventListener('mouseout', stopDrawing);
+            // 事件监听器
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
 
-function startDrawing(e) {
-    e.stopPropagation(); // 阻止触发窗口拖动
-    isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-}
+            function startDrawing(e) {
+                e.stopPropagation(); // 阻止触发窗口拖动
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
 
-function draw(e) {
-    if (!isDrawing) return;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-}
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
 
-function stopDrawing() {
-    isDrawing = false;
-}
+            function stopDrawing() {
+                isDrawing = false;
+            }
 
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);}`;
+            function clearCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+    `;
       return html;
     }
     
     #drawCss(){
-        let html = `#id_4_div_canvas_wrap {
-    margin-top: 10px;
-}
+        let html = `
+            #id_4_div_canvas_wrap {
+                margin-top: 10px;
+            }
 
-#id_4_canvas {
-    touch-action: none; /* 防止移动端页面滚动 */
-}`;
+            #id_4_canvas {
+                touch-action: none; /* 防止移动端页面滚动 */
+            }
+        `;
        return html;
     }
     
