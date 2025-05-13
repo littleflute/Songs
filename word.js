@@ -24,25 +24,55 @@ ctx.lineWidth = 2;
 ctx.lineJoin = 'round';
 ctx.lineCap = 'round';
 
-// 事件监听器
+// 鼠标事件监听器
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
 canvas.addEventListener('mouseout', stopDrawing);
 
+// 触摸事件监听器 - 新增代码
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+canvas.addEventListener('touchcancel', stopDrawing);
+
+// 设置画笔样式
+canvas.style.cursor = 'crosshair';
+
 function startDrawing(e) {
-    e.stopPropagation(); // 阻止触发窗口拖动
+    e.preventDefault(); // 阻止默认行为，防止页面滚动
     isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    
+    // 获取触摸或鼠标位置
+    const rect = canvas.getBoundingClientRect();
+    if (e.type === 'touchstart') {
+        const touch = e.touches[0];
+        [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+    } else {
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
 }
 
 function draw(e) {
+    e.preventDefault(); // 阻止默认行为
     if (!isDrawing) return;
+    
+    // 获取触摸或鼠标位置
+    const rect = canvas.getBoundingClientRect();
+    let currentX, currentY;
+    
+    if (e.type === 'touchmove') {
+        const touch = e.touches[0];
+        [currentX, currentY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+    } else {
+        [currentX, currentY] = [e.offsetX, e.offsetY];
+    }
+    
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.lineTo(currentX, currentY);
     ctx.stroke();
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    [lastX, lastY] = [currentX, currentY];
 }
 
 function stopDrawing() {
@@ -61,6 +91,7 @@ function clearCanvas() {
 
 #id_4_canvas {
     touch-action: none; /* 防止移动端页面滚动 */
+    cursor: crosshair; /* 设置鼠标样式为十字准星 */
 }`;
        return html;
     }
@@ -112,6 +143,10 @@ function clearCanvas() {
                         margin-top: 5px;
                         border: 1px solid #ccc;
                     }
+                    /* 新增样式：为主体内容添加顶部间距，避免被工具栏遮挡 */
+                    body {
+                        padding-top: 60px; /* 根据工具栏高度调整 */
+                    }
                 </style>
             </head>
             <body>
@@ -144,7 +179,7 @@ function clearCanvas() {
                             id="id_4_canvas" 
                             width="400" 
                             height="150"
-                            style="border: 1px solid #000; background: white;"
+                            style="border: 1px solid #000; background: white; cursor: crosshair;"
                         ></canvas>
                         <button onclick="clearCanvas()">清除画布</button>
                     </div>
@@ -224,37 +259,82 @@ function clearCanvas() {
                         canvasImagesInput.value = JSON.stringify(canvasImages);
                     }
 
-                    // 窗口切换和拖动逻辑
+                    // 窗口切换和拖动逻辑 - 增强版，支持移动设备
                     let isDragging = false;
                     let startX, startY, initialX, initialY;
                     const movableWindow = document.getElementById('movableWindow');
                     const windowHeader = document.getElementById('windowHeader');
 
-                    windowHeader.addEventListener('mousedown', (e) => {
+                    // 鼠标事件
+                    windowHeader.addEventListener('mousedown', startDrag);
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', stopDrag);
+
+                    // 触摸事件 - 支持移动设备
+                    windowHeader.addEventListener('touchstart', startDrag);
+                    document.addEventListener('touchmove', drag);
+                    document.addEventListener('touchend', stopDrag);
+                    document.addEventListener('touchcancel', stopDrag);
+
+                    function startDrag(e) {
+                        // 防止事件冒泡到画布导致冲突
+                        e.stopPropagation();
+                        
                         isDragging = true;
-                        startX = e.clientX;
-                        startY = e.clientY;
+                        
+                        // 获取鼠标/触摸位置
+                        if (e.type === 'touchstart') {
+                            startX = e.touches[0].clientX;
+                            startY = e.touches[0].clientY;
+                        } else {
+                            startX = e.clientX;
+                            startY = e.clientY;
+                        }
+                        
+                        // 获取窗口当前位置
                         initialX = movableWindow.offsetLeft;
                         initialY = movableWindow.offsetTop;
+                        
+                        // 防止默认行为（如选择文本）
                         e.preventDefault();
-                    });
+                    }
 
-                    document.addEventListener('mousemove', (e) => {
-                        if (isDragging) {
-                            const dx = e.clientX - startX;
-                            const dy = e.clientY - startY;
-                            movableWindow.style.left = \`\${initialX + dx}px\`;
-                            movableWindow.style.top = \`\${initialY + dy}px\`;
+                    function drag(e) {
+                        if (!isDragging) return;
+                        
+                        // 防止事件冒泡到画布
+                        e.stopPropagation();
+                        
+                        // 获取鼠标/触摸位置
+                        let clientX, clientY;
+                        if (e.type === 'touchmove') {
+                            // 防止触摸移动导致页面滚动
+                            e.preventDefault();
+                            
+                            clientX = e.touches[0].clientX;
+                            clientY = e.touches[0].clientY;
+                        } else {
+                            clientX = e.clientX;
+                            clientY = e.clientY;
                         }
-                    });
+                        
+                        // 计算移动距离
+                        const dx = clientX - startX;
+                        const dy = clientY - startY;
+                        
+                        // 应用新位置
+                        movableWindow.style.left = \`\${initialX + dx}px\`;
+                        movableWindow.style.top = \`\${initialY + dy}px\`;
+                    }
 
-                    document.addEventListener('mouseup', () => {
+                    function stopDrag() {
                         isDragging = false;
-                    });
+                    }
 
                     function toggleWindow() {
                         const currentDisplay = window.getComputedStyle(movableWindow).display;
                         movableWindow.style.display = currentDisplay === 'none' ? 'block' : 'none';
+                        
                         // 初始化窗口位置（例如居中）
                         if (movableWindow.style.display === 'block') {
                             movableWindow.style.left = '50%';
@@ -511,8 +591,9 @@ app.post('/download', async (req, res) => {
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
-});    
+});                      
 /**
- *   
- *  code id_4_btn_add_pic_from_id_4_canvas
+ * 升级  
+ * 让 http://localhost:3000/test 更美观一些
+ * return all new code
  */

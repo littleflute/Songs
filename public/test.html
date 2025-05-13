@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas绘图生成Word文档工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        neutral: '#1F2937',
+                        'neutral-light': '#F3F4F6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-transform-opacity {
+                transition-property: transform, opacity;
+                transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+                transition-duration: 150ms;
+            }
+            .scale-hover {
+                @apply transition-all duration-300 hover:scale-105;
+            }
+            .canvas-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+            .floating {
+                animation: floating 3s ease-in-out infinite;
+            }
+            @keyframes floating {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-word text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-neutral">Canvas绘图生成Word文档工具</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="text-neutral hover:text-primary transition-colors duration-300">首页</a></li>
+                    <li><a href="#" class="text-neutral hover:text-primary transition-colors duration-300">教程</a></li>
+                    <li><a href="#" class="text-neutral hover:text-primary transition-colors duration-300">关于</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 欢迎信息 -->
+        <section class="mb-10 text-center">
+            <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-neutral mb-4">创建精美的Word文档</h2>
+            <p class="text-gray-600 max-w-3xl mx-auto text-[clamp(1rem,1.5vw,1.2rem)]">
+                通过简单的绘图和文字编辑，生成专业的Word文档。支持添加多个段落和自定义绘图，让文档内容更加丰富生动。
+            </p>
+        </section>
+
+        <!-- 主要工作区 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧控制面板 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 文档表单卡片 -->
+                <div class="bg-white rounded-xl shadow-card p-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h3 class="text-xl font-semibold text-neutral mb-4 flex items-center">
+                        <i class="fa-solid fa-file-lines text-primary mr-2"></i>
+                        文档内容
+                    </h3>
+                    <form id="mainForm" action="/download" method="post" class="space-y-6">
+                        <input type="hidden" id="canvasImages" name="canvasImages" value="">
+                        
+                        <!-- 文档标题 -->
+                        <div class="space-y-2">
+                            <label for="title" class="block text-sm font-medium text-gray-700">文章标题</label>
+                            <input type="text" id="title" name="title" value="Word 测试文章" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">
+                        </div>
+                        
+                        <!-- 段落容器 -->
+                        <div id="paragraphs" class="space-y-8">
+                            <!-- 默认段落 -->
+                            <div class="paragraph bg-neutral-light p-5 rounded-lg border border-gray-200">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-lg font-medium text-neutral flex items-center">
+                                        <i class="fa-solid fa-paragraph text-primary mr-2"></i>
+                                        段落 1
+                                    </h4>
+                                    <div class="flex space-x-2">
+                                        <button type="button" onclick="addCanvasImage(this)" 
+                                            class="px-3 py-1 bg-secondary text-white rounded-lg text-sm hover:bg-secondary/90 transition-all duration-300 flex items-center">
+                                            <i class="fa-solid fa-image mr-1"></i> 添加绘图
+                                        </button>
+                                        <button type="button" onclick="removeParagraph(this)" 
+                                            class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-all duration-300">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="paragraphTitle1" class="block text-sm font-medium text-gray-700">段落标题</label>
+                                        <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="" required 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="paragraphContent1" class="block text-sm font-medium text-gray-700">段落内容</label>
+                                        <textarea id="paragraphContent1" name="paragraphContent1" rows="4" required 
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"></textarea>
+                                    </div>
+                                    
+                                    <div id="paragraph1Images" class="mt-4 space-y-3">
+                                        <!-- 图片预览区域 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="flex flex-wrap gap-4 justify-between">
+                            <button type="button" id="addParagraphBtn" onclick="addParagraph()" 
+                                class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-300 flex items-center scale-hover">
+                                <i class="fa-solid fa-plus mr-2"></i> 添加新段落
+                            </button>
+                            <button type="submit" 
+                                class="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent/90 transition-all duration-300 flex items-center scale-hover">
+                                <i class="fa-solid fa-download mr-2"></i> 生成并下载Word文档
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 右侧绘图面板 -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- 绘图工具卡片 -->
+                <div class="bg-white rounded-xl shadow-card p-6 transition-all duration-300 hover:shadow-card-hover">
+                    <h3 class="text-xl font-semibold text-neutral mb-4 flex items-center">
+                        <i class="fa-solid fa-pencil text-primary mr-2"></i>
+                        绘图工具
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <!-- 绘图工具栏 -->
+                        <div class="bg-neutral-light p-3 rounded-lg">
+                            <div class="flex flex-wrap gap-2 justify-between">
+                                <div class="flex flex-wrap gap-2">
+                                    <button id="colorBlack" onclick="setDrawingColor('#000000')" 
+                                        class="w-8 h-8 rounded-full bg-black border-2 border-white shadow-sm hover:scale-110 transition-transform"></button>
+                                    <button id="colorRed" onclick="setDrawingColor('#FF0000')" 
+                                        class="w-8 h-8 rounded-full bg-red-500 border-2 border-white shadow-sm hover:scale-110 transition-transform"></button>
+                                    <button id="colorGreen" onclick="setDrawingColor('#00FF00')" 
+                                        class="w-8 h-8 rounded-full bg-green-500 border-2 border-white shadow-sm hover:scale-110 transition-transform"></button>
+                                    <button id="colorBlue" onclick="setDrawingColor('#0000FF')" 
+                                        class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white shadow-sm hover:scale-110 transition-transform"></button>
+                                    <button id="colorCustom" onclick="openColorPicker()" 
+                                        class="w-8 h-8 rounded-full bg-gray-300 border-2 border-white shadow-sm hover:scale-110 transition-transform flex items-center justify-center">
+                                        <i class="fa-solid fa-plus text-xs"></i>
+                                    </button>
+                                </div>
+                                <input type="color" id="colorPicker" class="hidden" onchange="setCustomColor()">
+                                
+                                <div class="flex gap-2">
+                                    <button id="brushSmall" onclick="setBrushSize(2)" 
+                                        class="w-8 h-8 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                                        <div class="w-2 h-2 rounded-full bg-black"></div>
+                                    </button>
+                                    <button id="brushMedium" onclick="setBrushSize(5)" 
+                                        class="w-8 h-8 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                                        <div class="w-3 h-3 rounded-full bg-black"></div>
+                                    </button>
+                                    <button id="brushLarge" onclick="setBrushSize(8)" 
+                                        class="w-8 h-8 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-100 transition-colors">
+                                        <div class="w-4 h-4 rounded-full bg-black"></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 画布 -->
+                        <div class="relative">
+                            <canvas id="id_4_canvas" width="400" height="200" 
+                                class="w-full h-auto border-2 border-gray-300 rounded-lg canvas-shadow cursor-crosshair bg-white"></canvas>
+                            
+                            <!-- 浮动提示 -->
+                            <div id="drawingHint" class="hidden absolute -top-10 left-1/2 transform -translate-x-1/2 bg-neutral text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                                正在绘图...
+                            </div>
+                        </div>
+                        
+                        <!-- 画布操作按钮 -->
+                        <div class="flex gap-3">
+                            <button onclick="clearCanvas()" 
+                                class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-300 flex items-center justify-center">
+                                <i class="fa-solid fa-eraser mr-1"></i> 清除画布
+                            </button>
+                            <button onclick="saveCanvasAsImage()" 
+                                class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-300 flex items-center justify-center">
+                                <i class="fa-solid fa-image mr-1"></i> 保存为图片
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 使用提示卡片 -->
+                <div class="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl shadow-sm p-6">
+                    <h3 class="text-xl font-semibold text-neutral mb-4 flex items-center">
+                        <i class="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>
+                        使用提示
+                    </h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <span>在画布上绘制图形，然后点击"添加绘图"按钮将其插入到当前段落</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <span>可以通过颜色选择器和画笔大小调整绘图工具</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <span>点击"添加新段落"按钮可以增加更多内容区域</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-2"></i>
+                            <span>完成后点击"生成并下载Word文档"按钮获取最终文档</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-neutral text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Canvas绘图生成Word文档工具</h3>
+                    <p class="text-gray-400">
+                        一个强大而简单的在线工具，让你能够通过Canvas绘图创建专业的Word文档。
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">首页</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">教程</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">关于我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fa-solid fa-envelope text-primary mr-2"></i>
+                            <a href="mailto:contact@example.com" class="text-gray-400 hover:text-white transition-colors duration-300">contact@example.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa-solid fa-phone text-primary mr-2"></i>
+                            <span class="text-gray-400">+86 123 4567 8910</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2025 Canvas绘图生成Word文档工具. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 绘图脚本 -->
+    <script>
+        // 画布绘图逻辑
+        const canvas = document.getElementById('id_4_canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let drawingColor = '#000000';
+        let brushSize = 2;
+        let paragraphCount = 1;
+        let canvasImageCount = 0;
+        const canvasImages = [];
+        const drawingHint = document.getElementById('drawingHint');
+        
+        // 初始化画布样式
+        ctx.strokeStyle = drawingColor;
+        ctx.lineWidth = brushSize;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        
+        // 鼠标事件监听器
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // 触摸事件监听器
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+        
+        // 设置画笔样式
+        canvas.style.cursor = 'crosshair';
+        
+        function startDrawing(e) {
+            e.preventDefault(); // 阻止默认行为，防止页面滚动
+            isDrawing = true;
+            
+            // 获取触摸或鼠标位置
+            const rect = canvas.getBoundingClientRect();
+            if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            } else {
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+            
+            // 显示绘图提示
+            drawingHint.classList.remove('hidden');
+            setTimeout(() => {
+                drawingHint.classList.add('hidden');
+            }, 2000);
+        }
+        
+        function draw(e) {
+            e.preventDefault(); // 阻止默认行为
+            if (!isDrawing) return;
+            
+            // 获取触摸或鼠标位置
+            const rect = canvas.getBoundingClientRect();
+            let currentX, currentY;
+            
+            if (e.type === 'touchmove') {
+                const touch = e.touches[0];
+                [currentX, currentY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            } else {
+                [currentX, currentY] = [e.offsetX, e.offsetY];
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            [lastX, lastY] = [currentX, currentY];
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 添加清除动画效果
+            canvas.classList.add('animate-pulse');
+            setTimeout(() => {
+                canvas.classList.remove('animate-pulse');
+            }, 500);
+        }
+        
+        function setDrawingColor(color) {
+            drawingColor = color;
+            ctx.strokeStyle = drawingColor;
+            
+            // 更新颜色选择器UI
+            document.querySelectorAll('[id^="color"]').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-2', 'ring-primary');
+            });
+            document.getElementById(`color${color === '#000000' ? 'Black' : color === '#FF0000' ? 'Red' : color === '#00FF00' ? 'Green' : color === '#0000FF' ? 'Blue' : 'Custom'}`)
+                .classList.add('ring-2', 'ring-offset-2', 'ring-primary');
+        }
+        
+        function openColorPicker() {
+            document.getElementById('colorPicker').click();
+        }
+        
+        function setCustomColor() {
+            const color = document.getElementById('colorPicker').value;
+            setDrawingColor(color);
+            document.getElementById('colorCustom').style.backgroundColor = color;
+        }
+        
+        function setBrushSize(size) {
+            brushSize = size;
+            ctx.lineWidth = brushSize;
+            
+            // 更新画笔大小选择器UI
+            document.querySelectorAll('[id^="brush"]').forEach(btn => {
+                btn.classList.remove('bg-primary/10', 'border-primary');
+            });
+            document.getElementById(`brush${size === 2 ? 'Small' : size === 5 ? 'Medium' : 'Large'}`)
+                .classList.add('bg-primary/10', 'border-primary');
+        }
+        
+        function saveCanvasAsImage() {
+            const link = document.createElement('a');
+            link.download = 'canvas-drawing.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // 段落管理
+        function addParagraph() {
+            paragraphCount++;
+            const paragraphsDiv = document.getElementById('paragraphs');
+            
+            // 创建新段落元素
+            const newParagraph = document.createElement('div');
+            newParagraph.className = 'paragraph bg-neutral-light p-5 rounded-lg border border-gray-200 transition-all duration-500 opacity-0 transform translate-y-4';
+            newParagraph.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-medium text-neutral flex items-center">
+                        <i class="fa-solid fa-paragraph text-primary mr-2"></i>
+                        段落 ${paragraphCount}
+                    </h4>
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="addCanvasImage(this)" 
+                            class="px-3 py-1 bg-secondary text-white rounded-lg text-sm hover:bg-secondary/90 transition-all duration-300 flex items-center">
+                            <i class="fa-solid fa-image mr-1"></i> 添加绘图
+                        </button>
+                        <button type="button" onclick="removeParagraph(this)" 
+                            class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-all duration-300">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="paragraphTitle${paragraphCount}" class="block text-sm font-medium text-gray-700">段落标题</label>
+                        <input type="text" id="paragraphTitle${paragraphCount}" name="paragraphTitle${paragraphCount}" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">
+                    </div>
+                    
+                    <div>
+                        <label for="paragraphContent${paragraphCount}" class="block text-sm font-medium text-gray-700">段落内容</label>
+                        <textarea id="paragraphContent${paragraphCount}" name="paragraphContent${paragraphCount}" rows="4" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"></textarea>
+                    </div>
+                    
+                    <div id="paragraph${paragraphCount}Images" class="mt-4 space-y-3">
+                        <!-- 图片预览区域 -->
+                    </div>
+                </div>
+            `;
+            
+            paragraphsDiv.appendChild(newParagraph);
+            
+            // 添加动画效果
+            setTimeout(() => {
+                newParagraph.classList.remove('opacity-0', 'translate-y-4');
+            }, 10);
+            
+            // 滚动到新段落
+            newParagraph.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function removeParagraph(button) {
+            const paragraph = button.closest('.paragraph');
+            const paragraphNumber = parseInt(paragraph.querySelector('h4').textContent.split(' ')[1]);
+            
+            // 移除该段落中的所有图片
+            canvasImages.forEach(img => {
+                if (img.paragraph === paragraphNumber) {
+                    const previewImg = document.getElementById(img.id);
+                    if (previewImg) {
+                        previewImg.remove();
+                    }
+                }
+            });
+            
+            // 过滤掉该段落的图片
+            const filteredImages = canvasImages.filter(img => img.paragraph !== paragraphNumber);
+            canvasImages.length = 0;
+            canvasImages.push(...filteredImages);
+            
+            // 更新图片的段落编号
+            canvasImages.forEach(img => {
+                if (img.paragraph > paragraphNumber) {
+                    img.paragraph--;
+                }
+            });
+            
+            // 更新段落编号
+            const allParagraphs = document.querySelectorAll('.paragraph');
+            allParagraphs.forEach((p, index) => {
+                if (p !== paragraph) {
+                    const title = p.querySelector('h4');
+                    title.textContent = `段落 ${index + 1}`;
+                }
+            });
+            
+            // 添加移除动画
+            paragraph.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                paragraph.remove();
+                paragraphCount--;
+                updateCanvasImagesInput();
+            }, 300);
+        }
+        
+        function addCanvasImage(button) {
+            const canvas = document.getElementById('id_4_canvas');
+            const imageDataUrl = canvas.toDataURL('image/png');
+            
+            if (!imageDataUrl || imageDataUrl.indexOf('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACoCAMAAABt9SM9AAAAA1BMVEW') === 0) {
+                // 显示错误提示
+                showToast('画布为空，无法添加图片', 'error');
+                return;
+            }
+            
+            // 获取当前段落编号
+            const paragraphElement = button.closest('.paragraph');
+            const paragraphNumber = parseInt(paragraphElement.querySelector('h4').textContent.split(' ')[1]);
+            const targetDiv = document.getElementById(`paragraph${paragraphNumber}Images`);
+            
+            // 为图片生成唯一ID
+            const imageId = `canvasImage${canvasImageCount++}`;
+            
+            // 创建图片预览元素
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'bg-white p-3 rounded-lg border border-gray-200 flex items-center gap-3 opacity-0 transition-all duration-300';
+            previewContainer.innerHTML = `
+                <img src="${imageDataUrl}" class="canvas-image-preview rounded-md max-w-[200px] h-auto" id="${imageId}">
+                <div class="flex flex-col flex-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">绘图 ${canvasImages.length + 1}</span>
+                        <button onclick="removeImage('${imageId}', this)" 
+                            class="text-red-500 hover:text-red-700 transition-colors">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <label class="text-xs text-gray-500 block mb-1">图片描述 (可选)</label>
+                        <input type="text" placeholder="输入图片描述..." 
+                            class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+            `;
+            
+            targetDiv.appendChild(previewContainer);
+            
+            // 添加动画效果
+            setTimeout(() => {
+                previewContainer.classList.remove('opacity-0');
+            }, 10);
+            
+            // 保存图片数据
+            canvasImages.push({
+                id: imageId,
+                dataUrl: imageDataUrl,
+                paragraph: paragraphNumber
+            });
+            
+            updateCanvasImagesInput();
+            
+            // 显示成功提示
+            showToast('图片已添加到段落', 'success');
+        }
+        
+        function removeImage(imageId, button) {
+            const previewContainer = button.closest('div[class*="bg-white"]');
+            
+            // 添加移除动画
+            previewContainer.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                previewContainer.remove();
+                
+                // 从数组中移除
+                const index = canvasImages.findIndex(img => img.id === imageId);
+                if (index !== -1) {
+                    canvasImages.splice(index, 1);
+                }
+                
+                updateCanvasImagesInput();
+            }, 300);
+        }
+        
+        function updateCanvasImagesInput() {
+            const canvasImagesInput = document.getElementById('canvasImages');
+            canvasImagesInput.value = JSON.stringify(canvasImages);
+        }
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-2', 'shadow-lg');
+                navbar.classList.remove('py-3', 'shadow-md');
+            } else {
+                navbar.classList.add('py-3', 'shadow-md');
+                navbar.classList.remove('py-2', 'shadow-lg');
+            }
+        });
+        
+        // 提示消息
+        function showToast(message, type = 'info') {
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = `fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-all duration-500 flex items-center gap-2 z-50`;
+            
+            // 设置不同类型的样式
+            if (type === 'success') {
+                toast.classList.add('bg-green-500', 'text-white');
+                toast.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${message}`;
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-500', 'text-white');
+                toast.innerHTML = `<i class="fa-solid fa-exclamation-circle"></i> ${message}`;
+            } else {
+                toast.classList.add('bg-blue-500', 'text-white');
+                toast.innerHTML = `<i class="fa-solid fa-info-circle"></i> ${message}`;
+            }
+            
+            // 添加到页面
+            document.body.appendChild(toast);
+            
+            // 显示toast
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+            
+            // 自动隐藏
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 3000);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 尝试获取GitHub issue数据
+            try {
+                const response = await fetch('/api/github-issue');
+                if (response.ok) {
+                    const issue = await response.json();
+                    document.getElementById('paragraphTitle1').value = issue.title || '使用issue的内容作为默认值，如果没有内容则为空';
+                    document.getElementById('paragraphContent1').value = issue.body || '使用issue的内容作为默认值，如果没有内容则为空字符串';
+                }
+            } catch (error) {
+                console.error('获取GitHub issue数据失败:', error);
+                // 设置默认值
+                document.getElementById('paragraphTitle1').value = '示例段落标题';
+                document.getElementById('paragraphContent1').value = '这是一个示例段落内容。你可以在此处输入你的文本，也可以使用右侧的绘图工具添加自定义图像。';
+            }
+            
+            // 初始化画笔大小和颜色选择器
+            setBrushSize(2);
+            setDrawingColor('#000000');
+            
+            // 添加动画效果到主要按钮
+            document.getElementById('addParagraphBtn').classList.add('floating');
+        });
+    </script>
+</body>
+</html>    
