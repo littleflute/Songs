@@ -119,6 +119,20 @@ app.get('/test', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'test.html'));
 });
 
+app.get('/issue1', async (req, res) => {
+    try {
+        const i1 = await oGHAPI.getIssue1();
+        const title1 = i1.title|| '使用issue的内容作为默认值，如果没有内容则为空 ';
+        const content1 = i1.body || '使用issue的内容作为默认值，如果没有内容则为空字符串';  
+        const docTitle = "Word 测试文章";
+        const html = "issue1";// oTestPage.makeHtml(docTitle,title1,content1);
+        res.send(html);
+    } catch (error) {
+        console.error("获取 issue 并渲染页面时出错:", error);
+        res.status(500).send("获取 GitHub 数据时出错");
+    }
+});
+
 // 获取GitHub issue数据的API
 app.get('/api/github-issue', async (req, res) => {
     try {
