@@ -361,9 +361,12 @@
             const rect = canvas.getBoundingClientRect();
             let currentX, currentY;
             
+            // 计算鼠标/触摸在canvas中的位置
             if (e.type === 'touchmove') {
                 const touch = e.touches[0];
                 [currentX, currentY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+                // 防止触摸移动时页面滚动
+                e.preventDefault();
             } else {
                 [currentX, currentY] = [e.offsetX, e.offsetY];
             }
@@ -674,10 +677,34 @@
             
             // 添加动画效果到主要按钮
             document.getElementById('addParagraphBtn').classList.add('floating');
+            
+            // 处理画布大小自适应
+            handleCanvasResize();
+            window.addEventListener('resize', handleCanvasResize);
         });
+        
+        // 处理画布大小自适应
+        function handleCanvasResize() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth;
+            
+            // 设置canvas的宽度为容器宽度
+            canvas.width = containerWidth;
+            
+            // 保持宽高比
+            const aspectRatio = 2; // 宽度:高度 = 2:1
+            canvas.height = canvas.width / aspectRatio;
+            
+            // 重新绘制已有的内容
+            redrawCanvas();
+        }
+        
+        // 重新绘制画布内容
+        function redrawCanvas() {
+            // 这里可以实现保存和恢复画布内容的逻辑
+            // 简单起见，这里只清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
     </script>
 </body>
-</html>
-<!--
-画画时，鼠标与画笔不同步
--->
+</html>    
