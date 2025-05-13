@@ -88,6 +88,143 @@ class C4TestPage{
             function clearCanvas() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
+                // 绑定样本按钮点击事件 
+document.getElementById('id_4_btn_sample2').addEventListener('click', drawGreatWallSample);
+// 在C4TestPage类的#drawingCode方法中添加以下代码
+function drawGreatWallSample() {
+    const canvas = document.getElementById('id_4_canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 绘制背景
+    ctx.fillStyle = '#87CEEB'; // 天空蓝
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 绘制山脉
+    ctx.beginPath();
+    ctx.fillStyle = '#2F4F4F';
+    ctx.moveTo(0, 150);
+    ctx.lineTo(50, 100);
+    ctx.lineTo(100, 120);
+    ctx.lineTo(150, 90);
+    ctx.lineTo(200, 110);
+    ctx.lineTo(250, 80);
+    ctx.lineTo(300, 100);
+    ctx.lineTo(350, 70);
+    ctx.lineTo(400, 100);
+    ctx.lineTo(400, 150);
+    ctx.closePath();
+    ctx.fill();
+
+    // 绘制长城主体
+    ctx.beginPath();
+    ctx.strokeStyle = '#8B4513'; // 砖红色
+    ctx.lineWidth = 8;
+    ctx.moveTo(0, 130);
+    ctx.lineTo(50, 110);
+    ctx.lineTo(100, 130);
+    ctx.lineTo(150, 100);
+    ctx.lineTo(200, 120);
+    ctx.lineTo(250, 90);
+    ctx.lineTo(300, 110);
+    ctx.lineTo(350, 80);
+    ctx.lineTo(400, 110);
+    ctx.stroke();
+
+    // 绘制烽火台
+    ctx.fillStyle = '#A0522D';
+    ctx.fillRect(180, 70, 40, 60);
+    ctx.fillStyle = '#8B0000';
+    ctx.beginPath();
+    ctx.arc(200, 60, 15, 0, Math.PI, true);
+    ctx.fill();
+    
+    // 绘制城垛
+    for(let x = 0; x < 400; x += 20) {
+        ctx.fillRect(x, 122, 10, 8);
+    }
+
+    // 绘制树木
+    function drawTree(x, y) {
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x-15, y+30);
+        ctx.lineTo(x+15, y+30);
+        ctx.closePath();
+        ctx.fill();
+    }
+    drawTree(320, 80);
+    drawTree(280, 90);
+    drawTree(60, 100);
+
+    // 添加文字
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('万里长城欢迎您', canvas.width/2, 50);
+}
+
+// 在初始化代码后添加事件监听
+document.getElementById('id_4_btn_sample1').addEventListener('click', drawSample1);
+function drawSample1() {
+    const canvas = document.getElementById('id_4_canvas');
+    const ctx = canvas.getContext('2d');
+    clearCanvas();
+    
+    // 绘制渐变背景
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#87CEEB'); // 天空蓝
+    gradient.addColorStop(1, '#4682B4'); // 深蓝
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 绘制山脉
+    ctx.fillStyle = '#2F4F4F';
+    ctx.beginPath();
+    ctx.moveTo(-50, 150);
+    ctx.bezierCurveTo(80, -20, 150, 80, 250, 50);
+    ctx.bezierCurveTo(320, 30, 380, 80, 450, 50);
+    ctx.lineTo(450, 150);
+    ctx.lineTo(-50, 150);
+    ctx.fill();
+
+    // 绘制长城主体
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(50, 100);
+    ctx.lineTo(100, 80);
+    ctx.lineTo(150, 90);
+    ctx.lineTo(200, 70);
+    ctx.lineTo(250, 80);
+    ctx.lineTo(300, 60);
+    ctx.lineTo(350, 70);
+    ctx.stroke();
+
+    // 绘制城垛
+    ctx.fillStyle = '#A0522D';
+    for(let x = 50; x < 350; x += 30) {
+        ctx.fillRect(x, (x % 60 < 30) ? 95 : 90, 15, 10);
+    }
+
+    // 添加文字
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Arial';
+    ctx.shadowColor = '#000000';
+    ctx.shadowBlur = 5;
+    ctx.fillText('万里长城', 150, 40);
+    ctx.font = '16px Arial';
+    ctx.fillText('中华民族的象征', 140, 70);
+
+    // 绘制太阳
+    ctx.beginPath();
+    ctx.arc(360, 40, 20, 0, Math.PI * 2);
+    ctx.fillStyle = '#FFD700';
+    ctx.fill();
+}
     `;
       return html;
     }
@@ -187,6 +324,8 @@ class C4TestPage{
                             style="border: 1px solid #000; background: white;"
                         ></canvas>
                         <button onclick="clearCanvas()">清除画布</button>
+                        <button id="id_4_btn_sample1">sample1</button>
+                        <button id="id_4_btn_sample2">sample2</button>
                     </div>
                 </div>
                 <script>
@@ -529,3 +668,5 @@ app.post('/download', async (req, res) => {
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
 });                     
+
+// code id_4_btn_sample1: 画一张长城主题的广告图。
