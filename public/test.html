@@ -106,7 +106,7 @@
                         <!-- 段落容器 -->
                         <div id="paragraphs" class="space-y-8">
                             <!-- 默认段落 -->
-                            <div class="paragraph bg-neutral-light p-5 rounded-lg border border-gray-200">
+                            <div class="paragraph bg-neutral-light p-5 rounded-lg border border-gray-200" data-paragraph-number="1">
                                 <div class="flex justify-between items-center mb-4">
                                     <h4 class="text-lg font-medium text-neutral flex items-center">
                                         <i class="fa-solid fa-paragraph text-primary mr-2"></i>
@@ -127,14 +127,14 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label for="paragraphTitle1" class="block text-sm font-medium text-gray-700">段落标题</label>
-                                        <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="" required 
+                                        <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="示例段落标题" required 
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">
                                     </div>
                                     
                                     <div>
                                         <label for="paragraphContent1" class="block text-sm font-medium text-gray-700">段落内容</label>
                                         <textarea id="paragraphContent1" name="paragraphContent1" rows="4" required 
-                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300"></textarea>
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">这是一个示例段落内容。你可以在此处输入你的文本，也可以使用右侧的绘图工具添加自定义图像。</textarea>
                                     </div>
                                     
                                     <div id="paragraph1Images" class="mt-4 space-y-3">
@@ -437,6 +437,7 @@
             // 创建新段落元素
             const newParagraph = document.createElement('div');
             newParagraph.className = 'paragraph bg-neutral-light p-5 rounded-lg border border-gray-200 transition-all duration-500 opacity-0 transform translate-y-4';
+            newParagraph.dataset.paragraphNumber = paragraphCount; // 添加自定义属性存储段落编号
             newParagraph.innerHTML = `
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="text-lg font-medium text-neutral flex items-center">
@@ -487,7 +488,7 @@
         
         function removeParagraph(button) {
             const paragraph = button.closest('.paragraph');
-            const paragraphNumber = parseInt(paragraph.querySelector('h4').textContent.split(' ')[1]);
+            const paragraphNumber = parseInt(paragraph.dataset.paragraphNumber); // 使用dataset获取段落编号
             
             // 移除该段落中的所有图片
             canvasImages.forEach(img => {
@@ -517,6 +518,7 @@
                 if (p !== paragraph) {
                     const title = p.querySelector('h4');
                     title.textContent = `段落 ${index + 1}`;
+                    p.dataset.paragraphNumber = index + 1; // 更新dataset中的段落编号
                 }
             });
             
@@ -541,8 +543,14 @@
             
             // 获取当前段落编号
             const paragraphElement = button.closest('.paragraph');
-            const paragraphNumber = parseInt(paragraphElement.querySelector('h4').textContent.split(' ')[1]);
+            const paragraphNumber = parseInt(paragraphElement.dataset.paragraphNumber); // 直接从dataset获取
             const targetDiv = document.getElementById(`paragraph${paragraphNumber}Images`);
+            
+            if (!targetDiv) {
+                console.error(`未找到段落 ${paragraphNumber} 的图片容器`);
+                showToast('发生错误，请重试', 'error');
+                return;
+            }
             
             // 为图片生成唯一ID
             const imageId = `canvasImage${canvasImageCount++}`;
@@ -660,21 +668,6 @@
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', async () => {
-            // 尝试获取GitHub issue数据
-            try {
-                const response = await fetch('/api/github-issue');
-                if (response.ok) {
-                    const issue = await response.json();
-                    document.getElementById('paragraphTitle1').value = issue.title || '使用issue的内容作为默认值，如果没有内容则为空';
-                    document.getElementById('paragraphContent1').value = issue.body || '使用issue的内容作为默认值，如果没有内容则为空字符串';
-                }
-            } catch (error) {
-                console.error('获取GitHub issue数据失败:', error);
-                // 设置默认值
-                document.getElementById('paragraphTitle1').value = '示例段落标题';
-                document.getElementById('paragraphContent1').value = '这是一个示例段落内容。你可以在此处输入你的文本，也可以使用右侧的绘图工具添加自定义图像。';
-            }
-            
             // 初始化画笔大小和颜色选择器
             setBrushSize(2);
             setDrawingColor('#000000');
@@ -684,4 +677,4 @@
         });
     </script>
 </body>
-</html>    
+</html>
