@@ -307,6 +307,7 @@ function drawSample1() {
                     </div>
                     <button type="button" onclick="addParagraph()">添加新段落</button><br>
                     <button type="button" id="id_4_btn_add_pic_from_id_4_canvas" onclick="addCanvasImage()">添加画布图片</button><br>
+                    <button type="button" id="id_4_btn_toggle_json_wnd" onclick="addCanvasImage()">jsonWnd</button><br>
                     <input type="submit" value="生成并下载 Word 文件">
                 </form>
                 <!-- 固定工具栏 -->
@@ -669,4 +670,5 @@ app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
 });                     
 
-// code id_4_btn_sample1: 画一张长城主题的广告图。
+// code id_4_btn_toggle_json_wnd: to toggle a movable window, there is a textarea in the window. show the word data as json in the textarea
+// return all new code

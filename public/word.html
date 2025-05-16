@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas绘图生成Word文档</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#64748B',
+                        accent: '#10B981',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .canvas-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            .window-shadow {
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5;
+            }
+            .text-balance {
+                text-wrap: balance;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-dark min-h-screen flex flex-col">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-file-word text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-dark">Canvas绘图生成Word文档</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="/" class="text-gray-600 hover:text-primary transition-colors duration-300">首页</a></li>
+                    <li><a href="/test" class="text-gray-600 hover:text-primary transition-colors duration-300">测试</a></li>
+                    <li><a href="/issue1" class="text-gray-600 hover:text-primary transition-colors duration-300">从GitHub获取</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <form id="mainForm" action="/download" method="post" class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="mb-6">
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-1">文章标题:</label>
+                    <input type="text" id="title" name="title" value="Word 测试文章" required 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300">
+                </div>
+                
+                <div id="paragraphs" class="space-y-8">
+                    <div class="paragraph p-4 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center mb-3">
+                            <label for="paragraphTitle1" class="block text-sm font-medium text-gray-700">段落标题 1:</label>
+                            <button type="button" class="text-red-500 hover:text-red-700 transition-colors duration-300" onclick="removeParagraph(this)">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                        <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="使用issue的内容作为默认值，如果没有内容则为空 " required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 mb-3">
+                        
+                        <label for="paragraphContent1" class="block text-sm font-medium text-gray-700 mb-1">段落内容 1:</label>
+                        <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 mb-3">使用issue的内容作为默认值，如果没有内容则为空字符串</textarea>
+                        
+                        <div id="paragraph1Images" class="mt-4 space-y-3"></div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <button type="button" id="addParagraphBtn" onclick="addParagraph()" 
+                        class="bg-primary text-white px-4 py-2 rounded-lg flex items-center btn-hover">
+                        <i class="fa fa-plus mr-2"></i>添加新段落
+                    </button>
+                    
+                    <button type="button" id="toggleCanvasBtn" onclick="toggleWindow('canvasWindow')" 
+                        class="bg-secondary text-white px-4 py-2 rounded-lg flex items-center btn-hover">
+                        <i class="fa fa-paint-brush mr-2"></i>画布绘图
+                    </button>
+                    
+                    <button type="button" id="toggleJsonBtn" onclick="toggleWindow('jsonWindow')" 
+                        class="bg-accent text-white px-4 py-2 rounded-lg flex items-center btn-hover">
+                        <i class="fa fa-code mr-2"></i>查看JSON数据
+                    </button>
+                    
+                    <input type="submit" value="生成并下载Word文档" 
+                        class="bg-dark text-white px-6 py-2 rounded-lg flex items-center btn-hover">
+                </div>
+                
+                <input type="hidden" id="canvasImages" name="canvasImages" value="">
+                <input type="hidden" id="wordDataJson" name="wordDataJson" value="">
+            </form>
+        </div>
+    </main>
+
+    <!-- 画布窗口 -->
+    <div id="canvasWindow" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-4 w-full max-w-md z-40 hidden transition-all duration-300 window-shadow">
+        <div class="flex justify-between items-center mb-3 cursor-move" id="canvasWindowHeader">
+            <h3 class="font-medium text-gray-800">画布绘图</h3>
+            <button onclick="toggleWindow('canvasWindow')" class="text-gray-500 hover:text-gray-700">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="border border-gray-200 rounded-lg mb-3">
+            <canvas id="id_4_canvas" width="400" height="150" class="w-full canvas-shadow"></canvas>
+        </div>
+        
+        <div class="flex flex-wrap gap-2">
+            <button onclick="clearCanvas()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded btn-hover">
+                <i class="fa fa-eraser mr-1"></i>清除画布
+            </button>
+            <button id="id_4_btn_sample1" class="bg-blue-200 hover:bg-blue-300 text-blue-800 px-3 py-1 rounded btn-hover">
+                <i class="fa fa-image mr-1"></i>示例1
+            </button>
+            <button id="id_4_btn_sample2" class="bg-green-200 hover:bg-green-300 text-green-800 px-3 py-1 rounded btn-hover">
+                <i class="fa fa-image mr-1"></i>示例2
+            </button>
+            <button onclick="addCanvasImage()" class="bg-primary hover:bg-primary/90 text-white px-3 py-1 rounded btn-hover ml-auto">
+                <i class="fa fa-plus-circle mr-1"></i>添加到文档
+            </button>
+        </div>
+    </div>
+
+    <!-- JSON窗口 -->
+    <div id="jsonWindow" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-4 w-full max-w-2xl z-40 hidden transition-all duration-300 window-shadow">
+        <div class="flex justify-between items-center mb-3 cursor-move" id="jsonWindowHeader">
+            <h3 class="font-medium text-gray-800">Word文档数据</h3>
+            <button onclick="toggleWindow('jsonWindow')" class="text-gray-500 hover:text-gray-700">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-3">
+            <textarea id="wordDataTextarea" rows="15" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 font-mono text-sm"></textarea>
+        </div>
+        
+        <div class="flex gap-2">
+            <button onclick="updateFromJson()" class="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded btn-hover">
+                <i class="fa fa-refresh mr-1"></i>从JSON更新
+            </button>
+            <button onclick="validateJson()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded btn-hover">
+                <i class="fa fa-check mr-1"></i>验证JSON
+            </button>
+            <div class="text-sm text-gray-500 ml-auto self-center" id="jsonStatus">状态: 等待验证</div>
+        </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div id="overlay" class="fixed inset-0 bg-black/50 z-30 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <script>
+        // 全局变量
+        let paragraphCount = 1;
+        let canvasImageCount = 0;
+        const canvasImages = [];
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+        let activeWindowId = null;
+        let isCanvasInitialized = false;
+
+        // 初始化画布
+        function initCanvas() {
+            if (isCanvasInitialized) return;
+            
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            // 初始化画布样式
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            // 事件监听器
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            function startDrawing(e) {
+                e.stopPropagation(); // 阻止触发窗口拖动
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            // 绑定样本按钮点击事件
+            document.getElementById('id_4_btn_sample1').addEventListener('click', drawSample1);
+            document.getElementById('id_4_btn_sample2').addEventListener('click', drawSample2);
+            
+            isCanvasInitialized = true;
+        }
+
+        // 清除画布
+        function clearCanvas() {
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 绘制示例1
+        function drawSample1() {
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            clearCanvas();
+            
+            // 绘制渐变背景
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB'); // 天空蓝
+            gradient.addColorStop(1, '#4682B4'); // 深蓝
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制山脉
+            ctx.fillStyle = '#2F4F4F';
+            ctx.beginPath();
+            ctx.moveTo(-50, 150);
+            ctx.bezierCurveTo(80, -20, 150, 80, 250, 50);
+            ctx.bezierCurveTo(320, 30, 380, 80, 450, 50);
+            ctx.lineTo(450, 150);
+            ctx.lineTo(-50, 150);
+            ctx.fill();
+
+            // 绘制长城主体
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(50, 100);
+            ctx.lineTo(100, 80);
+            ctx.lineTo(150, 90);
+            ctx.lineTo(200, 70);
+            ctx.lineTo(250, 80);
+            ctx.lineTo(300, 60);
+            ctx.lineTo(350, 70);
+            ctx.stroke();
+
+            // 绘制城垛
+            ctx.fillStyle = '#A0522D';
+            for(let x = 50; x < 350; x += 30) {
+                ctx.fillRect(x, (x % 60 < 30) ? 95 : 90, 15, 10);
+            }
+
+            // 添加文字
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 24px Arial';
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 5;
+            ctx.fillText('万里长城', 150, 40);
+            ctx.font = '16px Arial';
+            ctx.fillText('中华民族的象征', 140, 70);
+
+            // 绘制太阳
+            ctx.beginPath();
+            ctx.arc(360, 40, 20, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700';
+            ctx.fill();
+        }
+
+        // 绘制示例2
+        function drawSample2() {
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制背景
+            ctx.fillStyle = '#87CEEB'; // 天空蓝
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制山脉
+            ctx.beginPath();
+            ctx.fillStyle = '#2F4F4F';
+            ctx.moveTo(0, 150);
+            ctx.lineTo(50, 100);
+            ctx.lineTo(100, 120);
+            ctx.lineTo(150, 90);
+            ctx.lineTo(200, 110);
+            ctx.lineTo(250, 80);
+            ctx.lineTo(300, 100);
+            ctx.lineTo(350, 70);
+            ctx.lineTo(400, 100);
+            ctx.lineTo(400, 150);
+            ctx.closePath();
+            ctx.fill();
+
+            // 绘制长城主体
+            ctx.beginPath();
+            ctx.strokeStyle = '#8B4513'; // 砖红色
+            ctx.lineWidth = 8;
+            ctx.moveTo(0, 130);
+            ctx.lineTo(50, 110);
+            ctx.lineTo(100, 130);
+            ctx.lineTo(150, 100);
+            ctx.lineTo(200, 120);
+            ctx.lineTo(250, 90);
+            ctx.lineTo(300, 110);
+            ctx.lineTo(350, 80);
+            ctx.lineTo(400, 110);
+            ctx.stroke();
+
+            // 绘制烽火台
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(180, 70, 40, 60);
+            ctx.fillStyle = '#8B0000';
+            ctx.beginPath();
+            ctx.arc(200, 60, 15, 0, Math.PI, true);
+            ctx.fill();
+            
+            // 绘制城垛
+            for(let x = 0; x < 400; x += 20) {
+                ctx.fillRect(x, 122, 10, 8);
+            }
+
+            // 绘制树木
+            function drawTree(x, y) {
+                ctx.fillStyle = '#228B22';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x-15, y+30);
+                ctx.lineTo(x+15, y+30);
+                ctx.closePath();
+                ctx.fill();
+            }
+            drawTree(320, 80);
+            drawTree(280, 90);
+            drawTree(60, 100);
+
+            // 添加文字
+            ctx.fillStyle = '#FFD700';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('万里长城欢迎您', canvas.width/2, 50);
+        }
+
+        // 添加新段落
+        function addParagraph() {
+            paragraphCount++;
+            const paragraphsDiv = document.getElementById('paragraphs');
+            const newParagraph = document.createElement('div');
+            newParagraph.classList.add('paragraph', 'p-4', 'bg-gray-50', 'rounded-lg', 'transition-all', 'duration-300', 'hover:shadow-md');
+            newParagraph.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <label for="paragraphTitle${paragraphCount}" class="block text-sm font-medium text-gray-700">段落标题 ${paragraphCount}:</label>
+                    <button type="button" class="text-red-500 hover:text-red-700 transition-colors duration-300" onclick="removeParagraph(this)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+                <input type="text" id="paragraphTitle${paragraphCount}" name="paragraphTitle${paragraphCount}" required 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 mb-3">
+                
+                <label for="paragraphContent${paragraphCount}" class="block text-sm font-medium text-gray-700 mb-1">段落内容 ${paragraphCount}:</label>
+                <textarea id="paragraphContent${paragraphCount}" name="paragraphContent${paragraphCount}" rows="4" cols="50" required 
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 mb-3"></textarea>
+                
+                <div id="paragraph${paragraphCount}Images" class="mt-4 space-y-3"></div>
+            `;
+            paragraphsDiv.appendChild(newParagraph);
+            
+            // 滚动到新段落
+            newParagraph.scrollIntoView({ behavior: 'smooth' });
+            
+            // 更新JSON
+            updateWordDataJson();
+        }
+
+        // 移除段落
+        function removeParagraph(button) {
+            const paragraphDiv = button.closest('.paragraph');
+            const paragraphNumber = parseInt(paragraphDiv.querySelector('input').id.replace('paragraphTitle', ''));
+            
+            // 移除该段落的所有图片
+            canvasImages.forEach(img => {
+                if (img.paragraph === paragraphNumber) {
+                    const imgElement = document.getElementById(img.id);
+                    if (imgElement) {
+                        const parent = imgElement.parentElement;
+                        parent.removeChild(imgElement);
+                        const deleteBtn = parent.querySelector('button');
+                        if (deleteBtn) parent.removeChild(deleteBtn);
+                    }
+                }
+            });
+            
+            // 过滤掉该段落的图片
+            const newCanvasImages = canvasImages.filter(img => img.paragraph !== paragraphNumber);
+            canvasImages.length = 0;
+            newCanvasImages.forEach(img => canvasImages.push(img));
+            
+            // 更新剩余段落的编号
+            const allParagraphs = Array.from(document.querySelectorAll('.paragraph'));
+            const index = allParagraphs.indexOf(paragraphDiv);
+            
+            // 删除段落
+            paragraphDiv.classList.add('opacity-0');
+            setTimeout(() => {
+                paragraphDiv.remove();
+                
+                // 更新剩余段落的编号
+                for (let i = index; i < allParagraphs.length - 1; i++) {
+                    const currentPara = allParagraphs[i + 1];
+                    const currentNum = parseInt(currentPara.querySelector('input').id.replace('paragraphTitle', ''));
+                    
+                    // 更新标题
+                    const titleInput = currentPara.querySelector('input');
+                    titleInput.id = `paragraphTitle${i + 1}`;
+                    titleInput.name = `paragraphTitle${i + 1}`;
+                    currentPara.querySelector('label[for^="paragraphTitle"]').htmlFor = `paragraphTitle${i + 1}`;
+                    currentPara.querySelector('label[for^="paragraphTitle"]').textContent = `段落标题 ${i + 1}:`;
+                    
+                    // 更新内容
+                    const contentTextarea = currentPara.querySelector('textarea');
+                    contentTextarea.id = `paragraphContent${i + 1}`;
+                    contentTextarea.name = `paragraphContent${i + 1}`;
+                    currentPara.querySelector('label[for^="paragraphContent"]').htmlFor = `paragraphContent${i + 1}`;
+                    
+                    // 更新图片容器
+                    const imagesDiv = currentPara.querySelector('[id^="paragraph"]');
+                    imagesDiv.id = `paragraph${i + 1}Images`;
+                    
+                    // 更新图片的段落引用
+                    canvasImages.forEach(img => {
+                        if (img.paragraph === currentNum) {
+                            img.paragraph = i + 1;
+                        }
+                    });
+                }
+                
+                paragraphCount--;
+                updateCanvasImagesInput();
+                updateWordDataJson();
+            }, 300);
+        }
+
+        // 添加画布图片到当前段落
+        function addCanvasImage() {
+            const canvas = document.getElementById('id_4_canvas');
+            const imageDataUrl = canvas.toDataURL('image/png');
+            
+            if (!imageDataUrl || imageDataUrl === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAhdEVYdENyZWF0aW9uIFRpbWUAMjAyNTowNTozMCAxNTo0ODowMVl92aMAAABoSURBVHhe7cExAQAAAMKg909tDwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAv3R4AAEk8Q2wAAAAASUVORK5CYII=') {
+                alert('画布为空，无法添加图片');
+                return;
+            }
+            
+            // 获取当前活动段落（最后一个段落）
+            const activeParagraphNum = document.querySelectorAll('.paragraph').length;
+            const targetDiv = document.getElementById(`paragraph${activeParagraphNum}Images`);
+            
+            // 为图片生成唯一ID
+            const imageId = `canvasImage${canvasImageCount++}`;
+            
+            // 创建图片预览容器
+            const previewContainer = document.createElement('div');
+            previewContainer.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center justify-between transition-all duration-300 hover:shadow-md';
+            
+            // 添加预览
+            const previewImg = document.createElement('img');
+            previewImg.src = imageDataUrl;
+            previewImg.className = 'max-w-full h-auto rounded';
+            previewImg.id = imageId;
+            
+            // 添加删除按钮
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'ml-3 text-red-500 hover:text-red-700 transition-colors duration-300';
+            deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+            deleteBtn.onclick = function() {
+                previewContainer.classList.add('opacity-0');
+                setTimeout(() => {
+                    targetDiv.removeChild(previewContainer);
+                    // 从数组中移除
+                    const index = canvasImages.findIndex(img => img.id === imageId);
+                    if (index !== -1) {
+                        canvasImages.splice(index, 1);
+                    }
+                    updateCanvasImagesInput();
+                    updateWordDataJson();
+                }, 300);
+            };
+            
+            // 添加图片信息
+            const imgInfo = document.createElement('div');
+            imgInfo.className = 'ml-3';
+            imgInfo.innerHTML = `
+                <div class="text-sm font-medium text-gray-700">画布图片 ${canvasImageCount}</div>
+                <div class="text-xs text-gray-500">段落 ${activeParagraphNum}</div>
+            `;
+            
+            previewContainer.appendChild(previewImg);
+            previewContainer.appendChild(imgInfo);
+            previewContainer.appendChild(deleteBtn);
+            
+            targetDiv.appendChild(previewContainer);
+            
+            // 保存图片数据
+            canvasImages.push({
+                id: imageId,
+                dataUrl: imageDataUrl,
+                paragraph: activeParagraphNum
+            });
+            
+            updateCanvasImagesInput();
+            updateWordDataJson();
+            
+            // 滚动到新添加的图片
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 更新画布图片输入
+        function updateCanvasImagesInput() {
+            const canvasImagesInput = document.getElementById('canvasImages');
+            canvasImagesInput.value = JSON.stringify(canvasImages);
+        }
+
+        // 窗口切换和拖动逻辑
+        function toggleWindow(windowId) {
+            const window = document.getElementById(windowId);
+            const overlay = document.getElementById('overlay');
+            
+            if (window.style.display === 'block') {
+                // 关闭窗口
+                window.classList.add('opacity-0', 'scale-95');
+                overlay.classList.add('opacity-0');
+                
+                setTimeout(() => {
+                    window.style.display = 'none';
+                    overlay.style.display = 'none';
+                }, 300);
+                
+                activeWindowId = null;
+            } else {
+                // 关闭其他窗口
+                if (activeWindowId) {
+                    toggleWindow(activeWindowId);
+                }
+                
+                // 打开窗口
+                if (windowId === 'canvasWindow') {
+                    initCanvas();
+                } else if (windowId === 'jsonWindow') {
+                    updateWordDataTextarea();
+                }
+                
+                window.style.display = 'block';
+                overlay.style.display = 'block';
+                
+                // 添加动画
+                setTimeout(() => {
+                    window.classList.remove('opacity-0', 'scale-95');
+                    overlay.classList.remove('opacity-0');
+                }, 10);
+                
+                activeWindowId = windowId;
+                
+                // 初始化窗口拖动
+                initWindowDrag(windowId);
+            }
+        }
+
+       // 初始化窗口拖动
+       function initWindowDrag(windowId) {
+    const window = document.getElementById(windowId);
+    const header = document.getElementById(`${windowId}Header`);
+    
+    header.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // 禁用过渡效果
+        window.style.transition = 'none';
+        
+        const rect = window.getBoundingClientRect();
+        initialX = rect.left;
+        initialY = rect.top;
+        
+        window.style.transform = 'none';
+        window.style.left = `${initialX}px`;
+        window.style.top = `${initialY}px`;
+        
+        window.classList.add('scale-[1.01]', 'shadow-xl');
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            
+            const newX = initialX + dx;
+            const newY = initialY + dy;
+            
+            const windowWidth = window.offsetWidth;
+            const windowHeight = window.offsetHeight;
+            const maxX = window.innerWidth - windowWidth;
+            const maxY = window.innerHeight - windowHeight;
+            
+            const boundedX = Math.max(0, Math.min(newX, maxX));
+            const boundedY = Math.max(0, Math.min(newY, maxY));
+            
+            window.style.left = `${boundedX}px`;
+            window.style.top = `${boundedY}px`;
+        }
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            // 恢复过渡效果
+            window.style.transition = '';
+            window.classList.remove('scale-[1.01]', 'shadow-xl');
+        }
+    });
+}
+        // 更新Word数据JSON
+        function updateWordDataJson() {
+            const wordData = {
+                title: document.getElementById('title').value,
+                paragraphs: []
+            };
+            
+            for (let i = 1; i <= paragraphCount; i++) {
+                const title = document.getElementById(`paragraphTitle${i}`).value;
+                const content = document.getElementById(`paragraphContent${i}`).value;
+                
+                // 获取该段落的图片
+                const paragraphImages = canvasImages.filter(img => img.paragraph === i);
+                
+                wordData.paragraphs.push({
+                    title,
+                    content,
+                    images: paragraphImages.map(img => ({
+                        id: img.id,
+                        dataUrl: img.dataUrl
+                    }))
+                });
+            }
+            
+            document.getElementById('wordDataJson').value = JSON.stringify(wordData, null, 2);
+        }
+
+        // 更新Word数据文本区域
+        function updateWordDataTextarea() {
+            updateWordDataJson();
+            const wordDataJson = document.getElementById('wordDataJson').value;
+            document.getElementById('wordDataTextarea').value = wordDataJson;
+            document.getElementById('jsonStatus').textContent = '状态: 数据已更新';
+            document.getElementById('jsonStatus').className = 'text-sm text-gray-500 ml-auto self-center';
+        }
+
+        // 从JSON更新表单
+        function updateFromJson() {
+            try {
+                const jsonText = document.getElementById('wordDataTextarea').value;
+                const wordData = JSON.parse(jsonText);
+                
+                // 清空现有段落
+                const paragraphsDiv = document.getElementById('paragraphs');
+                paragraphsDiv.innerHTML = '';
+                
+                // 更新标题
+                document.getElementById('title').value = wordData.title || 'Word 测试文章';
+                
+                // 清空图片
+                canvasImages.length = 0;
+                canvasImageCount = 0;
+                
+                // 添加段落
+                paragraphCount = 0;
+                wordData.paragraphs.forEach((paragraph, index) => {
+                    addParagraph();
+                    const paraNum = index + 1;
+                    
+                    document.getElementById(`paragraphTitle${paraNum}`).value = paragraph.title || '';
+                    document.getElementById(`paragraphContent${paraNum}`).value = paragraph.content || '';
+                    
+                    // 添加图片
+                    if (paragraph.images && paragraph.images.length > 0) {
+                        paragraph.images.forEach(img => {
+                            const targetDiv = document.getElementById(`paragraph${paraNum}Images`);
+                            const imageId = `canvasImage${canvasImageCount++}`;
+                            
+                            // 创建图片预览容器
+                            const previewContainer = document.createElement('div');
+                            previewContainer.className = 'bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex items-center justify-between transition-all duration-300 hover:shadow-md';
+                            
+                            // 添加预览
+                            const previewImg = document.createElement('img');
+                            previewImg.src = img.dataUrl;
+                            previewImg.className = 'max-w-full h-auto rounded';
+                            previewImg.id = imageId;
+                            
+                            // 添加删除按钮
+                            const deleteBtn = document.createElement('button');
+                            deleteBtn.className = 'ml-3 text-red-500 hover:text-red-700 transition-colors duration-300';
+                            deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+                            deleteBtn.onclick = function() {
+                                previewContainer.classList.add('opacity-0');
+                                setTimeout(() => {
+                                    targetDiv.removeChild(previewContainer);
+                                    // 从数组中移除
+                                    const index = canvasImages.findIndex(img => img.id === imageId);
+                                    if (index !== -1) {
+                                        canvasImages.splice(index, 1);
+                                    }
+                                    updateCanvasImagesInput();
+                                    updateWordDataJson();
+                                }, 300);
+                            };
+                            
+                            // 添加图片信息
+                            const imgInfo = document.createElement('div');
+                            imgInfo.className = 'ml-3';
+                            imgInfo.innerHTML = `
+                                <div class="text-sm font-medium text-gray-700">画布图片 ${canvasImageCount}</div>
+                                <div class="text-xs text-gray-500">段落 ${paraNum}</div>
+                            `;
+                            
+                            previewContainer.appendChild(previewImg);
+                            previewContainer.appendChild(imgInfo);
+                            previewContainer.appendChild(deleteBtn);
+                            
+                            targetDiv.appendChild(previewContainer);
+                            
+                            // 保存图片数据
+                            canvasImages.push({
+                                id: imageId,
+                                dataUrl: img.dataUrl,
+                                paragraph: paraNum
+                            });
+                        });
+                    }
+                });
+                
+                updateCanvasImagesInput();
+                updateWordDataJson();
+                document.getElementById('jsonStatus').textContent = '状态: 表单已更新';
+                document.getElementById('jsonStatus').className = 'text-sm text-green-600 ml-auto self-center';
+            } catch (error) {
+                document.getElementById('jsonStatus').textContent = `状态: 错误 - ${error.message}`;
+                document.getElementById('jsonStatus').className = 'text-sm text-red-600 ml-auto self-center';
+            }
+        }
+
+        // 验证JSON
+        function validateJson() {
+            try {
+                const jsonText = document.getElementById('wordDataTextarea').value;
+                JSON.parse(jsonText);
+                document.getElementById('jsonStatus').textContent = '状态: JSON格式有效';
+                document.getElementById('jsonStatus').className = 'text-sm text-green-600 ml-auto self-center';
+                return true;
+            } catch (error) {
+                document.getElementById('jsonStatus').textContent = `状态: 无效JSON - ${error.message}`;
+                document.getElementById('jsonStatus').className = 'text-sm text-red-600 ml-auto self-center';
+                return false;
+            }
+        }
+
+        // 表单提交前验证
+        document.getElementById('mainForm').addEventListener('submit', function(e) {
+            // 确保JSON数据是最新的
+            updateWordDataJson();
+            
+            // 验证JSON
+            if (!validateJson()) {
+                if (confirm('检测到无效的JSON数据，可能会导致生成的文档不完整。是否继续？')) {
+                    return true;
+                } else {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化窗口拖动
+            initWindowDrag('canvasWindow');
+            initWindowDrag('jsonWindow');
+            
+            // 更新Word数据JSON
+            updateWordDataJson();
+        });
+    </script>
+</body>
+</html>
+    
+<!--
+移动窗口 can't move.
+-->
