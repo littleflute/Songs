@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六环音浪日记采集器</title>
+    <style>
+        :root {
+            --main-color: #ff9966;
+            --bg-color: #fff5e6;
+        }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg-color);
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: var(--main-color);
+            font-size: 18px;
+            border-left: 4px solid var(--main-color);
+            padding-left: 10px;
+            margin: 10px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background: var(--main-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            cursor: pointer;
+        }
+        details {
+            margin: 10px 0;
+        }
+        summary {
+            font-weight: bold;
+            color: #666;
+        }
+        @media (prefers-color-scheme: dark) {
+            body { background: #333; color: #eee; }
+            .section { background: #444; }
+            input, textarea { background: #555; color: #fff; }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;color:var(--main-color)">🎤 六环音浪日记采集器</h1>
+    
+    <div class="section">
+        <button onclick="saveData()">保存今日记录</button>
+        <button onclick="exportData()">导出所有记录</button>
+    </div>
+
+    <div class="section">
+        <details open>
+            <summary>📅 基本信息</summary>
+            <input type="date" id="date" placeholder="日期">
+            <input type="text" id="weather" placeholder="天气">
+            <input type="text" id="time" placeholder="卖唱时段">
+        </details>
+
+        <details>
+            <summary>🎵 场景特写</summary>
+            <textarea id="songList" placeholder="今日选曲单（3-5首）" rows="3"></textarea>
+            <textarea id="sounds" placeholder="声音记忆" rows="2"></textarea>
+            <textarea id="visuals" placeholder="视觉碎片" rows="2"></textarea>
+            <textarea id="smells" placeholder="气味密码" rows="2"></textarea>
+        </details>
+
+        <details>
+            <summary>👥 人物图谱</summary>
+            <textarea id="listener" placeholder="驻足最久的听众" rows="2"></textarea>
+            <textarea id="gift" placeholder="收到的礼物" rows="2"></textarea>
+            <textarea id="regular" placeholder="熟面孔观察" rows="2"></textarea>
+            <textarea id="guest" placeholder="意外来客" rows="2"></textarea>
+        </details>
+
+        <details>
+            <summary>🎭 流动剧场</summary>
+            <textarea id="drama" placeholder="最戏剧性场景" rows="4"></textarea>
+            <textarea id="monologue" placeholder="内心独白" rows="2"></textarea>
+            <input type="text" id="coinSound" placeholder="硬币声浪记录">
+        </details>
+    </div>
+
+    <script>
+        // 自动保存功能
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                localStorage.setItem(input.id, input.value);
+            });
+        });
+
+        // 加载保存的数据
+        window.onload = () => {
+            inputs.forEach(input => {
+                const saved = localStorage.getItem(input.id);
+                if (saved) input.value = saved;
+            });
+        };
+
+        function saveData() {
+            alert('已自动保存到本地浏览器！');
+        }
+
+        function exportData() {
+            const data = {};
+            inputs.forEach(input => {
+                data[input.id] = input.value;
+            });
+            const blob = new Blob([JSON.stringify(data)], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `音浪日记_${document.getElementById('date').value || '未命名'}.txt`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
