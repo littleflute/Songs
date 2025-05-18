@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D魔方演示</title>
+  <title>3D魔方模拟器</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
   <script>
@@ -11,14 +11,14 @@
       theme: {
         extend: {
           colors: {
-            primary: '#3B82F6',
-            secondary: '#10B981',
-            accent: '#8B5CF6',
-            dark: '#1F2937',
-            light: '#F3F4F6'
+            primary: '#007BFF',
+            secondary: '#28a745',
+            accent: '#FFC107',
+            dark: '#343A40',
+            light: '#F8F9FA'
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
           },
         },
       }
@@ -30,145 +30,135 @@
         content-visibility: auto;
       }
       .cube-shadow {
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      }
-      .sticker-hover {
-        transition: transform 0.2s ease;
-      }
-      .sticker-hover:hover {
-        transform: scale(1.05);
+        filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
       }
       .control-btn {
-        @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1;
+        @apply px-6 py-3 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 active:bg-primary/80 transition-all duration-200;
       }
-      .mobile-control {
-        @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-3 px-4 rounded-full shadow-lg transition-all duration-300;
+      .face-sticker {
+        @apply border border-black/20 rounded-sm shadow-sm;
       }
-      .perspective {
-        perspective: 1000px;
+      .full-screen {
+        min-height: 100vh;
       }
-      .preserve-3d {
-        transform-style: preserve-3d;
+      .flex-grow-1 {
+        flex-grow: 1;
       }
-      .rotate-x {
-        transform: rotateX(var(--rotate-x, 0deg));
+      .aspect-cube {
+        aspect-ratio: 1 / 1;
       }
-      .rotate-y {
-        transform: rotateY(var(--rotate-y, 0deg));
-      }
-      .backface-hidden {
-        backface-visibility: hidden;
+      .control-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       }
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-light to-gray-200 min-h-screen font-sans text-dark">
-  <header class="container mx-auto px-4 py-6">
-    <h1 class="text-[clamp(1.75rem,5vw,2.5rem)] font-bold text-center text-dark mb-2">3D魔方演示</h1>
-    <p class="text-center text-gray-600 max-w-2xl mx-auto">交互式魔方模拟器，支持桌面和移动设备操作。旋转、学习并掌握魔方的每一种变化！</p>
+<body class="bg-gray-50 font-inter full-screen flex flex-col">
+  <!-- 顶部导航 -->
+  <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+    <h1 class="text-xl md:text-2xl font-bold text-dark">3D魔方模拟器</h1>
+    <div class="flex gap-2">
+      <button id="resetBtn" class="control-btn bg-secondary">
+        <i class="fa fa-refresh mr-2"></i>重置
+      </button>
+      <button id="randomBtn" class="control-btn bg-accent">
+        <i class="fa fa-random mr-2"></i>打乱
+      </button>
+    </div>
   </header>
 
-  <main class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- 魔方展示区 -->
-      <div class="lg:col-span-2 flex justify-center items-center">
-        <div class="perspective">
-          <div id="cube-container" class="preserve-3d transition-transform duration-500 ease-in-out">
-            <!-- 魔方将在这里渲染 -->
-          </div>
-        </div>
-      </div>
-
-      <!-- 控制面板 -->
-      <div class="bg-white rounded-2xl p-6 shadow-xl">
-        <h2 class="text-xl font-bold mb-4 text-primary">魔方控制</h2>
-        
-        <div class="grid grid-cols-2 gap-3 mb-6">
-          <button onclick="rotate('U', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>上层右转
-          </button>
-          <button onclick="rotate('U', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>上层左转
-          </button>
-          
-          <button onclick="rotate('D', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>下层右转
-          </button>
-          <button onclick="rotate('D', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>下层左转
-          </button>
-          
-          <button onclick="rotate('F', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>前面右转
-          </button>
-          <button onclick="rotate('F', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>前面左转
-          </button>
-          
-          <button onclick="rotate('B', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>后面右转
-          </button>
-          <button onclick="rotate('B', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>后面左转
-          </button>
-          
-          <button onclick="rotate('L', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>左面右转
-          </button>
-          <button onclick="rotate('L', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>左面左转
-          </button>
-          
-          <button onclick="rotate('R', 'clockwise')" class="control-btn">
-            <i class="fa-solid fa-rotate-right mr-2"></i>右面右转
-          </button>
-          <button onclick="rotate('R', 'counter')" class="control-btn">
-            <i class="fa-solid fa-rotate-left mr-2"></i>右面左转
-          </button>
-        </div>
-        
-        <div class="flex justify-between mb-6">
-          <button onclick="shuffleCube()" class="control-btn bg-accent hover:bg-accent/90">
-            <i class="fa-solid fa-random mr-2"></i>随机打乱
-          </button>
-          <button onclick="resetCube()" class="control-btn bg-gray-600 hover:bg-gray-700">
-            <i class="fa-solid fa-refresh mr-2"></i>重置魔方
-          </button>
-        </div>
-        
-        <div class="bg-gray-50 rounded-xl p-4">
-          <h3 class="font-bold text-gray-700 mb-2">移动设备操作</h3>
-          <p class="text-gray-600 text-sm">在手机上，可以通过拖动来旋转整个魔方，点击任意面来执行旋转操作。</p>
-        </div>
+  <!-- 主内容区 -->
+  <main class="flex-grow-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-6 gap-6 w-full">
+    <!-- 2D魔方显示区 -->
+    <div class="w-full md:w-1/3 max-w-md bg-white rounded-xl shadow-lg p-4 h-full flex flex-col">
+      <h2 class="text-lg font-semibold mb-4 text-center">2D视图</h2>
+      <div class="grid grid-cols-3 gap-2 flex-grow-1">
+        <div id="U" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+        <div id="L" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+        <div id="F" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+        <div id="R" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+        <div id="B" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+        <div id="D" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
       </div>
     </div>
-    
-    <!-- 移动设备控制面板 -->
-    <div class="lg:hidden fixed bottom-4 left-0 right-0 flex justify-center z-50">
-      <div class="bg-white rounded-full shadow-2xl p-4 flex space-x-4">
-        <button onclick="rotate('U', 'clockwise')" class="mobile-control">U</button>
-        <button onclick="rotate('F', 'clockwise')" class="mobile-control">F</button>
-        <button onclick="rotate('R', 'clockwise')" class="mobile-control">R</button>
-        <button onclick="rotate('B', 'clockwise')" class="mobile-control">B</button>
-        <button onclick="rotate('L', 'clockwise')" class="mobile-control">L</button>
-        <button onclick="rotate('D', 'clockwise')" class="mobile-control">D</button>
+
+    <!-- 3D魔方显示区 -->
+    <!-- 3D魔方显示区 -->
+    <div class="w-full md:w-2/3 max-w-2xl flex flex-col items-center h-full">
+      <h2 class="text-lg font-semibold mb-4 text-center">3D视图</h2>
+      <div class="relative w-full" style="height: calc(100% - 60px)"> <!-- 调整高度留出工具栏空间 -->
+        <canvas id="id_4_cubeCanvas" class="w-full h-full rounded-xl shadow-lg cube-shadow"></canvas>
+      </div>
+      <div class="w-full mt-4 flex justify-center" id="id_4_div_toolbar"> <!-- 将工具栏移到画布容器外 -->
+        <div class="flex gap-2 flex-wrap justify-center">
+          <button onclick="rotate('U', 'clockwise')" class="control-btn bg-primary/90 text-sm">上顺</button>
+          <button onclick="rotate('D', 'clockwise')" class="control-btn bg-primary/90 text-sm">下顺</button>
+          <button onclick="rotate('L', 'clockwise')" class="control-btn bg-primary/90 text-sm">左顺</button>
+          <button onclick="rotate('R', 'clockwise')" class="control-btn bg-primary/90 text-sm">右顺</button>
+          <button onclick="rotate('F', 'clockwise')" class="control-btn bg-primary/90 text-sm">前顺</button>
+          <button onclick="rotate('B', 'clockwise')" class="control-btn bg-primary/90 text-sm">后顺</button>
+        </div>
       </div>
     </div>
   </main>
 
-  <footer class="container mx-auto px-4 py-6 mt-12 text-center text-gray-500">
-    <p>© 2025 3D魔方演示 | 一个交互式魔方学习工具</p>
+  <!-- 控制按钮区 -->
+  <div class="bg-white shadow-sm p-4">
+    <div class="grid control-grid gap-3 max-w-4xl mx-auto">
+      <button onclick="rotate('U', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>上顺
+      </button>
+      <button onclick="rotate('U', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>上逆
+      </button>
+      <button onclick="rotate('D', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>下顺
+      </button>
+      <button onclick="rotate('D', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>下逆
+      </button>
+      <button onclick="rotate('L', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>左顺
+      </button>
+      <button onclick="rotate('L', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>左逆
+      </button>
+      <button onclick="rotate('R', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>右顺
+      </button>
+      <button onclick="rotate('R', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>右逆
+      </button>
+      <button onclick="rotate('F', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>前顺
+      </button>
+      <button onclick="rotate('F', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>前逆
+      </button>
+      <button onclick="rotate('B', 'clockwise')" class="control-btn">
+        <i class="fa fa-rotate-right mr-2"></i>后顺
+      </button>
+      <button onclick="rotate('B', 'counter')" class="control-btn">
+        <i class="fa fa-rotate-left mr-2"></i>后逆
+      </button>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white py-4 px-6 text-center text-sm">
+    <p>3D魔方模拟器 &copy; 2025 | 使用HTML, CSS和JavaScript构建</p>
   </footer>
 
   <script>
-    // 颜色常量
+    // 魔方颜色定义
     const COLORS = {
-      'U': '#FFFFFF',  // 白
-      'D': '#FFFF00',  // 黄
-      'L': '#FFA500',  // 橙
-      'R': '#FF0000',  // 红
-      'F': '#00FF00',  // 绿
-      'B': '#0000FF'   // 蓝
+      'U': '#FFFFFF',  // 白色
+      'D': '#000000',  // black
+      'L': '#FFA500',  // 橙色
+      'R': '#FF0000',  // 红色
+      'F': '#00FF00',  // 绿色
+      'B': '#0000FF',  // 蓝色
+      'border': '#0000001A' // 边框颜色
     };
 
     // 魔方状态
@@ -181,7 +171,7 @@
       B: Array(3).fill().map(() => Array(3).fill('B'))
     };
 
-    // 邻接关系配置
+    // 相邻面边块关系定义
     const adjacentEdges = {
       F: {
         top:    { face: 'U', edge: 'bottom', reverse: false },
@@ -196,7 +186,7 @@
         left:   { face: 'R', edge: 'right',   reverse: false }
       },
       U: {
-        top:    { face: 'B', edge: 'bottom', reverse: true },
+        top:    { face: 'B', edge: 'top',     reverse: true },
         right:  { face: 'R', edge: 'top',    reverse: false },
         bottom: { face: 'F', edge: 'top',    reverse: false },
         left:   { face: 'L', edge: 'top',    reverse: false }
@@ -204,203 +194,482 @@
       D: {
         top:    { face: 'F', edge: 'bottom', reverse: false },
         right:  { face: 'R', edge: 'bottom', reverse: false },
-        bottom: { face: 'B', edge: 'top',    reverse: true },
+        bottom: { face: 'B', edge: 'bottom', reverse: true },
         left:   { face: 'L', edge: 'bottom', reverse: false }
       },
       L: {
         top:    { face: 'U', edge: 'left',   reverse: false },
         right:  { face: 'F', edge: 'left',    reverse: false },
         bottom: { face: 'D', edge: 'left',   reverse: false },
-        left:   { face: 'B', edge: 'right',   reverse: true }
+        left:   { face: 'B', edge: 'right',  reverse: true }
       },
       R: {
         top:    { face: 'U', edge: 'right',  reverse: false },
-        right:  { face: 'B', edge: 'left',    reverse: true },
+        right:  { face: 'B', edge: 'left',   reverse: true },
         bottom: { face: 'D', edge: 'right',  reverse: false },
-        left:   { face: 'F', edge: 'right',   reverse: false }
+        left:   { face: 'F', edge: 'right',  reverse: false }
       }
     };
 
-    // 魔方旋转状态
-    let rotationState = {
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      rotateX: 0,
-      rotateY: 0,
-      currentX: 0,
-      currentY: 0
-    };
+    // 3D魔方类
+    class Cube3D {
+      constructor(cubeState) {
+        this.cubeState = cubeState;
+        this.rotationX = 0;
+        this.rotationY = 0;
+        this.rotationZ = 0;
+        this.animating = false;
+        this.animationFrames = 15;
+        this.currentFrame = 0;
+        this.targetRotation = { x: 0, y: 0, z: 0 };
+        this.originalRotation = { x: 0, y: 0, z: 0 };
+        this.rotatingFace = null;
+        this.rotationDirection = null;
+        this.originalCubeState = JSON.parse(JSON.stringify(cubeState));
+      }
 
-    // 初始化渲染
-    function renderCube() {
-      const cubeContainer = document.getElementById('cube-container');
-      cubeContainer.innerHTML = '';
-      
-      // 设置魔方整体样式
-      cubeContainer.style.width = '180px';
-      cubeContainer.style.height = '180px';
-      cubeContainer.style.transform = `rotateX(${rotationState.rotateX}deg) rotateY(${rotationState.rotateY}deg)`;
-      
-      // 渲染六个面
-      const facePositions = {
-        F: { translateZ: '90px', rotateY: '0deg' },
-        B: { translateZ: '-90px', rotateY: '180deg' },
-        U: { translateY: '-90px', rotateX: '90deg' },
-        D: { translateY: '90px', rotateX: '-90deg' },
-        L: { translateX: '-90px', rotateY: '-90deg' },
-        R: { translateX: '90px', rotateY: '90deg' }
-      };
-      
-      Object.entries(cube).forEach(([faceKey, faceData]) => {
-        const faceElement = document.createElement('div');
-        faceElement.className = 'absolute w-full h-full preserve-3d';
-        faceElement.style.transform = `translateZ(${facePositions[faceKey].translateZ || '0px'}) 
-                                      rotateX(${facePositions[faceKey].rotateX || '0deg'}) 
-                                      rotateY(${facePositions[faceKey].rotateY || '0deg'})`;
-        faceElement.dataset.face = faceKey;
+      // 获取面的颜色
+      getFaceColor(face, x, y) {
+        return COLORS[this.cubeState[face][y][x]];
+      }
+
+      // 获取要绘制的面
+      getFacesToDraw() {
+        const faces = [];
+        const size = 0.5;
         
-        // 渲染每个面上的小方块
-        faceData.forEach((row, rowIndex) => {
-          row.forEach((color, colIndex) => {
-            const sticker = document.createElement('div');
-            sticker.className = 'absolute w-[58px] h-[58px] border border-gray-300 rounded-md sticker-hover';
-            sticker.style.backgroundColor = COLORS[color];
-            sticker.style.transform = `translateX(${(colIndex - 1) * 60}px) translateY(${(rowIndex - 1) * 60}px)`;
-            sticker.dataset.row = rowIndex;
-            sticker.dataset.col = colIndex;
-            sticker.dataset.face = faceKey;
-            
-            // 添加点击旋转事件
-            sticker.addEventListener('click', () => handleStickerClick(faceKey, rowIndex, colIndex));
-            
-            faceElement.appendChild(sticker);
-          });
+        for(let x = -1; x <= 1; x++) {
+          for(let y = -1; y <= 1; y++) {
+            for(let z = -1; z <= 1; z++) {
+              // 前面
+              if(z === 1) {
+                faces.push({
+                  face: 'F',
+                  color: this.getFaceColor('F', x + 1, 1 - y),
+                  vertices: [
+                    { x: x - size, y: y - size, z: z },
+                    { x: x + size, y: y - size, z: z },
+                    { x: x + size, y: y + size, z: z },
+                    { x: x - size, y: y + size, z: z }
+                  ],
+                  normal: { x: 0, y: 0, z: 1 }
+                });
+              }
+              
+              // 后面
+              if(z === -1) {
+                faces.push({
+                  face: 'B',
+                  color: this.getFaceColor('B', 1 - x, 1 - y),
+                  vertices: [
+                    { x: x + size, y: y - size, z: z },
+                    { x: x - size, y: y - size, z: z },
+                    { x: x - size, y: y + size, z: z },
+                    { x: x + size, y: y + size, z: z }
+                  ],
+                  normal: { x: 0, y: 0, z: -1 }
+                });
+              }
+              
+              // 上面
+              if(y === 1) {
+                faces.push({
+                  face: 'U',
+                  color: this.getFaceColor('U', x + 1, z + 1),
+                  vertices: [
+                    { x: x - size, y: y, z: z - size },
+                    { x: x + size, y: y, z: z - size },
+                    { x: x + size, y: y, z: z + size },
+                    { x: x - size, y: y, z: z + size }
+                  ],
+                  normal: { x: 0, y: 1, z: 0 }
+                });
+              }
+              
+              // 下面
+              if(y === -1) {
+                faces.push({
+                  face: 'D',
+                  color: this.getFaceColor('D', x + 1, 1 - z),
+                  vertices: [
+                    { x: x - size, y: y, z: z + size },
+                    { x: x + size, y: y, z: z + size },
+                    { x: x + size, y: y, z: z - size },
+                    { x: x - size, y: y, z: z - size }
+                  ],
+                  normal: { x: 0, y: -1, z: 0 }
+                });
+              }
+              
+              // 左面
+              if(x === -1) {
+                faces.push({
+                  face: 'L',
+                  color: this.getFaceColor('L', z + 1, 1 - y),
+                  vertices: [
+                    { x: x, y: y - size, z: z + size },
+                    { x: x, y: y - size, z: z - size },
+                    { x: x, y: y + size, z: z - size },
+                    { x: x, y: y + size, z: z + size }
+                  ],
+                  normal: { x: -1, y: 0, z: 0 }
+                });
+              }
+              
+              // 右面
+              if(x === 1) {
+                faces.push({
+                  face: 'R',
+                  color: this.getFaceColor('R', 1 - z, 1 - y),
+                  vertices: [
+                    { x: x, y: y - size, z: z - size },
+                    { x: x, y: y - size, z: z + size },
+                    { x: x, y: y + size, z: z + size },
+                    { x: x, y: y + size, z: z - size }
+                  ],
+                  normal: { x: 1, y: 0, z: 0 }
+                });
+              }
+            }
+          }
+        }
+        
+        return faces;
+      }
+
+      // 旋转魔方
+      rotate(face, direction) {
+        if (this.animating) return;
+        
+        this.rotatingFace = face;
+        this.rotationDirection = direction;
+        this.originalRotation = { x: this.rotationX, y: this.rotationY, z: this.rotationZ };
+        
+        // 根据旋转的面设置目标旋转角度
+        const angle = direction === 'clockwise' ? Math.PI / 2 : -Math.PI / 2;
+        
+        switch(face) {
+          case 'F':
+            this.targetRotation.z = this.rotationZ + angle;
+            break;
+          case 'B':
+            this.targetRotation.z = this.rotationZ - angle;
+            break;
+          case 'U':
+            this.targetRotation.y = this.rotationY + angle;
+            break;
+          case 'D':
+            this.targetRotation.y = this.rotationY - angle;
+            break;
+          case 'L':
+            this.targetRotation.x = this.rotationX + angle;
+            break;
+          case 'R':
+            this.targetRotation.x = this.rotationX - angle;
+            break;
+        }
+        
+        this.animating = true;
+        this.currentFrame = 0;
+        this.originalCubeState = JSON.parse(JSON.stringify(this.cubeState));
+      }
+
+      // 更新动画帧
+      updateAnimation() {
+        if (!this.animating) return;
+        
+        this.currentFrame++;
+        
+        // 动画进度
+        const progress = this.currentFrame / this.animationFrames;
+        const easeProgress = this.easeInOutCubic(progress);
+        
+        // 更新旋转角度
+        this.rotationX = this.originalRotation.x + (this.targetRotation.x - this.originalRotation.x) * easeProgress;
+        this.rotationY = this.originalRotation.y + (this.targetRotation.y - this.originalRotation.y) * easeProgress;
+        this.rotationZ = this.originalRotation.z + (this.targetRotation.z - this.originalRotation.z) * easeProgress;
+        
+        // 动画完成
+        if (this.currentFrame >= this.animationFrames) {
+          this.animating = false;
+          
+          // 应用实际的魔方旋转
+          if (this.rotatingFace) {
+            rotateFace(this.cubeState, this.rotatingFace, this.rotationDirection);
+            rotateEdges(this.cubeState, this.rotatingFace, this.rotationDirection);
+            renderCube();
+          }
+        }
+      }
+
+      // 缓动函数
+      easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+    }
+
+    // 渲染器类
+    class Renderer {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.width = canvas.width;
+        this.height = canvas.height;
+        this.centerX = this.width / 2;
+        this.centerY = this.height / 2;
+        this.scale = Math.min(this.width, this.height) / 4;
+        this.distance = 8;
+        this.lightDirection = { x: 0.5, y: -0.5, z: -1 };
+        this.lightDirection = normalizeVector(this.lightDirection);
+        
+        // 触摸控制相关
+        this.isDragging = false;
+        this.lastX = 0;
+        this.lastY = 0;
+        
+        this.setupEventListeners();
+      }
+
+      // 设置事件监听
+      setupEventListeners() {
+        this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+        
+        this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
+        this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
+        this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this));
+        
+        window.addEventListener('resize', this.handleResize.bind(this));
+      }
+
+      // 处理鼠标按下
+      handleMouseDown(e) {
+        this.isDragging = true;
+        this.lastX = e.clientX;
+        this.lastY = e.clientY;
+      }
+
+      // 处理鼠标移动
+      handleMouseMove(e) {
+        if (!this.isDragging) return;
+        
+        const deltaX = e.clientX - this.lastX;
+        const deltaY = e.clientY - this.lastY;
+        
+        cube3D.rotationY += deltaX * 0.01;
+        cube3D.rotationX += deltaY * 0.01;
+        
+        this.lastX = e.clientX;
+        this.lastY = e.clientY;
+      }
+
+      // 处理鼠标释放
+      handleMouseUp() {
+        this.isDragging = false;
+      }
+
+      // 处理触摸开始
+      handleTouchStart(e) {
+        if (e.touches.length !== 1) return;
+        
+        this.isDragging = true;
+        this.lastX = e.touches[0].clientX;
+        this.lastY = e.touches[0].clientY;
+        e.preventDefault();
+      }
+
+      // 处理触摸移动
+      handleTouchMove(e) {
+        if (!this.isDragging || e.touches.length !== 1) return;
+        
+        const deltaX = e.touches[0].clientX - this.lastX;
+        const deltaY = e.touches[0].clientY - this.lastY;
+        
+        cube3D.rotationY += deltaX * 0.01;
+        cube3D.rotationX += deltaY * 0.01;
+        
+        this.lastX = e.touches[0].clientX;
+        this.lastY = e.touches[0].clientY;
+        e.preventDefault();
+      }
+
+      // 处理触摸结束
+      handleTouchEnd() {
+        this.isDragging = false;
+      }
+
+      // 处理窗口大小变化
+      handleResize() {
+        this.width = this.canvas.clientWidth;
+        this.height = this.canvas.clientHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        this.centerX = this.width / 2;
+        this.centerY = this.height / 2;
+        this.scale = Math.min(this.width, this.height) / 4;
+      }
+
+      // 旋转点
+      rotatePoint(point, rx, ry, rz) {
+        // 绕X轴旋转
+        let y = point.y * Math.cos(rx) - point.z * Math.sin(rx);
+        let z = point.y * Math.sin(rx) + point.z * Math.cos(rx);
+        
+        // 绕Y轴旋转
+        let x = point.x * Math.cos(ry) + z * Math.sin(ry);
+        z = -point.x * Math.sin(ry) + z * Math.cos(ry);
+        
+        // 绕Z轴旋转
+        const tempX = x * Math.cos(rz) - y * Math.sin(rz);
+        y = x * Math.sin(rz) + y * Math.cos(rz);
+        x = tempX;
+        
+        return { x, y, z };
+      }
+
+      // 投影3D点到2D屏幕
+      project(point) {
+        const factor = this.distance / (this.distance + point.z);
+        return {
+          x: point.x * factor * this.scale + this.centerX,
+          y: -point.y * factor * this.scale + this.centerY,
+          depth: point.z
+        };
+      }
+
+      // 计算面的法向量
+      calculateNormal(vertices) {
+        const v1 = {
+          x: vertices[1].x - vertices[0].x,
+          y: vertices[1].y - vertices[0].y,
+          z: vertices[1].z - vertices[0].z
+        };
+        
+        const v2 = {
+          x: vertices[2].x - vertices[1].x,
+          y: vertices[2].y - vertices[1].y,
+          z: vertices[2].z - vertices[1].z
+        };
+        
+        return {
+          x: v1.y * v2.z - v1.z * v2.y,
+          y: v1.z * v2.x - v1.x * v2.z,
+          z: v1.x * v2.y - v1.y * v2.x
+        };
+      }
+
+      // 渲染魔方
+      render(cube3D) {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        
+        // 更新动画
+        cube3D.updateAnimation();
+        
+        // 获取所有要绘制的面
+        let faces = cube3D.getFacesToDraw();
+        
+        // 处理每个面
+        faces = faces.map(face => {
+          // 旋转面的顶点
+          const rotatedVertices = face.vertices.map(vertex => 
+            this.rotatePoint(vertex, cube3D.rotationX, cube3D.rotationY, cube3D.rotationZ)
+          );
+          
+          // 计算面的法向量
+          const normal = this.calculateNormal(rotatedVertices);
+          
+          // 计算光照强度
+          const lightIntensity = Math.max(0.2, 0.8 * dotProduct(normalizeVector(normal), this.lightDirection));
+          
+          // 投影顶点到2D屏幕
+          const projectedVertices = rotatedVertices.map(vertex => this.project(vertex));
+          
+          // 计算面的中心点深度
+          const centerZ = rotatedVertices.reduce((sum, vertex) => sum + vertex.z, 0) / 4;
+          
+          return {
+            ...face,
+            projectedVertices,
+            centerZ,
+            lightIntensity
+          };
         });
         
-        // 添加面点击事件
-        faceElement.addEventListener('click', (e) => {
-          if (e.target === faceElement) {
-            rotate(faceKey, 'clockwise');
+        // 按深度排序（从后到前）
+        faces.sort((a, b) => b.centerZ - a.centerZ);
+        
+        // 绘制每个面
+        faces.forEach(face => {
+          // 只绘制面向相机的面
+          if (face.normal.z > 0) {
+            // 应用光照
+            const color = this.applyLighting(face.color, face.lightIntensity);
+            
+            // 绘制面
+            this.ctx.fillStyle = color;
+            this.ctx.beginPath();
+            this.ctx.moveTo(face.projectedVertices[0].x, face.projectedVertices[0].y);
+            for (let i = 1; i < face.projectedVertices.length; i++) {
+              this.ctx.lineTo(face.projectedVertices[i].x, face.projectedVertices[i].y);
+            }
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            // 绘制边框
+            this.ctx.strokeStyle = COLORS.border;
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
           }
         });
+      }
+
+      // 应用光照效果
+      applyLighting(color, intensity) {
+        // 提取RGB值
+        const r = parseInt(color.substr(1, 2), 16);
+        const g = parseInt(color.substr(3, 2), 16);
+        const b = parseInt(color.substr(5, 2), 16);
         
-        cubeContainer.appendChild(faceElement);
-      });
-      
-      // 添加拖拽旋转事件
-      setupDragEvents();
-    }
-
-    // 处理贴纸点击，确定旋转方向
-    function handleStickerClick(faceKey, rowIndex, colIndex) {
-      // 根据点击的位置确定旋转方向
-      // 这里简化处理，只考虑顺时针和逆时针
-      const centerRow = 1;
-      const centerCol = 1;
-      
-      // 计算相对中心的位置
-      const rowDiff = rowIndex - centerRow;
-      const colDiff = colIndex - centerCol;
-      
-      // 根据点击位置确定旋转方向
-      let direction = 'clockwise';
-      
-      // 对于U, D, F, B面，根据点击位置决定方向
-      if (['U', 'D', 'F', 'B'].includes(faceKey)) {
-        // 如果点击在右侧或下方，使用逆时针
-        if (colDiff > 0 || rowDiff > 0) {
-          direction = 'counter';
-        }
-      } 
-      // 对于L, R面，方向判断相反
-      else if (['L', 'R'].includes(faceKey)) {
-        if (colDiff > 0 || rowDiff > 0) {
-          direction = 'clockwise';
-        } else {
-          direction = 'counter';
-        }
+        // 应用光照强度
+        const newR = Math.min(255, Math.max(0, Math.floor(r * intensity)));
+        const newG = Math.min(255, Math.max(0, Math.floor(g * intensity)));
+        const newB = Math.min(255, Math.max(0, Math.floor(b * intensity)));
+        
+        // 转换回十六进制
+        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
       }
-      
-      rotate(faceKey, direction);
     }
 
-    // 设置拖拽事件
-    function setupDragEvents() {
-      const cubeContainer = document.getElementById('cube-container');
-      
-      // 鼠标事件
-      cubeContainer.addEventListener('mousedown', startDrag);
-      document.addEventListener('mousemove', drag);
-      document.addEventListener('mouseup', endDrag);
-      
-      // 触摸事件
-      cubeContainer.addEventListener('touchstart', startDrag, { passive: false });
-      cubeContainer.addEventListener('touchmove', drag, { passive: false });
-      cubeContainer.addEventListener('touchend', endDrag);
+    // 辅助函数：向量归一化
+    function normalizeVector(v) {
+      const length = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+      return {
+        x: v.x / length,
+        y: v.y / length,
+        z: v.z / length
+      };
     }
 
-    // 开始拖拽
-    function startDrag(e) {
-      e.preventDefault();
-      rotationState.isDragging = true;
-      
-      if (e.type === 'mousedown') {
-        rotationState.startX = e.clientX;
-        rotationState.startY = e.clientY;
-      } else {
-        rotationState.startX = e.touches[0].clientX;
-        rotationState.startY = e.touches[0].clientY;
-      }
-      
-      rotationState.currentX = rotationState.rotateX;
-      rotationState.currentY = rotationState.rotateY;
+    // 辅助函数：向量点积
+    function dotProduct(a, b) {
+      return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
-    // 拖拽中
-    function drag(e) {
-      if (!rotationState.isDragging) return;
-      e.preventDefault();
-      
-      let clientX, clientY;
-      
-      if (e.type === 'mousemove') {
-        clientX = e.clientX;
-        clientY = e.clientY;
-      } else {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-      }
-      
-      const diffX = clientX - rotationState.startX;
-      const diffY = clientY - rotationState.startY;
-      
-      rotationState.rotateY = rotationState.currentY + diffX * 0.5;
-      rotationState.rotateX = rotationState.currentX - diffY * 0.5;
-      
-      // 更新魔方旋转
-      const cubeContainer = document.getElementById('cube-container');
-      cubeContainer.style.transform = `rotateX(${rotationState.rotateX}deg) rotateY(${rotationState.rotateY}deg)`;
-    }
-
-    // 结束拖拽
-    function endDrag() {
-      rotationState.isDragging = false;
-    }
-
-    // 旋转面
-    function rotateFace(face, direction) {
+    // 旋转一个面
+    function rotateFace(cube, faceKey, direction) {
       const newFace = [];
       for (let i = 0; i < 3; i++) {
         newFace[i] = direction === 'clockwise' 
-          ? [face[2][i], face[1][i], face[0][i]]
-          : [face[0][2-i], face[1][2-i], face[2][2-i]];
+          ? [cube[faceKey][2][i], cube[faceKey][1][i], cube[faceKey][0][i]]
+          : [cube[faceKey][0][2-i], cube[faceKey][1][2-i], cube[faceKey][2][2-i]];
       }
-      return newFace;
+      cube[faceKey] = newFace;
     }
 
-    // 旋转边
-    function rotateEdges(faceKey, direction) {
+    // 旋转相关的边块
+    function rotateEdges(cube, faceKey, direction) {
       const edges = ['top', 'right', 'bottom', 'left'];
       const temp = edges.map(edge => {
         const config = adjacentEdges[faceKey][edge];
@@ -408,8 +677,8 @@
         return config.reverse ? data.reverse() : data;
       });
 
-      // 顺时针旋转：将最后一个元素移到前面
-      // 逆时针旋转：将第一个元素移到后面
+      // 顺时针旋转：移动到下一个位置
+      // 逆时针旋转：移动到上一个位置
       direction === 'clockwise' ? temp.unshift(temp.pop()) : temp.push(temp.shift());
 
       edges.forEach((edge, i) => {
@@ -420,6 +689,7 @@
       });
     }
 
+    // 获取边块数据
     function getEdgeData(face, edge) {
       if (edge === 'top') return [...face[0]];
       if (edge === 'bottom') return [...face[2]];
@@ -427,6 +697,7 @@
       if (edge === 'right') return face.map(row => row[2]);
     }
 
+    // 设置边块数据
     function setEdgeData(face, edge, data) {
       if (edge === 'top') face[0] = data;
       else if (edge === 'bottom') face[2] = data;
@@ -434,87 +705,31 @@
       else if (edge === 'right') data.forEach((v, i) => face[i][2] = v);
     }
 
-    // 综合旋转操作，添加动画效果
-    function rotate(faceKey, direction) {
-      // 禁用交互
-      document.getElementById('cube-container').style.pointerEvents = 'none';
-      
-      // 应用旋转
-      cube[faceKey] = rotateFace(cube[faceKey], direction);
-      rotateEdges(faceKey, direction);
-      
-      // 渲染魔方，但暂时不应用旋转
-      const originalRotateX = rotationState.rotateX;
-      const originalRotateY = rotationState.rotateY;
-      rotationState.rotateX = 0;
-      rotationState.rotateY = 0;
-      renderCube();
-      
-      // 获取面元素
-      const faceElement = document.querySelector(`[data-face="${faceKey}"]`);
-      
-      // 添加旋转动画
-      faceElement.style.transition = 'transform 0.5s ease';
-      
-      // 根据面和方向设置旋转角度
-      let rotationAngle = direction === 'clockwise' ? '90deg' : '-90deg';
-      let rotationAxis = 'rotateY';
-      
-      if (faceKey === 'U' || faceKey === 'D') {
-        rotationAxis = 'rotateX';
-      } else if (faceKey === 'L' || faceKey === 'R') {
-        rotationAxis = 'rotateZ';
-      }
-      
-      faceElement.style.transform = `${faceElement.style.transform} ${rotationAxis}(${rotationAngle})`;
-      
-      // 动画结束后恢复并重新渲染
-      setTimeout(() => {
-        faceElement.style.transition = 'none';
-        faceElement.style.transform = faceElement.style.transform.replace(`${rotationAxis}(${rotationAngle})`, '');
+    // 渲染2D魔方
+    function renderCube() {
+      Object.entries(cube).forEach(([faceKey, faceData]) => {
+        const faceElement = document.getElementById(faceKey);
+        faceElement.innerHTML = '';
         
-        // 恢复原始旋转
-        rotationState.rotateX = originalRotateX;
-        rotationState.rotateY = originalRotateY;
-        renderCube();
-        
-        // 启用交互
-        document.getElementById('cube-container').style.pointerEvents = 'auto';
-      }, 500);
+        faceData.forEach(row => {
+          row.forEach(color => {
+            const sticker = document.createElement('div');
+            sticker.className = 'face-sticker';
+            sticker.style.backgroundColor = COLORS[color];
+            faceElement.appendChild(sticker);
+          });
+        });
+      });
     }
 
-    // 随机打乱魔方
-    function shuffleCube() {
-      const moves = ['U', 'D', 'F', 'B', 'L', 'R'];
-      const directions = ['clockwise', 'counter'];
-      const shuffleLength = 20;
-      
-      let shuffleMoves = [];
-      for (let i = 0; i < shuffleLength; i++) {
-        const move = moves[Math.floor(Math.random() * moves.length)];
-        const direction = directions[Math.floor(Math.random() * directions.length)];
-        shuffleMoves.push({ move, direction });
-      }
-      
-      // 按顺序执行打乱步骤
-      executeMoves(shuffleMoves, 0);
-    }
-
-    // 执行一系列旋转
-    function executeMoves(moves, index) {
-      if (index >= moves.length) return;
-      
-      const { move, direction } = moves[index];
-      rotate(move, direction);
-      
-      setTimeout(() => {
-        executeMoves(moves, index + 1);
-      }, 550); // 等待旋转动画完成
+    // 旋转魔方函数
+    function rotate(face, direction) {
+      // 更新3D魔方状态
+      cube3D.rotate(face, direction);
     }
 
     // 重置魔方
     function resetCube() {
-      // 重置魔方状态
       cube = {
         U: Array(3).fill().map(() => Array(3).fill('U')),
         D: Array(3).fill().map(() => Array(3).fill('D')),
@@ -524,25 +739,88 @@
         B: Array(3).fill().map(() => Array(3).fill('B'))
       };
       
-      // 添加重置动画
-      const cubeContainer = document.getElementById('cube-container');
-      cubeContainer.style.transition = 'transform 0.8s ease-out';
-      cubeContainer.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      // 重置3D魔方状态
+      cube3D.cubeState = JSON.parse(JSON.stringify(cube));
+      cube3D.rotationX = 0;
+      cube3D.rotationY = 0;
+      cube3D.rotationZ = 0;
       
-      // 重置旋转状态
-      rotationState.rotateX = 0;
-      rotationState.rotateY = 0;
-      
-      // 延迟渲染以显示动画
-      setTimeout(() => {
-        cubeContainer.style.transition = 'none';
-        renderCube();
-      }, 800);
+      renderCube();
     }
 
-    // 初始渲染
-    renderCube();
+    // 随机打乱魔方
+    function randomizeCube() {
+      const moves = ['U', 'D', 'L', 'R', 'F', 'B', 'U\'', 'D\'', 'L\'', 'R\'', 'F\'', 'B\''];
+      const numMoves = 20;
+      
+      let sequence = [];
+      for (let i = 0; i < numMoves; i++) {
+        const randomIndex = Math.floor(Math.random() * moves.length);
+        sequence.push(moves[randomIndex]);
+      }
+      
+      // 执行打乱序列
+      executeSequence(sequence, 0);
+    }
+
+    // 执行打乱序列
+    function executeSequence(sequence, index) {
+      if (index >= sequence.length) return;
+      
+      const move = sequence[index];
+      const face = move.charAt(0);
+      const direction = move.length > 1 ? 'counter' : 'clockwise';
+      
+      rotate(face, direction);
+      
+      // 延迟执行下一个动作
+      setTimeout(() => {
+        executeSequence(sequence, index + 1);
+      }, 200);
+    }
+
+    // 初始化
+    function init() {
+      // 初始化2D魔方
+      renderCube();
+      
+      // 初始化3D魔方
+      const canvas = document.getElementById('id_4_cubeCanvas');
+      // 设置canvas尺寸为容器大小
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      
+      cube3D = new Cube3D(cube);
+      renderer = new Renderer(canvas);
+      
+      // 动画循环
+      function animate() {
+        renderer.render(cube3D);
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+      
+      // 设置按钮事件
+      document.getElementById('resetBtn').addEventListener('click', resetCube);
+      document.getElementById('randomBtn').addEventListener('click', randomizeCube);
+      
+      // 监听窗口大小变化，调整canvas尺寸
+      window.addEventListener('resize', () => {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        renderer.handleResize();
+      });
+    }
+
+    // 启动应用
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>
-    
+  
+    <!--
+升级
+id_4_div_toolbar don't cover id_4_cubeCanvas
+return all new code
+-->
