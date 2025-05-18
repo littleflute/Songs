@@ -1,32 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     .cube-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-width: 400px;
+      gap: 8px;
+      padding: 10px;
+      max-width: 600px;
+      margin: 0 auto;
     }
-    
+
     .face {
       display: grid;
-      grid-template-columns: repeat(3, 50px);
+      grid-template-columns: repeat(3, 1fr);
       gap: 2px;
-      padding: 5px;
+      padding: 3px;
       background: #333;
       border-radius: 5px;
+      aspect-ratio: 1;
     }
 
     .sticker {
-      width: 50px;
-      height: 50px;
+      width: 100%;
+      height: 100%;
       border: 1px solid #000;
       border-radius: 3px;
+      min-width: 20px;
+      min-height: 20px;
     }
 
     .controls {
-      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      background: #0056b3;
+    }
+
+    @media (max-width: 600px) {
+      .cube-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      button {
+        flex: 1 1 45%;
+        padding: 15px;
+        font-size: 14px;
+      }
+      
+      .controls {
+        flex-direction: row;
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .cube-container {
+        gap: 5px;
+        padding: 5px;
+      }
+      
+      .face {
+        gap: 1px;
+        padding: 2px;
+      }
     }
   </style>
 </head>
@@ -46,17 +101,15 @@
   </div>
 
   <script>
-    // 颜色常量
     const COLORS = {
-      'U': '#FFFFFF',  // 白
-      'D': '#FFFF00',  // 黄
-      'L': '#FFA500',  // 橙
-      'R': '#FF0000',  // 红
-      'F': '#00FF00',  // 绿
-      'B': '#0000FF'   // 蓝
+      'U': '#FFFFFF',
+      'D': '#FFFF00',
+      'L': '#FFA500',
+      'R': '#FF0000',
+      'F': '#00FF00',
+      'B': '#0000FF'
     };
 
-    // 魔方状态
     let cube = {
       U: Array(3).fill().map(() => Array(3).fill('U')),
       D: Array(3).fill().map(() => Array(3).fill('D')),
@@ -66,7 +119,6 @@
       B: Array(3).fill().map(() => Array(3).fill('B'))
     };
 
-    // 邻接关系配置
     const adjacentEdges = {
       F: {
         top:    { face: 'U', edge: 'bottom', reverse: false },
@@ -76,7 +128,6 @@
       }
     };
 
-    // 初始化渲染
     function renderCube() {
       Object.entries(cube).forEach(([faceKey, faceData]) => {
         const faceElement = document.getElementById(faceKey);
@@ -87,7 +138,6 @@
       });
     }
 
-    // 旋转面
     function rotateFace(face, direction) {
       const newFace = [];
       for (let i = 0; i < 3; i++) {
@@ -98,7 +148,6 @@
       return newFace;
     }
 
-    // 旋转边
     function rotateEdges(faceKey, direction) {
       const edges = ['top', 'right', 'bottom', 'left'];
       const temp = edges.map(edge => {
@@ -131,15 +180,33 @@
       else if (edge === 'right') data.forEach((v, i) => face[i][2] = v);
     }
 
-    // 综合旋转操作
     function rotate(faceKey, direction) {
       cube[faceKey] = rotateFace(cube[faceKey], direction);
       rotateEdges(faceKey, direction);
       renderCube();
     }
 
-    // 初始渲染
+    // 添加触摸支持
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+    });
+
+    document.addEventListener('touchend', e => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchEndX - touchStartX;
+      if (Math.abs(diff) > 30) {
+        rotate('F', diff > 0 ? 'clockwise' : 'counter');
+      }
+    });
+
     renderCube();
   </script>
 </body>
 </html>
+<!--
+升级
+让手机可演示
+
+return all new code
+-->
