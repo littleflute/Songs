@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>3D魔方模拟器</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
@@ -26,20 +26,14 @@
   </script>
   <style type="text/tailwindcss">
     @layer utilities {
-      .content-auto {
-        content-visibility: auto;
-      }
       .cube-shadow {
         filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
       }
       .control-btn {
-        @apply px-6 py-3 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 active:bg-primary/80 transition-all duration-200;
+        @apply px-2 py-1.5 md:px-4 md:py-2 bg-primary text-white rounded-lg shadow-md hover:bg-primary/90 active:bg-primary/80 transition-all duration-200 text-xs md:text-sm;
       }
       .face-sticker {
-        @apply border border-black/20 rounded-sm shadow-sm;
-      }
-      .full-screen {
-        min-height: 100vh;
+        @apply border border-black/20 rounded-sm shadow-sm aspect-square;
       }
       .flex-grow-1 {
         flex-grow: 1;
@@ -48,104 +42,104 @@
         aspect-ratio: 1 / 1;
       }
       .control-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+      }
+      .canvas-container {
+        height: 30vh;
+        min-height: 200px;
+      }
+      @media (max-height: 600px) {
+        .canvas-container {
+          height: 25vh;
+          min-height: 150px;
+        }
       }
     }
   </style>
 </head>
-<body class="bg-gray-50 font-inter full-screen flex flex-col">
+<body class="bg-gray-50 font-inter h-screen flex flex-col overflow-hidden">
   <!-- 顶部导航 -->
-  <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
-    <h1 class="text-xl md:text-2xl font-bold text-dark">3D魔方模拟器</h1>
-    <div class="flex gap-2">
+  <header class="bg-white shadow-sm py-2 px-3 sm:py-3 sm:px-4 flex justify-between items-center">
+    <h1 class="text-sm sm:text-lg md:text-xl font-bold text-dark">3D魔方模拟器</h1>
+    <div class="flex gap-1">
       <button id="resetBtn" class="control-btn bg-secondary">
-        <i class="fa fa-refresh mr-2"></i>重置
+        <i class="fa fa-refresh mr-1"></i><span class="hidden sm:inline">重置</span>
       </button>
       <button id="randomBtn" class="control-btn bg-accent">
-        <i class="fa fa-random mr-2"></i>打乱
+        <i class="fa fa-random mr-1"></i><span class="hidden sm:inline">打乱</span>
       </button>
     </div>
   </header>
 
   <!-- 主内容区 -->
-  <main class="flex-grow-1 flex flex-col md:flex-row items-center justify-center p-4 md:p-6 gap-6 w-full">
+  <main class="flex-1 flex flex-col md:flex-row items-center justify-center p-1 sm:p-2 gap-2 w-full overflow-auto">
     <!-- 2D魔方显示区 -->
-    <div class="w-full md:w-1/3 max-w-md bg-white rounded-xl shadow-lg p-4 h-full flex flex-col">
-      <h2 class="text-lg font-semibold mb-4 text-center">2D视图</h2>
-      <div class="grid grid-cols-3 gap-2 flex-grow-1">
-        <div id="U" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
-        <div id="L" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
-        <div id="F" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
-        <div id="R" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
-        <div id="B" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
-        <div id="D" class="grid grid-cols-3 gap-1 p-1 bg-gray-800 rounded-md aspect-cube"></div>
+    <div class="w-full md:w-1/3 max-w-md bg-white rounded-xl shadow-lg p-3 flex flex-col">
+        <h2 class="text-base font-semibold mb-3 text-center">2D视图</h2>
+        <div class="grid grid-cols-3 gap-1 flex-grow-1">
+          <div id="U" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+          <div id="L" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+          <div id="F" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+          <div id="R" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+          <div id="B" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+          <div id="D" class="grid grid-cols-3 gap-[2px] p-[2px] bg-gray-800 rounded-md aspect-cube"></div>
+        </div>
       </div>
-    </div>
 
     <!-- 3D魔方显示区 -->
-    <!-- 3D魔方显示区 -->
-    <div class="w-full md:w-2/3 max-w-2xl flex flex-col items-center h-full">
-      <h2 class="text-lg font-semibold mb-4 text-center">3D视图</h2>
-      <div class="relative w-full" style="height: calc(100% - 60px)"> <!-- 调整高度留出工具栏空间 -->
+    <div class="w-full md:w-2/3 max-w-2xl flex flex-col items-center p-1">
+      <h2 class="text-xs sm:text-sm font-semibold mb-1 sm:mb-2 text-center">3D视图</h2>
+      <div class="relative w-full canvas-container">
         <canvas id="id_4_cubeCanvas" class="w-full h-full rounded-xl shadow-lg cube-shadow"></canvas>
-      </div>
-      <div class="w-full mt-4 flex justify-center" id="id_4_div_toolbar"> <!-- 将工具栏移到画布容器外 -->
-        <div class="flex gap-2 flex-wrap justify-center">
-          <button onclick="rotate('U', 'clockwise')" class="control-btn bg-primary/90 text-sm">上顺</button>
-          <button onclick="rotate('D', 'clockwise')" class="control-btn bg-primary/90 text-sm">下顺</button>
-          <button onclick="rotate('L', 'clockwise')" class="control-btn bg-primary/90 text-sm">左顺</button>
-          <button onclick="rotate('R', 'clockwise')" class="control-btn bg-primary/90 text-sm">右顺</button>
-          <button onclick="rotate('F', 'clockwise')" class="control-btn bg-primary/90 text-sm">前顺</button>
-          <button onclick="rotate('B', 'clockwise')" class="control-btn bg-primary/90 text-sm">后顺</button>
-        </div>
       </div>
     </div>
   </main>
 
   <!-- 控制按钮区 -->
-  <div class="bg-white shadow-sm p-4">
-    <div class="grid control-grid gap-3 max-w-4xl mx-auto">
+  <div class="bg-white shadow-sm p-1 sm:p-2">
+    <div class="grid control-grid gap-1 max-w-4xl mx-auto">
+      <!-- 保持原有控制按钮结构，优化按钮尺寸 -->
       <button onclick="rotate('U', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>上顺
+        <i class="fa fa-rotate-right mr-1"></i>上顺
       </button>
-      <button onclick="rotate('U', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>上逆
+      <button onclick="rotate('U', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>上逆
       </button>
-      <button onclick="rotate('D', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>下顺
+      <button onclick="rotate('D', 'clockwise')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-right mr-1"></i>下顺
       </button>
-      <button onclick="rotate('D', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>下逆
+      <button onclick="rotate('D', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>下逆
       </button>
-      <button onclick="rotate('L', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>左顺
+      <button onclick="rotate('L', 'clockwise')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-right mr-1"></i>左顺
       </button>
-      <button onclick="rotate('L', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>左逆
+      <button onclick="rotate('L', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>左逆
       </button>
-      <button onclick="rotate('R', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>右顺
+      <button onclick="rotate('R', 'clockwise')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-right mr-1"></i>右顺
       </button>
-      <button onclick="rotate('R', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>右逆
+      <button onclick="rotate('R', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>右逆
       </button>
-      <button onclick="rotate('F', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>前顺
+      <button onclick="rotate('F', 'clockwise')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-right mr-1"></i>前顺
       </button>
-      <button onclick="rotate('F', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>前逆
+      <button onclick="rotate('F', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>前逆
       </button>
-      <button onclick="rotate('B', 'clockwise')" class="control-btn">
-        <i class="fa fa-rotate-right mr-2"></i>后顺
+      <button onclick="rotate('B', 'clockwise')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-right mr-1"></i>后顺
       </button>
-      <button onclick="rotate('B', 'counter')" class="control-btn">
-        <i class="fa fa-rotate-left mr-2"></i>后逆
+      <button onclick="rotate('B', 'counter')" class="control-btn mobile-btn">
+        <i class="fa fa-rotate-left mr-1"></i>后逆
       </button>
     </div>
   </div>
 
   <!-- 页脚 -->
-  <footer class="bg-dark text-white py-4 px-6 text-center text-sm">
+  <footer class="bg-dark text-white py-1 px-2 text-center text-[10px] sm:text-xs">
     <p>3D魔方模拟器 &copy; 2025 | 使用HTML, CSS和JavaScript构建</p>
   </footer>
 
@@ -153,7 +147,7 @@
     // 魔方颜色定义
     const COLORS = {
       'U': '#FFFFFF',  // 白色
-      'D': '#000000',  // black
+      'D': '#000000',  // 黑色
       'L': '#FFA500',  // 橙色
       'R': '#FF0000',  // 红色
       'F': '#00FF00',  // 绿色
@@ -818,9 +812,3 @@
   </script>
 </body>
 </html>
-  
-    <!--
-升级
-id_4_div_toolbar don't cover id_4_cubeCanvas
-return all new code
--->
