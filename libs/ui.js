@@ -18,11 +18,14 @@ class C4UI{
         const oPage = new C4TestPage();
     
         console.log("oUI.run:=====" + Date())
+        
+        const issues = await oAPI.getIssues(3);
+
         const i1 = await oAPI.getIssue1();
         const title1 = i1.title|| '使用issue的内容作为默认值，如果没有内容则为空 ';
         const content1 = i1.body || '使用issue的内容作为默认值，如果没有内容则为空字符串';  
         const docTitle = "Word 测试文章";
-        const html =   oPage.makeHtml(docTitle,title1,content1);
+        const html =   oPage.makeHtml(docTitle,title1,content1,issues);
         res.send(html);
     }
 }
@@ -63,6 +66,16 @@ class C4GithubAPI {
         } catch (error) {
             console.error("获取 GitHub issue 时出错:", error);
             return { title: "Error fetching issues" }; // 出错时返回默认值
+        }
+    }
+    async getIssues(num = 3) {
+        try {
+            const currentRepo = "Songs";
+            const issues = await this.#apiRequest(currentRepo, "GET", `issues?per_page=${num}`);
+            return issues.slice(0, num);
+        } catch (error) {
+            console.error("获取 GitHub issues 时出错:", error);
+            return [];
         }
     }
 }
@@ -267,9 +280,11 @@ function drawSample1() {
        return html;
     }
     
-    makeHtml(docTitle,title1,content1) {
+    makeHtml(docTitle,title1,content1,issues) {
         let jsDraw = this.#drawingCode();
         let cssDraw = this.#drawCss();
+        let div4Wnd = this.#createWnd();
+        let jsLoadIssues = this.#loadIssuesCode(issues);
         let html = `
             <!DOCTYPE html>
             <html lang="en">
@@ -341,21 +356,7 @@ function drawSample1() {
                 <div id="id_4_toolbar">
                     <button id="id_4_toggle_window" onclick="toggleWindow()">切换窗口</button>
                 </div>
-                <!-- 可移动窗口 -->
-                <div id="movableWindow">
-                    <div id="windowHeader">拖动此处移动窗口</div>
-                    <div id="id_4_div_canvas_wrap">
-                        <canvas 
-                            id="id_4_canvas" 
-                            width="400" 
-                            height="150"
-                            style="border: 1px solid #000; background: white;"
-                        ></canvas>
-                        <button onclick="clearCanvas()">清除画布</button>
-                        <button id="id_4_btn_sample1">sample1</button>
-                        <button id="id_4_btn_sample2">sample2</button>
-                    </div>
-                </div>
+                ${div4Wnd}
                 <script>
                     ${jsDraw}
                     let paragraphCount = 1;
@@ -475,10 +476,58 @@ function drawSample1() {
                         // 这里可以实现json窗口的逻辑
                         alert('JSON窗口功能将在此处实现');
                     }
+                    ${jsLoadIssues}
+                    window.addEventListener('DOMContentLoaded', () => {
+                        createIssueButtons(); 
+                    });
                 </script>
             </body>
             </html>
         `;
+        return html;
+    }
+    #loadIssuesCode(issues){
+        const data = JSON.stringify(issues);
+        const html = `
+                    const issuesData = ${data};
+                    
+                    // 页面加载时创建issue按钮
+                    function createIssueButtons() {
+                        const toolbar = document.getElementById('id_4_div_toolbar_load_issues');
+                        issuesData.forEach((issue, index) => {
+                            const btn = document.createElement('button');
+                            btn.textContent = index;
+                            btn.style.margin = '2px';
+                            btn.onclick = () => {
+                                document.getElementById('id_4_textarea').value = issue.title + " " + issue.body; 
+                            };
+                            toolbar.appendChild(btn);
+                        });
+                    }
+                    `;
+        return html;
+    }
+    #createWnd(){
+        const html=`
+                <!-- 可移动窗口 -->
+                <div id="movableWindow">
+                    <div id="windowHeader">drag here v0.11</div>
+                    <div id="id_4_div_canvas_wrap">
+                        <canvas 
+                            id="id_4_canvas" 
+                            width="400" 
+                            height="150"
+                            style="border: 1px solid #000; background: white;"
+                        ></canvas>
+                        <button onclick="clearCanvas()">清除画布</button>
+                        <button id="id_4_btn_sample1">sample1</button>
+                        <button id="id_4_btn_sample2">sample2</button>
+                    </div>
+                    <div id="id_4_div_toolbar_load_issues">
+                        <textarea id="id_4_textarea" value = "test..."></textarea>
+                    </div>
+                </div>
+                `;
         return html;
     }
     #createTemplate() {
