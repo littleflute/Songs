@@ -276,6 +276,11 @@ function drawSample1() {
             #id_4_canvas {
                 touch-action: none; /* 防止移动端页面滚动 */
             }
+            /* 添加按钮高亮样式 */
+            .highlighted {
+                background-color: #4CAF50;
+                color: white;
+            }
         `;
        return html;
     }
@@ -498,7 +503,16 @@ function drawSample1() {
                             const btn = document.createElement('button');
                             btn.textContent = index;
                             btn.style.margin = '2px';
-                            btn.onclick = () => {
+                            btn.onclick = () => { 
+                                // 重置所有按钮样式
+                                document.querySelectorAll('#id_4_div_toolbar_load_issues button').forEach(button => {
+                                    button.classList.remove('highlighted');
+                                });
+                                
+                                // 高亮当前按钮
+                                btn.classList.add('highlighted');
+                                
+                                // 更新文本区域内容
                                 document.getElementById('id_4_textarea').value = issue.title + " " + issue.body; 
                             };
                             toolbar.appendChild(btn);
@@ -582,5 +596,9 @@ function drawSample1() {
             console.error('生成模板文件缓冲区时出错:', err);
         });
     }
-} 
+}     
  
+/**
+ * code11
+ * return all new code
+ */
