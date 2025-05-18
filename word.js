@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 3000; 
 const path = require('path'); 
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, WidthType } = require('docx');
 const bodyParser = require('body-parser');
 const sharp = require('sharp');  
 const oUI = require('./libs/ui'); 

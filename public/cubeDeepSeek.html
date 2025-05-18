@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .cube-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 400px;
+    }
+    
+    .face {
+      display: grid;
+      grid-template-columns: repeat(3, 50px);
+      gap: 2px;
+      padding: 5px;
+      background: #333;
+      border-radius: 5px;
+    }
+
+    .sticker {
+      width: 50px;
+      height: 50px;
+      border: 1px solid #000;
+      border-radius: 3px;
+    }
+
+    .controls {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="rotate('F', 'clockwise')">前面顺时针</button>
+    <button onclick="rotate('F', 'counter')">前面逆时针</button>
+  </div>
+  
+  <div class="cube-container">
+    <div class="face" id="U"></div>
+    <div class="face" id="L"></div>
+    <div class="face" id="F"></div>
+    <div class="face" id="R"></div>
+    <div class="face" id="B"></div>
+    <div class="face" id="D"></div>
+  </div>
+
+  <script>
+    // 颜色常量
+    const COLORS = {
+      'U': '#FFFFFF',  // 白
+      'D': '#FFFF00',  // 黄
+      'L': '#FFA500',  // 橙
+      'R': '#FF0000',  // 红
+      'F': '#00FF00',  // 绿
+      'B': '#0000FF'   // 蓝
+    };
+
+    // 魔方状态
+    let cube = {
+      U: Array(3).fill().map(() => Array(3).fill('U')),
+      D: Array(3).fill().map(() => Array(3).fill('D')),
+      L: Array(3).fill().map(() => Array(3).fill('L')),
+      R: Array(3).fill().map(() => Array(3).fill('R')),
+      F: Array(3).fill().map(() => Array(3).fill('F')),
+      B: Array(3).fill().map(() => Array(3).fill('B'))
+    };
+
+    // 邻接关系配置
+    const adjacentEdges = {
+      F: {
+        top:    { face: 'U', edge: 'bottom', reverse: false },
+        right:  { face: 'R', edge: 'left',    reverse: true  },
+        bottom: { face: 'D', edge: 'top',    reverse: false },
+        left:   { face: 'L', edge: 'right',   reverse: true  }
+      }
+    };
+
+    // 初始化渲染
+    function renderCube() {
+      Object.entries(cube).forEach(([faceKey, faceData]) => {
+        const faceElement = document.getElementById(faceKey);
+        faceElement.innerHTML = faceData
+          .flatMap(row => row
+            .map(color => `<div class="sticker" style="background:${COLORS[color]}"></div>`)
+          ).join('');
+      });
+    }
+
+    // 旋转面
+    function rotateFace(face, direction) {
+      const newFace = [];
+      for (let i = 0; i < 3; i++) {
+        newFace[i] = direction === 'clockwise' 
+          ? [face[2][i], face[1][i], face[0][i]]
+          : [face[0][2-i], face[1][2-i], face[2][2-i]];
+      }
+      return newFace;
+    }
+
+    // 旋转边
+    function rotateEdges(faceKey, direction) {
+      const edges = ['top', 'right', 'bottom', 'left'];
+      const temp = edges.map(edge => {
+        const config = adjacentEdges[faceKey][edge];
+        const data = getEdgeData(cube[config.face], config.edge);
+        return config.reverse ? data.reverse() : data;
+      });
+
+      direction === 'clockwise' ? temp.unshift(temp.pop()) : temp.push(temp.shift());
+
+      edges.forEach((edge, i) => {
+        const config = adjacentEdges[faceKey][edge];
+        let data = temp[i];
+        if (config.reverse) data = data.reverse();
+        setEdgeData(cube[config.face], config.edge, data);
+      });
+    }
+
+    function getEdgeData(face, edge) {
+      if (edge === 'top') return [...face[0]];
+      if (edge === 'bottom') return [...face[2]];
+      if (edge === 'left') return face.map(row => row[0]);
+      if (edge === 'right') return face.map(row => row[2]);
+    }
+
+    function setEdgeData(face, edge, data) {
+      if (edge === 'top') face[0] = data;
+      else if (edge === 'bottom') face[2] = data;
+      else if (edge === 'left') data.forEach((v, i) => face[i][0] = v);
+      else if (edge === 'right') data.forEach((v, i) => face[i][2] = v);
+    }
+
+    // 综合旋转操作
+    function rotate(faceKey, direction) {
+      cube[faceKey] = rotateFace(cube[faceKey], direction);
+      rotateEdges(faceKey, direction);
+      renderCube();
+    }
+
+    // 初始渲染
+    renderCube();
+  </script>
+</body>
+</html>
