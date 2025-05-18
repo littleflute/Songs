@@ -45,6 +45,7 @@ class C4GithubAPI {
         }
     }
 }
+
 class C4TestPage{
     #drawingCode(){
         let html = `// Canvas 绘图逻辑
@@ -257,7 +258,7 @@ function drawSample1() {
                     .paragraph {
                         margin-bottom: 10px;
                     }
-                    #toolbar {
+                    #id_4_toolbar {
                         position: fixed;
                         top: 0;
                         left: 0;
@@ -292,26 +293,28 @@ function drawSample1() {
                 </style>
             </head>
             <body>
-                <form action="/download" method="post" id="mainForm">
-                    <input type="hidden" id="canvasImages" name="canvasImages" value="">
-                    <label for="title">文章标题:</label><br>
-                    <input type="text" id="title" name="title" value="${docTitle}"  required><br>
-                    <div id="paragraphs">
-                        <div class="paragraph">
-                            <label for="paragraphTitle1">段落标题 1:</label><br>
-                            <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="${title1}" required><br>
-                            <label for="paragraphContent1">段落内容 1:</label><br>
-                            <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required>${content1}</textarea><br>
-                            <div id="paragraph1Images"></div>
+                <div style="padding-top: 60px;"> <!-- 新增顶部内边距，防止内容被工具栏覆盖 -->
+                    <form action="/download" method="post" id="mainForm">
+                        <input type="hidden" id="canvasImages" name="canvasImages" value="">
+                        <label for="title">文章标题:</label><br>
+                        <input type="text" id="title" name="title" value="${docTitle}"  required><br>
+                        <div id="paragraphs">
+                            <div class="paragraph">
+                                <label for="paragraphTitle1">段落标题 1:</label><br>
+                                <input type="text" id="paragraphTitle1" name="paragraphTitle1" value="${title1}" required><br>
+                                <label for="paragraphContent1">段落内容 1:</label><br>
+                                <textarea id="paragraphContent1" name="paragraphContent1" rows="4" cols="50" required>${content1}</textarea><br>
+                                <div id="paragraph1Images"></div>
+                            </div>
                         </div>
-                    </div>
-                    <button type="button" onclick="addParagraph()">添加新段落</button><br>
-                    <button type="button" id="id_4_btn_add_pic_from_id_4_canvas" onclick="addCanvasImage()">添加画布图片</button><br>
-                    <button type="button" id="id_4_btn_toggle_json_wnd" onclick="addCanvasImage()">jsonWnd</button><br>
-                    <input type="submit" value="生成并下载 Word 文件">
-                </form>
+                        <button type="button" onclick="addParagraph()">添加新段落</button><br>
+                        <button type="button" id="id_4_btn_add_pic_from_id_4_canvas" onclick="addCanvasImage()">添加画布图片</button><br>
+                        <button type="button" id="id_4_btn_toggle_json_wnd" onclick="toggleJsonWindow()">jsonWnd</button><br>
+                        <input type="submit" value="生成并下载 Word 文件">
+                    </form>
+                </div>
                 <!-- 固定工具栏 -->
-                <div id="toolbar">
+                <div id="id_4_toolbar">
                     <button id="id_4_toggle_window" onclick="toggleWindow()">切换窗口</button>
                 </div>
                 <!-- 可移动窗口 -->
@@ -441,6 +444,12 @@ function drawSample1() {
                             movableWindow.style.top = '50%';
                             movableWindow.style.transform = 'translate(-50%, -50%)';
                         }
+                    }
+                    
+                    // 修复jsonWnd按钮的点击事件
+                    function toggleJsonWindow() {
+                        // 这里可以实现json窗口的逻辑
+                        alert('JSON窗口功能将在此处实现');
                     }
                 </script>
             </body>
@@ -668,7 +677,8 @@ app.post('/download', async (req, res) => {
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
-});                     
-
-// code id_4_btn_toggle_json_wnd: to toggle a movable window, there is a textarea in the window. show the word data as json in the textarea
+});                    
+/*
+// id_4_toolbar 不要cover title
 // return all new code
+*/
