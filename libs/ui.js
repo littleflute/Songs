@@ -1,5 +1,3 @@
-// file: ui.js
-
 const fs = require('fs');
 const path = require('path');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, WidthType } = require('docx');
@@ -84,7 +82,12 @@ class C4TestPage{
     constructor(){
         this.#createTemplate();
     }
-    #drawingCode(){
+    #getSample1Code(){ 
+        let r =`alert(1)`;
+
+        return r;
+    } 
+    #drawingCode(){ 
         let html = `// Canvas 绘图逻辑
             const canvas = document.getElementById('id_4_canvas');
             const ctx = canvas.getContext('2d');
@@ -127,8 +130,74 @@ class C4TestPage{
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
                 // 绑定样本按钮点击事件 
-document.getElementById('id_4_btn_sample2').addEventListener('click', drawGreatWallSample);
-// 在C4TestPage类的#drawingCode方法中添加以下代码
+document.getElementById('id_4_btn_sample1').addEventListener('click', drawSample1); 
+function drawSample1() { 
+            const canvas = document.getElementById('id_4_canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 树干
+            ctx.beginPath();
+            ctx.rect(180, 100, 40, 100);
+            ctx.fillStyle = '#8B4513'; // 棕色
+            ctx.fill();
+            
+            // 树叶（三角形）
+            ctx.beginPath();
+            ctx.moveTo(200, 20);
+            ctx.lineTo(140, 100);
+            ctx.lineTo(260, 100);
+            ctx.closePath();
+            ctx.fillStyle = '#228B22'; // 深绿色
+            ctx.fill();
+            
+            // 第二层树叶
+            ctx.beginPath();
+            ctx.moveTo(200, 40);
+            ctx.lineTo(150, 120);
+            ctx.lineTo(250, 120);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 第三层树叶
+            ctx.beginPath();
+            ctx.moveTo(200, 60);
+            ctx.lineTo(160, 140);
+            ctx.lineTo(240, 140);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 太阳
+            ctx.beginPath();
+            ctx.arc(320, 40, 30, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFD700'; // 金色
+            ctx.fill();
+            
+            // 太阳光芒
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI / 4) * i;
+                const x1 = 320 + Math.cos(angle) * 45;
+                const y1 = 40 + Math.sin(angle) * 45;
+                const x2 = 320 + Math.cos(angle) * 60;
+                const y2 = 40 + Math.sin(angle) * 60;
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFD700';
+                ctx.stroke();
+            }
+            
+            // 树标签
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Arial';
+            ctx.fillText('示例树', 170, 220);  
+         
+    }
+document.getElementById('id_4_btn_sample2').addEventListener('click', drawGreatWallSample); 
 function drawGreatWallSample() {
     const canvas = document.getElementById('id_4_canvas');
     const ctx = canvas.getContext('2d');
@@ -204,66 +273,8 @@ function drawGreatWallSample() {
     ctx.textAlign = 'center';
     ctx.fillText('万里长城欢迎您', canvas.width/2, 50);
 }
-
-// 在初始化代码后添加事件监听
-document.getElementById('id_4_btn_sample1').addEventListener('click', drawSample1);
-function drawSample1() {
-    const canvas = document.getElementById('id_4_canvas');
-    const ctx = canvas.getContext('2d');
-    clearCanvas();
-    
-    // 绘制渐变背景
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#87CEEB'); // 天空蓝
-    gradient.addColorStop(1, '#4682B4'); // 深蓝
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 绘制山脉
-    ctx.fillStyle = '#2F4F4F';
-    ctx.beginPath();
-    ctx.moveTo(-50, 150);
-    ctx.bezierCurveTo(80, -20, 150, 80, 250, 50);
-    ctx.bezierCurveTo(320, 30, 380, 80, 450, 50);
-    ctx.lineTo(450, 150);
-    ctx.lineTo(-50, 150);
-    ctx.fill();
-
-    // 绘制长城主体
-    ctx.strokeStyle = '#8B4513';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(50, 100);
-    ctx.lineTo(100, 80);
-    ctx.lineTo(150, 90);
-    ctx.lineTo(200, 70);
-    ctx.lineTo(250, 80);
-    ctx.lineTo(300, 60);
-    ctx.lineTo(350, 70);
-    ctx.stroke();
-
-    // 绘制城垛
-    ctx.fillStyle = '#A0522D';
-    for(let x = 50; x < 350; x += 30) {
-        ctx.fillRect(x, (x % 60 < 30) ? 95 : 90, 15, 10);
-    }
-
-    // 添加文字
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 5;
-    ctx.fillText('万里长城', 150, 40);
-    ctx.font = '16px Arial';
-    ctx.fillText('中华民族的象征', 140, 70);
-
-    // 绘制太阳
-    ctx.beginPath();
-    ctx.arc(360, 40, 20, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFD700';
-    ctx.fill();
-}
-    `;
+ 
+ `;
       return html;
     }
     
@@ -481,6 +492,45 @@ function drawSample1() {
                         // 这里可以实现json窗口的逻辑
                         alert('JSON窗口功能将在此处实现');
                     }
+                    
+                    // 执行textarea中代码的功能
+                    document.getElementById('id_4_btn_run_from_ta').addEventListener('click', runCodeFromTextarea);
+                    
+                    function runCodeFromTextarea() {
+                        try {
+                            const code = document.getElementById('id_4_textarea').value;
+                            const canvas = document.getElementById('id_4_canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            // 保存当前画布状态
+                            const tempCanvas = document.createElement('canvas');
+                            tempCanvas.width = canvas.width;
+                            tempCanvas.height = canvas.height;
+                            const tempCtx = tempCanvas.getContext('2d');
+                            tempCtx.drawImage(canvas, 0, 0);
+                            
+                            // 清空画布
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            
+                            // 创建沙箱环境执行代码
+                            const sandbox = {
+                                ctx: ctx,
+                                canvas: canvas,
+                                clearCanvas: clearCanvas,
+                                alert: (msg) => { window.alert("代码输出:  " + msg); }
+                            };
+                            
+                            // 使用with语句创建沙箱作用域
+                            with(sandbox) {
+                                new Function(code)();
+                            }
+                            
+                        } catch (error) {
+                            alert("执行代码时出错: " + error.message);
+                            console.error(error);
+                        }
+                    }
+                    
                     ${jsLoadIssues}
                     window.addEventListener('DOMContentLoaded', () => {
                         createIssueButtons(); 
@@ -534,8 +584,9 @@ function drawSample1() {
                             style="border: 1px solid #000; background: white;"
                         ></canvas>
                         <button onclick="clearCanvas()">清除画布</button>
-                        <button id="id_4_btn_sample1">sample1</button>
-                        <button id="id_4_btn_sample2">sample2</button>
+                        <button id="id_4_btn_run_from_ta" style="border:solid 1px green;">执行代码</button>
+                        <button id="id_4_btn_sample1">示例1</button> 
+                        <button id="id_4_btn_sample2">示例2</button>
                     </div>
                     <div id="id_4_div_toolbar_load_issues">
                         <textarea id="id_4_textarea" value = "test..."></textarea>
@@ -596,9 +647,10 @@ function drawSample1() {
             console.error('生成模板文件缓冲区时出错:', err);
         });
     }
-}     
+}    
  
 /**
- * code11
+ * 升级
+ * 
  * return all new code
  */
