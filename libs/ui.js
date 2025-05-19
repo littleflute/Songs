@@ -82,12 +82,111 @@ class C4TestPage{
     constructor(){
         this.#createTemplate();
     }
-    #getSample1Code(){ 
-        let r =`alert(1)`;
+    #getSample3Code(){ 
+        let funBody = `const canvas = document.getElementById('id_4_canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 设置颜色
+    const dogColor = '#8B4513'; // 棕色
+    const noseColor = '#FF69B4'; // 粉色
+    const eyeColor = '#000000'; // 黑色
+    
+    // 绘制头部
+    ctx.beginPath();
+    ctx.arc(200, 75, 50, 0, Math.PI * 2);
+    ctx.fillStyle = dogColor;
+    ctx.fill();
+    
+    // 绘制耳朵
+    ctx.beginPath();
+    ctx.moveTo(160, 40);
+    ctx.lineTo(140, 20);
+    ctx.lineTo(170, 30);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.moveTo(240, 40);
+    ctx.lineTo(260, 20);
+    ctx.lineTo(230, 30);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 绘制眼睛
+    ctx.beginPath();
+    ctx.arc(180, 65, 8, 0, Math.PI * 2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(220, 65, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(183, 67, 4, 0, Math.PI * 2);
+    ctx.fillStyle = eyeColor;
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(223, 67, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 绘制鼻子
+    ctx.beginPath();
+    ctx.arc(200, 85, 15, 0, Math.PI);
+    ctx.fillStyle = noseColor;
+    ctx.fill();
+    
+    // 绘制嘴巴
+    ctx.beginPath();
+    ctx.arc(200, 90, 10, 0, Math.PI);
+    ctx.strokeStyle = eyeColor;
+    ctx.stroke();
+    
+    // 绘制身体
+    ctx.beginPath();
+    ctx.ellipse(200, 150, 60, 40, 0, 0, Math.PI * 2);
+    ctx.fillStyle = dogColor;
+    ctx.fill();
+    
+    // 绘制腿
+    ctx.beginPath();
+    ctx.rect(170, 180, 10, 30);
+    ctx.rect(195, 180, 10, 30);
+    ctx.rect(215, 180, 10, 30);
+    ctx.rect(240, 180, 10, 30);
+    ctx.fill();
+    
+    // 绘制尾巴
+    ctx.beginPath();
+    ctx.moveTo(260, 140);
+    ctx.bezierCurveTo(280, 130, 290, 150, 300, 140);
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // 添加文字
+    ctx.fillStyle = '#000';
+    ctx.font = '16px Arial';
+    ctx.fillText('可爱的小狗', 150, 220);`;
+        let r =`function drawDog() {
+                ${funBody}
+        }
+    
+        `;
 
-        return r;
+        let html = `${r}
+        document.getElementById('id_4_btn_sample3').addEventListener('click', function() {
+    document.getElementById('id_4_textarea').value = "drawDog()";
+});   `;
+
+        return html;
     } 
     #drawingCode(){ 
+        let jsDrawDog = this.#getSample3Code();
         let html = `// Canvas 绘图逻辑
             const canvas = document.getElementById('id_4_canvas');
             const ctx = canvas.getContext('2d');
@@ -272,8 +371,8 @@ function drawGreatWallSample() {
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('万里长城欢迎您', canvas.width/2, 50);
-}
- 
+} 
+ ${jsDrawDog} 
  `;
       return html;
     }
@@ -587,6 +686,7 @@ function drawGreatWallSample() {
                         <button id="id_4_btn_run_from_ta" style="border:solid 1px green;">执行代码</button>
                         <button id="id_4_btn_sample1">示例1</button> 
                         <button id="id_4_btn_sample2">示例2</button>
+                        <button id="id_4_btn_sample3">示例3</button>
                     </div>
                     <div id="id_4_div_toolbar_load_issues">
                         <textarea id="id_4_textarea" value = "test..."></textarea>
@@ -651,6 +751,6 @@ function drawGreatWallSample() {
  
 /**
  * 升级
- * 
+ * 实现：点击 id_4_btn_sample3，再点击 id_4_btn_run_from_ta, 在画布上画一只小狗
  * return all new code
  */
