@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF转图片工具</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .upload-box { border: 2px dashed #ccc; padding: 40px; text-align: center; margin: 20px 0; }
+    #result { margin-top: 20px; }
+    .image-preview { max-width: 100%; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>PDF转图片转换器</h1>
+  <div class="upload-box">
+    <input type="file" id="pdfInput" accept="application/pdf">
+    <p>拖放PDF文件到这里或点击选择</p>
+    <button onclick="uploadPDF()">开始转换</button>
+  </div>
+  <div id="result"></div>
+
+  <script>
+    async function uploadPDF() {
+      const fileInput = document.getElementById('pdfInput');
+      const resultDiv = document.getElementById('result');
+      
+      if (!fileInput.files[0]) {
+        alert('请先选择PDF文件');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('pdf', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          resultDiv.innerHTML = data.files.map(file => `
+            <div>
+              <img src="${file}" class="image-preview">
+              <a href="${file}" download>下载图片</a>
+            </div>
+          `).join('');
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `转换失败: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
