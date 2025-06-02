@@ -15,6 +15,8 @@
             secondary: '#EC4899',
             neutral: '#1F2937',
             dark: '#0f172a',
+            original: '#EF4444', // 原创歌曲红色系
+            english: '#10B981', // 英文歌曲绿色系
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -78,6 +80,12 @@
       .json-highlight {
         color: #4F46E5;
       }
+      .original-song {
+        color: #EF4444;
+      }
+      .english-song {
+        color: #10B981;
+      }
     }
   </style>
 </head>
@@ -106,6 +114,12 @@
         <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
           <i class="fa fa-music mr-2 text-primary"></i> 歌曲列表
           <span id="songCount" class="ml-2 text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">0 首</span>
+          <button id="btn4Artist" class="ml-2 px-3 py-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+            <i class="fa fa-sort-alpha-asc mr-1"></i> 按歌手排序
+          </button>
+          <button id="btn4SongTitle" class="ml-2 px-3 py-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+            <i class="fa fa-sort-alpha-asc mr-1"></i> 按歌名排序
+          </button>
         </h2>
         
         <div id="songList" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -273,6 +287,8 @@
       const closeJsonWindowBtn = document.getElementById('closeJsonWindowBtn');
       const jsonContent = document.getElementById('jsonContent');
       const copyJsonBtn = document.getElementById('copyJsonBtn');
+      const btn4Artist = document.getElementById('btn4Artist'); // 按歌手排序按钮
+      const btn4SongTitle = document.getElementById('btn4SongTitle'); // 按歌名排序按钮
       
       // 设置Canvas尺寸为A4比例
       const canvasWidth = 595; // A4宽度 (72dpi)
@@ -338,6 +354,12 @@
       
       // 复制JSON内容
       copyJsonBtn.addEventListener('click', copyJson);
+      
+      // 按歌手排序按钮事件
+      btn4Artist.addEventListener('click', sortByArtist);
+      
+      // 按歌名排序按钮事件
+      btn4SongTitle.addEventListener('click', sortBySongTitle);
       
       // 更新歌曲计数
       function updateSongCount() {
@@ -508,13 +530,13 @@
         ctx.stroke();
         
         // 绘制歌曲列表 - 调整了左右边距，使左边空隙更小
-        const songFontSize = 20;
+        const songFontSize = 14;
         const songsPerColumn = Math.ceil(songs.length / 2);
-        const ySpacing = 45;
+        const ySpacing = 25;
         const startY = 150;
         
         // 减小左边距，增大右边距，保持整体平衡
-        const leftMargin = canvasWidth * 0.15; // 原边距为 canvasWidth / 4 (0.25)
+        const leftMargin = canvasWidth * 0.11; // 原边距为 canvasWidth / 4 (0.25)
         const rightMargin = canvasWidth - leftMargin;
         
         ctx.font = `${songFontSize}px "Inter", sans-serif`;
@@ -532,8 +554,16 @@
           ctx.fillStyle = '#475569';
           ctx.fillText(`${index + 1}.`, x - 35, y);
           
+          // 根据歌曲类型设置颜色
+          if (song.includes('原创')) {
+            ctx.fillStyle = '#EF4444'; // 红色系
+          } else if (song.includes('英文')) {
+            ctx.fillStyle = '#10B981'; // 绿色系
+          } else {
+            ctx.fillStyle = '#0f172a'; // 默认颜色
+          }
+          
           // 绘制歌曲名称
-          ctx.fillStyle = '#0f172a';
           ctx.fillText(song, x, y);
         });
         
@@ -751,15 +781,48 @@
         
         // 添加示例歌曲
         const sampleSongs = [
-          "青花瓷 - 周杰伦",
-          "红豆 - 王菲",
-          "童话 - 光良",
-          "关于学院路-原创",
-          "小幸运 - 田馥甄",
-          "稻香 - 周杰伦",
-          "Yellow Submarine-英文",
-          "勇气 - 梁静茹",
-          "遇见 - 孙燕姿",
+          "搀扶-马建涛",
+          "大约在冬季-齐秦",
+          "外面的世界-齐秦",
+          "突然的自我-伍佰",
+          "与你到永久-伍佰",
+          "关于学院路 - 原创",
+          "唱自己的歌，走自己的路-原创",
+          "南方雨季-原创",
+          "彩色的梦-原创",
+          "程序员之歌-原创",
+          "辞职之歌-原创",
+          "近视歌手-原创",
+          "请你放心地走-原创",
+          "城市的夜晚-原创",
+          "我的故乡在南方-原创",
+          "凡人歌-李宗盛",
+          "鬼迷心窍-李宗盛",
+          "Yellow Submarine - 英文",
+          "Yesterday Once More-英文",
+          "I Don't  Like To Sleep Alone-英文",
+          "蜗牛与黄鹂鸟-儿歌",
+          "让我们荡起双桨-儿歌",
+          "今天-刘德华",
+          "恭喜发财-刘德华",
+          "春天里-汪峰",
+          "我想有个家-潘美辰",
+          "我的好兄弟-高进",
+          "睡在我上铺的兄弟-老狼",
+          "同桌的你-老狼",
+          "朋友的酒",
+          "老男孩-筷子兄弟",
+          "爱-小虎队",
+          "水手-郑智化",
+          "星星点灯-郑智化",
+          "朋友别哭-吕方",
+          "站台",
+          "路灯下的小姑娘",
+          "故乡-许巍",
+          "蓝莲花-许巍",
+          "曾经的你-许巍",
+          "完美生活-许巍",
+          "旅行-许巍",
           "十年 - 陈奕迅"
         ];
         
@@ -826,6 +889,11 @@
         songList.addEventListener('dragover', handleDragOver);
         songList.addEventListener('drop', handleDrop);
         songList.addEventListener('dragend', handleDragEnd);
+        
+        // 为所有拖拽手柄添加draggable属性
+        document.querySelectorAll('.drag-handle').forEach(handle => {
+          handle.setAttribute('draggable', 'true');
+        });
       }
       
       function handleDragStart(e) {
@@ -1044,13 +1112,118 @@
         
         showHint('JSON已复制到剪贴板');
       }
+      
+      // 按歌手排序功能
+      function sortByArtist() {
+        const songItems = Array.from(songList.querySelectorAll('.song-item'));
+        
+        if (songItems.length <= 1) {
+          showHint('歌曲数量不足，无法排序', true);
+          return;
+        }
+        
+        // 获取所有歌曲并提取歌手信息
+        const songs = songItems.map(item => {
+          const input = item.querySelector('input');
+          const value = input.value.trim();
+          const separatorIndex = value.indexOf('-');
+          
+          // 提取歌手信息，如果格式不符合则使用完整内容作为歌手
+          const artist = separatorIndex !== -1 ? value.substring(separatorIndex + 3) : value;
+          
+          return {
+            element: item,
+            value: value,
+            artist: artist
+          };
+        });
+        
+        // 按歌手名称排序（忽略大小写）
+        songs.sort((a, b) => {
+          return a.artist.localeCompare(b.artist, 'zh-CN', { sensitivity: 'base' });
+        });
+        
+        // 清空列表并按新顺序添加歌曲
+        songList.innerHTML = '';
+        songs.forEach(song => {
+          songList.appendChild(song.element);
+        });
+        
+        // 更新歌曲编号
+        updateSongNumbers();
+        
+        // 添加排序完成的提示和动画效果
+        showHint('已按歌手名称排序');
+        
+        // 为所有歌曲添加闪烁动画效果，提示用户排序完成
+        songItems.forEach((item, index) => {
+          setTimeout(() => {
+            item.classList.add('bg-primary/5');
+            setTimeout(() => {
+              item.classList.remove('bg-primary/5');
+            }, 200);
+          }, index * 50);
+        });
+      }
+      
+      // 按歌名排序功能
+      function sortBySongTitle() {
+        const songItems = Array.from(songList.querySelectorAll('.song-item'));
+        
+        if (songItems.length <= 1) {
+          showHint('歌曲数量不足，无法排序', true);
+          return;
+        }
+        
+        // 获取所有歌曲并提取歌名信息
+        const songs = songItems.map(item => {
+          const input = item.querySelector('input');
+          const value = input.value.trim();
+          const separatorIndex = value.indexOf('-');
+          
+          // 提取歌名信息，如果格式不符合则使用完整内容作为歌名
+          const title = separatorIndex !== -1 ? value.substring(0, separatorIndex - 1) : value;
+          
+          return {
+            element: item,
+            value: value,
+            title: title
+          };
+        });
+        
+        // 按歌名排序（忽略大小写）
+        songs.sort((a, b) => {
+          return a.title.localeCompare(b.title, 'zh-CN', { sensitivity: 'base' });
+        });
+        
+        // 清空列表并按新顺序添加歌曲
+        songList.innerHTML = '';
+        songs.forEach(song => {
+          songList.appendChild(song.element);
+        });
+        
+        // 更新歌曲编号
+        updateSongNumbers();
+        
+        // 添加排序完成的提示和动画效果
+        showHint('已按歌名排序');
+        
+        // 为所有歌曲添加闪烁动画效果，提示用户排序完成
+        songItems.forEach((item, index) => {
+          setTimeout(() => {
+            item.classList.add('bg-secondary/5');
+            setTimeout(() => {
+              item.classList.remove('bg-secondary/5');
+            }, 200);
+          }, index * 50);
+        });
+      }
     });
   </script>
 </body>
-</html>    
+</html>  
 <!--
 升级
-原创 歌曲用红色系显示
-英文 歌曲用绿色系显示
+栏间距再大一些
 return all new code
 -->
