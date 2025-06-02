@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>歌单生成器</title>
+  <title>歌单生成器 - 支持拖拽排序</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script>
@@ -44,21 +44,51 @@
       .scale-in {
         animation: scaleIn 0.3s ease-in-out;
       }
-        @keyframes scaleIn {
-          from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
-          to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
+      @keyframes scaleIn {
+        from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+      .slide-in {
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      /* 拖拽样式 */
+      .song-item.dragging {
+        opacity: 0.5;
+        transform: scale(0.98);
+        box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
+      }
+      .drag-over {
+        border-top: 2px solid #4F46E5;
+      }
+      .drag-handle {
+        cursor: grab;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+      }
+      .drag-handle:hover {
+        opacity: 1;
+      }
+      .song-item:hover .drag-handle {
+        opacity: 0.8;
+      }
+      .json-highlight {
+        color: #4F46E5;
+      }
     }
   </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
   <div class="container mx-auto px-4 py-8 max-w-4xl">
-    <header class="mb-8 text-center">
+    <header class="mb-8 text-center slide-in">
       <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-neutral mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">🎵 歌单生成器</h1>
       <p class="text-gray-600">创建、编辑并可视化你的专属歌单</p>
     </header>
 
-    <main class="bg-white rounded-xl shadow-lg p-6 mb-8">
+    <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
       <!-- 歌单基本信息 -->
       <div class="mb-6">
         <label for="playlistName" class="block text-sm font-medium text-gray-700 mb-1">歌单名称</label>
@@ -73,8 +103,12 @@
 
       <!-- 歌曲列表 -->
       <div class="mb-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">歌曲列表</h2>
-        <div id="songList" class="space-y-2">
+        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+          <i class="fa fa-music mr-2 text-primary"></i> 歌曲列表
+          <span id="songCount" class="ml-2 text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">0 首</span>
+        </h2>
+        
+        <div id="songList" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <!-- 歌曲项会动态添加 -->
         </div>
         
@@ -84,6 +118,12 @@
             class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center"
           >
             <i class="fa fa-plus mr-2"></i> 添加歌曲
+          </button>
+          <button 
+            id="ShowJsonBtn"  
+            class="px-4 py-2 bg-neutral/10 text-neutral rounded-lg hover:bg-neutral/20 transition-colors flex items-center"
+          >
+            <i class="fa fa-file-code-o mr-2"></i> 查看JSON
           </button>
           <button 
             id="saveJsonBtn" 
@@ -103,6 +143,27 @@
           >
             <i class="fa fa-magic mr-2"></i> 加载示例
           </button>
+          <button 
+            id="clearBtn" 
+            class="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center"
+          >
+            <i class="fa fa-trash mr-2"></i> 清空列表
+          </button>
+        </div>
+      </div>
+
+      <!-- 歌单设置 -->
+      <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-md font-medium text-gray-700 mb-3">歌单设置</h3>
+        <div class="flex flex-wrap gap-4">
+          <div class="flex items-center">
+            <input type="checkbox" id="showSongCount" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+            <label for="showSongCount" class="ml-2 text-sm text-gray-700">显示歌曲数量</label>
+          </div>
+          <div class="flex items-center">
+            <input type="checkbox" id="showDate" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+            <label for="showDate" class="ml-2 text-sm text-gray-700">显示生成日期</label>
+          </div>
         </div>
       </div>
 
@@ -115,10 +176,11 @@
       </button>
     </main>
 
-    <!-- 可移动的歌单预览窗口 (默认隐藏) -->
+    <!-- 可移动的歌单预览窗口 -->
     <div 
       id="playlistWindow" 
       class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl w-[90%] max-w-3xl z-50 hidden"
+      style="min-height: 500px;"
     >
       <div class="p-4 bg-gradient-to-r from-primary to-secondary border-b border-gray-200 flex justify-between items-center draggable-handle rounded-t-xl">
         <h3 class="font-semibold text-white">歌单预览</h3>
@@ -127,22 +189,50 @@
         </button>
       </div>
       
-      <div class="p-6">
+      <div class="p-6 flex flex-col h-[calc(100%-64px)]">
         <!-- 歌单画布容器 -->
-        <div class="flex justify-center mb-4">
-          <div id="playlistCanvasContainer" class="relative w-full aspect-[1/1.414] max-w-md playlist-shadow rounded-md overflow-hidden border border-gray-200">
+        <div class="flex justify-center mb-4 flex-1 overflow-auto">
+          <div id="playlistCanvasContainer" class="relative w-full max-w-md playlist-shadow rounded-md overflow-hidden border border-gray-200">
             <!-- 歌单内容将通过Canvas绘制 -->
             <canvas id="playlistCanvas" class="w-full h-full"></canvas>
           </div>
         </div>
         
         <!-- 操作按钮 -->
-        <div class="flex flex-wrap justify-center gap-3">
+        <div class="flex flex-wrap justify-center gap-3 mt-4">
           <button id="saveAsImageBtn" class="px-4 py-2 bg-gradient-to-r from-secondary to-pink-500 text-white rounded-lg hover:opacity-90 transition-all shadow hover:shadow-md">
             <i class="fa fa-download mr-2"></i> 保存为图片
           </button>
           <button id="printBtn" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors shadow hover:shadow-md">
             <i class="fa fa-print mr-2"></i> 打印歌单
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSON预览窗口 -->
+    <div 
+      id="jsonWindow" 
+      class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl w-[90%] max-w-3xl z-50 hidden"
+      style="min-height: 400px;"
+    >
+      <div class="p-4 bg-neutral border-b border-gray-200 flex justify-between items-center draggable-handle rounded-t-xl">
+        <h3 class="font-semibold text-white">JSON数据</h3>
+        <button id="closeJsonWindowBtn" class="text-white hover:text-gray-200">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="p-6 flex flex-col h-[calc(100%-64px)]">
+        <!-- JSON内容区域 -->
+        <div class="flex-1 overflow-auto bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <pre id="jsonContent" class="text-sm font-mono"></pre>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex justify-end gap-3 mt-4">
+          <button id="copyJsonBtn" class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+            <i class="fa fa-copy mr-2"></i> 复制JSON
           </button>
         </div>
       </div>
@@ -161,6 +251,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       // DOM元素
       const songList = document.getElementById('songList');
+      const songCount = document.getElementById('songCount');
       const addSongBtn = document.getElementById('addSongBtn');
       const generateBtn = document.getElementById('generateBtn');
       const playlistWindow = document.getElementById('playlistWindow');
@@ -174,14 +265,31 @@
       const sampleDataBtn = document.getElementById('sampleDataBtn');
       const printBtn = document.getElementById('printBtn');
       const hint = document.getElementById('hint');
+      const clearBtn = document.getElementById('clearBtn');
+      const showSongCountCheckbox = document.getElementById('showSongCount');
+      const showDateCheckbox = document.getElementById('showDate');
+      const showJsonBtn = document.getElementById('ShowJsonBtn');
+      const jsonWindow = document.getElementById('jsonWindow');
+      const closeJsonWindowBtn = document.getElementById('closeJsonWindowBtn');
+      const jsonContent = document.getElementById('jsonContent');
+      const copyJsonBtn = document.getElementById('copyJsonBtn');
       
       // 设置Canvas尺寸为A4比例
       const canvasWidth = 595; // A4宽度 (72dpi)
-      const canvasHeight = 842; // A4高度 (72dpi)
+      const canvasHeight = 842; // A4高度 (72dpi);
       playlistCanvas.width = canvasWidth;
       playlistCanvas.height = canvasHeight;
       
       const ctx = playlistCanvas.getContext('2d');
+      
+      // 拖拽变量
+      let xOffset = 0;
+      let yOffset = 0;
+      let isDragging = false;
+      let currentX, currentY, initialX, initialY;
+      
+      // 歌曲拖拽相关变量
+      let draggedItem = null;
       
       // 初始化时添加默认歌曲
       addDefaultSongs();
@@ -213,8 +321,30 @@
       // 打印功能
       printBtn.addEventListener('click', printCanvas);
       
+      // 清空列表
+      clearBtn.addEventListener('click', clearSongList);
+      
       // 初始化拖拽功能
       initDraggable();
+      
+      // 初始化歌曲拖拽功能
+      initSongDragging();
+      
+      // 显示JSON窗口
+      showJsonBtn.addEventListener('click', showJsonData);
+      
+      // 关闭JSON窗口
+      closeJsonWindowBtn.addEventListener('click', closeJsonWindow);
+      
+      // 复制JSON内容
+      copyJsonBtn.addEventListener('click', copyJson);
+      
+      // 更新歌曲计数
+      function updateSongCount() {
+        const count = songList.querySelectorAll('.song-item').length;
+        songCount.textContent = `${count} 首`;
+        return count;
+      }
       
       // 添加默认歌曲
       function addDefaultSongs() {
@@ -231,14 +361,18 @@
           const inputs = songList.querySelectorAll('input');
           inputs[inputs.length - 1].value = song;
         });
+        updateSongCount();
       }
       
       // 添加歌曲输入框函数
       function addSongInput() {
-        const songCount = songList.children.length + 1;
+        const songCount = updateSongCount() + 1;
         const songItem = document.createElement('div');
-        songItem.className = 'flex items-center space-x-2 group';
+        songItem.className = 'flex items-center space-x-2 group song-item fade-in';
         songItem.innerHTML = `
+          <div class="drag-handle w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary cursor-move">
+            <i class="fa fa-ellipsis-v text-xs"></i>
+          </div>
           <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
             ${songCount}
           </div>
@@ -247,7 +381,7 @@
             class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             placeholder="歌曲名称 - 歌手"
           >
-          <button class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
+          <button class="opacity-70 hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
             <i class="fa fa-trash"></i>
           </button>
         `;
@@ -257,21 +391,48 @@
         // 删除歌曲
         const deleteBtn = songItem.querySelector('button');
         deleteBtn.addEventListener('click', function() {
-          songItem.remove();
-          updateSongNumbers();
-          showHint('歌曲已删除');
+          songItem.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+          setTimeout(() => {
+            songItem.remove();
+            updateSongNumbers();
+            updateSongCount();
+            showHint('歌曲已删除');
+          }, 300);
         });
         
         // 自动聚焦新添加的输入框
         const input = songItem.querySelector('input');
         input.focus();
+        
+        // 更新歌曲计数
+        updateSongCount();
+      }
+      
+      // 清空歌曲列表
+      function clearSongList() {
+        const songItems = songList.querySelectorAll('.song-item');
+        if (songItems.length === 0) {
+          showHint('歌曲列表已为空', true);
+          return;
+        }
+        
+        // 添加动画效果
+        songItems.forEach(item => {
+          item.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+        });
+        
+        setTimeout(() => {
+          songList.innerHTML = '';
+          updateSongCount();
+          showHint('已清空歌曲列表');
+        }, 300);
       }
       
       // 更新歌曲编号
       function updateSongNumbers() {
-        const songItems = songList.querySelectorAll('.group');
+        const songItems = songList.querySelectorAll('.song-item');
         songItems.forEach((item, index) => {
-          item.querySelector('div').textContent = index + 1;
+          item.querySelector('.song-item > div:nth-child(2)').textContent = index + 1;
         });
       }
       
@@ -283,18 +444,23 @@
           .map(input => input.value.trim())
           .filter(song => song);
         
+        const showSongCount = showSongCountCheckbox.checked;
+        const showDate = showDateCheckbox.checked;
+        
         if (!playlistName) {
           showHint('请输入歌单名称', true);
+          playlistNameInput.focus();
           return;
         }
         
         if (songs.length === 0) {
           showHint('请至少添加一首歌曲', true);
+          addSongBtn.focus();
           return;
         }
         
         // 绘制歌单
-        drawPlaylist(playlistName, songs);
+        drawPlaylist(playlistName, songs, showSongCount, showDate);
         
         // 显示窗口和遮罩层
         playlistWindow.classList.remove('hidden');
@@ -307,13 +473,13 @@
         }, 10);
         
         // 保存歌单数据
-        savePlaylistData(playlistName, songs);
+        savePlaylistData(playlistName, songs, showSongCount, showDate);
         
         showHint('歌单已生成！');
       }
       
       // 绘制歌单
-      function drawPlaylist(name, songs) {
+      function drawPlaylist(name, songs, showSongCount, showDate) {
         // 清除画布
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         
@@ -341,11 +507,15 @@
         ctx.lineTo(canvasWidth / 2 + 120, 110);
         ctx.stroke();
         
-        // 绘制歌曲列表
+        // 绘制歌曲列表 - 调整了左右边距，使左边空隙更小
         const songFontSize = 20;
         const songsPerColumn = Math.ceil(songs.length / 2);
         const ySpacing = 45;
         const startY = 150;
+        
+        // 减小左边距，增大右边距，保持整体平衡
+        const leftMargin = canvasWidth * 0.15; // 原边距为 canvasWidth / 4 (0.25)
+        const rightMargin = canvasWidth - leftMargin;
         
         ctx.font = `${songFontSize}px "Inter", sans-serif`;
         ctx.textAlign = 'left';
@@ -354,7 +524,8 @@
           const column = index < songsPerColumn ? 0 : 1;
           const row = column === 0 ? index : index - songsPerColumn;
           
-          const x = canvasWidth / 4 + (column * canvasWidth / 2);
+          // 计算X坐标，使用新的左右边距
+          const x = leftMargin + (column * (rightMargin - leftMargin) / 2);
           const y = startY + (row * ySpacing);
           
           // 绘制歌曲序号
@@ -366,12 +537,22 @@
           ctx.fillText(song, x, y);
         });
         
-        // 绘制底部信息
+        // 绘制底部信息 - 根据设置决定是否显示
+        const bottomOffset = 70;
+        let currentY = canvasHeight - bottomOffset;
+        
         ctx.font = '16px "Inter", sans-serif';
         ctx.fillStyle = '#64748b';
         ctx.textAlign = 'center';
-        ctx.fillText(`共 ${songs.length} 首歌曲`, canvasWidth / 2, canvasHeight - 70);
-        ctx.fillText('生成于 ' + new Date().toLocaleDateString(), canvasWidth / 2, canvasHeight - 40);
+        
+        if (showSongCount) {
+          ctx.fillText(`共 ${songs.length} 首歌曲`, canvasWidth / 2, currentY);
+          currentY += 30; // 为下一行腾出空间
+        }
+        
+        if (showDate) {
+          ctx.fillText('生成于 ' + new Date().toLocaleDateString(), canvasWidth / 2, currentY);
+        }
       }
       
       // 绘制装饰元素
@@ -462,6 +643,9 @@
           .map(input => input.value.trim())
           .filter(song => song);
         
+        const showSongCount = showSongCountCheckbox.checked;
+        const showDate = showDateCheckbox.checked;
+        
         if (songs.length === 0) {
           showHint('请至少添加一首歌曲', true);
           return;
@@ -470,6 +654,10 @@
         const playlistData = {
           name: playlistName,
           songs: songs,
+          settings: {
+            showSongCount: showSongCount,
+            showDate: showDate
+          },
           createdAt: new Date().toISOString()
         };
         
@@ -514,6 +702,16 @@
               // 设置歌单名称
               playlistNameInput.value = playlistData.name || '';
               
+              // 设置显示选项
+              if (playlistData.settings) {
+                showSongCountCheckbox.checked = playlistData.settings.showSongCount !== undefined ? playlistData.settings.showSongCount : true;
+                showDateCheckbox.checked = playlistData.settings.showDate !== undefined ? playlistData.settings.showDate : true;
+              } else {
+                // 默认为选中状态
+                showSongCountCheckbox.checked = true;
+                showDateCheckbox.checked = true;
+              }
+              
               // 添加歌曲
               if (playlistData.songs && Array.isArray(playlistData.songs)) {
                 playlistData.songs.forEach(song => {
@@ -547,15 +745,19 @@
         // 设置歌单名称
         playlistNameInput.value = '经典华语金曲';
         
+        // 设置默认显示选项
+        showSongCountCheckbox.checked = true;
+        showDateCheckbox.checked = true;
+        
         // 添加示例歌曲
         const sampleSongs = [
           "青花瓷 - 周杰伦",
           "红豆 - 王菲",
           "童话 - 光良",
-          "爱情转移 - 陈奕迅",
+          "关于学院路-原创",
           "小幸运 - 田馥甄",
           "稻香 - 周杰伦",
-          "后来 - 刘若英",
+          "Yellow Submarine-英文",
           "勇气 - 梁静茹",
           "遇见 - 孙燕姿",
           "十年 - 陈奕迅"
@@ -572,22 +774,24 @@
       
       // 初始化拖拽功能
       function initDraggable() {
-        const draggableHandle = document.querySelector('.draggable-handle');
-        let isDragging = false;
-        let currentX, currentY, initialX, initialY;
-        let xOffset = 0, yOffset = 0;
+        const draggableHandles = document.querySelectorAll('.draggable-handle');
         
-        draggableHandle.addEventListener('mousedown', dragStart);
+        draggableHandles.forEach(handle => {
+          handle.addEventListener('mousedown', dragStart);
+        });
+        
         document.addEventListener('mousemove', drag);
         document.addEventListener('mouseup', dragEnd);
         
         function dragStart(e) {
+          const targetWindow = e.target.closest('.fixed');
+          if (!targetWindow) return;
+          
           initialX = e.clientX - xOffset;
           initialY = e.clientY - yOffset;
           
-          if (e.target === draggableHandle) {
-            isDragging = true;
-          }
+          isDragging = true;
+          targetWindow.style.zIndex = '100';
         }
         
         function drag(e) {
@@ -599,7 +803,11 @@
             xOffset = currentX;
             yOffset = currentY;
             
-            setTranslate(currentX, currentY, playlistWindow);
+            // 找到当前拖拽的窗口
+            const activeWindow = document.querySelector('.fixed[style*="z-index: 100"]');
+            if (activeWindow) {
+              activeWindow.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            }
           }
         }
         
@@ -609,18 +817,105 @@
           
           isDragging = false;
         }
-        
-        function setTranslate(xPos, yPos, el) {
-          el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+      }
+      
+      // 初始化歌曲拖拽功能
+      function initSongDragging() {
+        // 使用事件委托处理拖拽事件
+        songList.addEventListener('dragstart', handleDragStart);
+        songList.addEventListener('dragover', handleDragOver);
+        songList.addEventListener('drop', handleDrop);
+        songList.addEventListener('dragend', handleDragEnd);
+      }
+      
+      function handleDragStart(e) {
+        if (e.target.classList.contains('drag-handle') || e.target.closest('.drag-handle')) {
+          draggedItem = e.target.closest('.song-item');
+          setTimeout(() => {
+            draggedItem.classList.add('dragging');
+          }, 0);
         }
       }
       
-      // 打印功能 - 修复了字符串模板结束标记问题
+      function handleDragOver(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+        
+        // 移除之前的高亮
+        const existingHighlight = document.querySelector('.drag-over');
+        if (existingHighlight) {
+          existingHighlight.classList.remove('drag-over');
+        }
+        
+        // 找到目标歌曲项
+        const afterElement = getDragAfterElement(songList, e.clientY);
+        
+        if (afterElement) {
+          afterElement.classList.add('drag-over');
+        }
+      }
+      
+      function handleDrop(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+        
+        // 移除高亮
+        const highlight = document.querySelector('.drag-over');
+        if (highlight) {
+          highlight.classList.remove('drag-over');
+        }
+        
+        // 找到目标歌曲项
+        const afterElement = getDragAfterElement(songList, e.clientY);
+        
+        if (afterElement) {
+          songList.insertBefore(draggedItem, afterElement);
+        } else {
+          // 插入到列表末尾
+          songList.appendChild(draggedItem);
+        }
+        
+        // 更新歌曲编号
+        updateSongNumbers();
+        
+        // 添加动画效果
+        draggedItem.classList.add('bg-green-50', 'transition-colors');
+        setTimeout(() => {
+          draggedItem.classList.remove('bg-green-50');
+        }, 500);
+        
+        showHint('歌曲顺序已调整');
+      }
+      
+      function handleDragEnd() {
+        if (draggedItem) {
+          draggedItem.classList.remove('dragging');
+          draggedItem = null;
+        }
+      }
+      
+      // 获取拖拽位置后的元素
+      function getDragAfterElement(container, y) {
+        // 获取除了被拖拽元素外的所有歌曲项
+        const draggableElements = [...container.querySelectorAll('.song-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+          const box = child.getBoundingClientRect();
+          const offset = y - box.top - box.height / 2;
+          
+          if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+          } else {
+            return closest;
+          }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+      }
+      
+      // 打印功能
       function printCanvas() {
         const dataUrl = playlistCanvas.toDataURL('image/png');
         const printWindow = window.open('', '_blank');
         
-        // 使用转义字符修复了脚本结束标记问题
         printWindow.document.write(`
           <html>
             <head>
@@ -670,23 +965,92 @@
       }
       
       // 保存歌单数据到本地存储
-      function savePlaylistData(name, songs) {
+      function savePlaylistData(name, songs, showSongCount, showDate) {
         const playlistData = {
           name,
           songs,
+          settings: {
+            showSongCount,
+            showDate
+          },
           createdAt: new Date().toISOString()
         };
         
         localStorage.setItem('lastPlaylist', JSON.stringify(playlistData));
       }
+      
+      // 显示JSON数据
+      function showJsonData() {
+        const playlistName = playlistNameInput.value.trim() || '未命名歌单';
+        const songInputs = songList.querySelectorAll('input');
+        const songs = Array.from(songInputs)
+          .map(input => input.value.trim())
+          .filter(song => song);
+        
+        const showSongCount = showSongCountCheckbox.checked;
+        const showDate = showDateCheckbox.checked;
+        
+        if (songs.length === 0) {
+          showHint('请至少添加一首歌曲', true);
+          return;
+        }
+        
+        const playlistData = {
+          name: playlistName,
+          songs: songs,
+          settings: {
+            showSongCount: showSongCount,
+            showDate: showDate
+          },
+          createdAt: new Date().toISOString()
+        };
+        
+        // 格式化JSON并显示
+        const formattedJson = JSON.stringify(playlistData, null, 2);
+        jsonContent.textContent = formattedJson;
+        
+        // 显示窗口和遮罩层
+        jsonWindow.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        
+        // 添加动画效果
+        setTimeout(() => {
+          jsonWindow.classList.add('scale-in');
+          overlay.classList.add('opacity-100');
+        }, 10);
+      }
+      
+      // 关闭JSON窗口
+      function closeJsonWindow() {
+        jsonWindow.classList.remove('scale-in');
+        overlay.classList.remove('opacity-100');
+        
+        setTimeout(() => {
+          jsonWindow.classList.add('hidden');
+          overlay.classList.add('hidden');
+        }, 300);
+      }
+      
+      // 复制JSON内容
+      function copyJson() {
+        const textArea = document.createElement('textarea');
+        textArea.value = jsonContent.textContent;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        showHint('JSON已复制到剪贴板');
+      }
     });
   </script>
 </body>
-</html>
+</html>    
 <!--
 升级
-默认打开不能移动窗口
-要把浏览器缩小80%才看到移动条
-fix it.
+原创 歌曲用红色系显示
+英文 歌曲用绿色系显示
 return all new code
 -->
