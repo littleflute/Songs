@@ -6,6 +6,9 @@
   <title>歌单生成器 - 支持拖拽排序</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script src="sample1.js"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -15,8 +18,9 @@
             secondary: '#EC4899',
             neutral: '#1F2937',
             dark: '#0f172a',
-            original: '#EF4444', // 原创歌曲红色系
-            english: '#10B981', // 英文歌曲绿色系
+            original: '#EF4444',
+            english: '#10B981',
+            price: '#F59E0B'
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -57,7 +61,6 @@
         from { transform: translateY(20px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
-      /* 拖拽样式 */
       .song-item.dragging {
         opacity: 0.5;
         transform: scale(0.98);
@@ -86,6 +89,20 @@
       .english-song {
         color: #10B981;
       }
+      .spaced-columns .song-item {
+        margin-bottom: 1.25rem;
+      }
+      .spaced-buttons > * {
+        margin-bottom: 0.75rem;
+      }
+      .price-tag {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
     }
   </style>
 </head>
@@ -98,68 +115,68 @@
 
     <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
       <!-- 歌单基本信息 -->
-      <div class="mb-6">
-        <label for="playlistName" class="block text-sm font-medium text-gray-700 mb-1">歌单名称</label>
+      <div class="mb-8">
+        <label for="playlistName" class="block text-sm font-medium text-gray-700 mb-2">歌单名称</label>
         <input 
           type="text" 
           id="playlistName" 
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"  
           placeholder="请输入歌单名称"
           value="我的最爱歌单"
         >
       </div>
 
       <!-- 歌曲列表 -->
-      <div class="mb-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
           <i class="fa fa-music mr-2 text-primary"></i> 歌曲列表
           <span id="songCount" class="ml-2 text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">0 首</span>
-          <button id="btn4Artist" class="ml-2 px-3 py-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+          <button id="btn4Artist" class="ml-3 px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
             <i class="fa fa-sort-alpha-asc mr-1"></i> 按歌手排序
           </button>
-          <button id="btn4SongTitle" class="ml-2 px-3 py-1 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+          <button id="btn4SongTitle" class="ml-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
             <i class="fa fa-sort-alpha-asc mr-1"></i> 按歌名排序
           </button>
         </h2>
         
-        <div id="songList" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div id="songList" class="spaced-columns space-y-5 max-h-[300px] overflow-y-auto pr-2 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <!-- 歌曲项会动态添加 -->
         </div>
         
-        <div class="flex flex-wrap gap-3 mt-3">
+        <div class="flex flex-wrap gap-4 mt-4 spaced-buttons">
           <button 
             id="addSongBtn" 
-            class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center"
           >
             <i class="fa fa-plus mr-2"></i> 添加歌曲
           </button>
           <button 
             id="ShowJsonBtn"  
-            class="px-4 py-2 bg-neutral/10 text-neutral rounded-lg hover:bg-neutral/20 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-neutral/10 text-neutral rounded-lg hover:bg-neutral/20 transition-colors flex items-center"
           >
             <i class="fa fa-file-code-o mr-2"></i> 查看JSON
           </button>
           <button 
             id="saveJsonBtn" 
-            class="px-4 py-2 bg-neutral/10 text-neutral rounded-lg hover:bg-neutral/20 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-neutral/10 text-neutral rounded-lg hover:bg-neutral/20 transition-colors flex items-center"
           >
             <i class="fa fa-file-code-o mr-2"></i> 保存为JSON
           </button>
           <button 
             id="loadJsonBtn" 
-            class="px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors flex items-center"
           >
             <i class="fa fa-upload mr-2"></i> 从JSON导入
           </button>
           <button 
             id="sampleDataBtn" 
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
           >
             <i class="fa fa-magic mr-2"></i> 加载示例
           </button>
           <button 
             id="clearBtn" 
-            class="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center"
+            class="px-5 py-2.5 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center"
           >
             <i class="fa fa-trash mr-2"></i> 清空列表
           </button>
@@ -167,16 +184,40 @@
       </div>
 
       <!-- 歌单设置 -->
-      <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-md font-medium text-gray-700 mb-3">歌单设置</h3>
-        <div class="flex flex-wrap gap-4">
+      <div class="mb-8 bg-gray-50 p-5 rounded-lg">
+        <h3 class="text-md font-medium text-gray-700 mb-4">歌单设置</h3>
+        <div class="flex flex-wrap gap-6">
           <div class="flex items-center">
-            <input type="checkbox" id="showSongCount" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
-            <label for="showSongCount" class="ml-2 text-sm text-gray-700">显示歌曲数量</label>
+            <input type="checkbox" id="showSongCount" class="w-5 h-5 text-primary focus:ring-primary border-gray-300 rounded" checked>
+            <label for="showSongCount" class="ml-3 text-sm text-gray-700">显示歌曲数量</label>
           </div>
           <div class="flex items-center">
-            <input type="checkbox" id="showDate" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
-            <label for="showDate" class="ml-2 text-sm text-gray-700">显示生成日期</label>
+            <input type="checkbox" id="showDate" class="w-5 h-5 text-primary focus:ring-primary border-gray-300 rounded" checked>
+            <label for="showDate" class="ml-3 text-sm text-gray-700">显示生成日期</label>
+          </div>
+          <div class="flex items-center">
+            <label for="columnGap" class="text-sm text-gray-700 mr-3">栏间距:</label>
+            <input type="range" id="columnGap" min="10" max="100" value="60" class="w-40 accent-primary">
+            <span id="columnGapValue" class="ml-2 text-sm text-gray-700">60px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 价格信息设置 -->
+      <div class="mb-8 bg-amber-50 p-5 rounded-lg border border-amber-100">
+        <h3 class="text-md font-medium text-amber-800 mb-3 flex items-center">
+          <i class="fa fa-tag mr-2 text-amber-600"></i> 价格信息
+        </h3>
+        <div class="flex items-center">
+          <input 
+            type="text" 
+            id="priceInfo" 
+            class="flex-1 px-4 py-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+            placeholder="请输入价格信息"
+            value="40元1首，100元3首"
+          >
+          <div class="ml-4 px-4 py-2 bg-amber-500/10 text-amber-700 rounded-lg font-medium">
+            <i class="fa fa-info-circle mr-2"></i> 此信息将显示在歌单底部
           </div>
         </div>
       </div>
@@ -184,7 +225,7 @@
       <!-- 生成按钮 -->
       <button 
         id="generateBtn" 
-        class="w-full py-3 px-6 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium"
+        class="w-full py-4 px-6 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:opacity-90 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium"
       >
         <i class="fa fa-music mr-2"></i> 生成歌单
       </button>
@@ -205,19 +246,18 @@
       
       <div class="p-6 flex flex-col h-[calc(100%-64px)]">
         <!-- 歌单画布容器 -->
-        <div class="flex justify-center mb-4 flex-1 overflow-auto">
+        <div class="flex justify-center mb-6 flex-1 overflow-auto">
           <div id="playlistCanvasContainer" class="relative w-full max-w-md playlist-shadow rounded-md overflow-hidden border border-gray-200">
-            <!-- 歌单内容将通过Canvas绘制 -->
             <canvas id="playlistCanvas" class="w-full h-full"></canvas>
           </div>
         </div>
         
         <!-- 操作按钮 -->
-        <div class="flex flex-wrap justify-center gap-3 mt-4">
-          <button id="saveAsImageBtn" class="px-4 py-2 bg-gradient-to-r from-secondary to-pink-500 text-white rounded-lg hover:opacity-90 transition-all shadow hover:shadow-md">
+        <div class="flex flex-wrap justify-center gap-4 mt-4">
+          <button id="saveAsImageBtn" class="px-5 py-2.5 bg-gradient-to-r from-secondary to-pink-500 text-white rounded-lg hover:opacity-90 transition-all shadow hover:shadow-md flex items-center">
             <i class="fa fa-download mr-2"></i> 保存为图片
           </button>
-          <button id="printBtn" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors shadow hover:shadow-md">
+          <button id="printBtn" class="px-5 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors shadow hover:shadow-md flex items-center">
             <i class="fa fa-print mr-2"></i> 打印歌单
           </button>
         </div>
@@ -239,13 +279,13 @@
       
       <div class="p-6 flex flex-col h-[calc(100%-64px)]">
         <!-- JSON内容区域 -->
-        <div class="flex-1 overflow-auto bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div class="flex-1 overflow-auto bg-gray-50 rounded-lg p-5 border border-gray-200">
           <pre id="jsonContent" class="text-sm font-mono"></pre>
         </div>
         
         <!-- 操作按钮 -->
-        <div class="flex justify-end gap-3 mt-4">
-          <button id="copyJsonBtn" class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+        <div class="flex justify-end gap-4 mt-6">
+          <button id="copyJsonBtn" class="px-5 py-2.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
             <i class="fa fa-copy mr-2"></i> 复制JSON
           </button>
         </div>
@@ -287,12 +327,15 @@
       const closeJsonWindowBtn = document.getElementById('closeJsonWindowBtn');
       const jsonContent = document.getElementById('jsonContent');
       const copyJsonBtn = document.getElementById('copyJsonBtn');
-      const btn4Artist = document.getElementById('btn4Artist'); // 按歌手排序按钮
-      const btn4SongTitle = document.getElementById('btn4SongTitle'); // 按歌名排序按钮
+      const btn4Artist = document.getElementById('btn4Artist');
+      const btn4SongTitle = document.getElementById('btn4SongTitle');
+      const columnGapSlider = document.getElementById('columnGap');
+      const columnGapValue = document.getElementById('columnGapValue');
+      const priceInfoInput = document.getElementById('priceInfo');
       
       // 设置Canvas尺寸为A4比例
-      const canvasWidth = 595; // A4宽度 (72dpi)
-      const canvasHeight = 842; // A4高度 (72dpi);
+      const canvasWidth = 595;
+      const canvasHeight = 842;
       playlistCanvas.width = canvasWidth;
       playlistCanvas.height = canvasHeight;
       
@@ -361,6 +404,11 @@
       // 按歌名排序按钮事件
       btn4SongTitle.addEventListener('click', sortBySongTitle);
       
+      // 监听栏间距滑块变化
+      columnGapSlider.addEventListener('input', function() {
+        columnGapValue.textContent = `${this.value}px`;
+      });
+      
       // 更新歌曲计数
       function updateSongCount() {
         const count = songList.querySelectorAll('.song-item').length;
@@ -390,17 +438,17 @@
       function addSongInput() {
         const songCount = updateSongCount() + 1;
         const songItem = document.createElement('div');
-        songItem.className = 'flex items-center space-x-2 group song-item fade-in';
+        songItem.className = 'flex items-center space-x-3 group song-item fade-in';
         songItem.innerHTML = `
-          <div class="drag-handle w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary cursor-move">
+          <div class="drag-handle w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary cursor-move">
             <i class="fa fa-ellipsis-v text-xs"></i>
           </div>
-          <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+          <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
             ${songCount}
           </div>
           <input 
             type="text" 
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"  
             placeholder="歌曲名称 - 歌手"
           >
           <button class="opacity-70 hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity">
@@ -468,6 +516,8 @@
         
         const showSongCount = showSongCountCheckbox.checked;
         const showDate = showDateCheckbox.checked;
+        const columnGap = parseInt(columnGapSlider.value);
+        const priceInfo = priceInfoInput.value.trim() || "40元1首，100元3首";
         
         if (!playlistName) {
           showHint('请输入歌单名称', true);
@@ -482,7 +532,7 @@
         }
         
         // 绘制歌单
-        drawPlaylist(playlistName, songs, showSongCount, showDate);
+        drawPlaylist(playlistName, songs, showSongCount, showDate, columnGap, priceInfo);
         
         // 显示窗口和遮罩层
         playlistWindow.classList.remove('hidden');
@@ -495,13 +545,13 @@
         }, 10);
         
         // 保存歌单数据
-        savePlaylistData(playlistName, songs, showSongCount, showDate);
+        savePlaylistData(playlistName, songs, showSongCount, showDate, columnGap, priceInfo);
         
         showHint('歌单已生成！');
       }
       
       // 绘制歌单
-      function drawPlaylist(name, songs, showSongCount, showDate) {
+      function drawPlaylist(name, songs, showSongCount, showDate, columnGap, priceInfo) {
         // 清除画布
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         
@@ -529,14 +579,13 @@
         ctx.lineTo(canvasWidth / 2 + 120, 110);
         ctx.stroke();
         
-        // 绘制歌曲列表 - 调整了左右边距，使左边空隙更小
+        // 绘制歌曲列表
         const songFontSize = 14;
         const songsPerColumn = Math.ceil(songs.length / 2);
-        const ySpacing = 25;
+        const ySpacing = 22;
         const startY = 150;
         
-        // 减小左边距，增大右边距，保持整体平衡
-        const leftMargin = canvasWidth * 0.11; // 原边距为 canvasWidth / 4 (0.25)
+        const leftMargin = canvasWidth * 0.11;
         const rightMargin = canvasWidth - leftMargin;
         
         ctx.font = `${songFontSize}px "Inter", sans-serif`;
@@ -546,8 +595,13 @@
           const column = index < songsPerColumn ? 0 : 1;
           const row = column === 0 ? index : index - songsPerColumn;
           
-          // 计算X坐标，使用新的左右边距
-          const x = leftMargin + (column * (rightMargin - leftMargin) / 2);
+          let x;
+          if (column === 0) {
+            x = leftMargin;
+          } else {
+            x = leftMargin + (canvasWidth - 2 * leftMargin) / 2 + columnGap;
+          }
+          
           const y = startY + (row * ySpacing);
           
           // 绘制歌曲序号
@@ -556,11 +610,11 @@
           
           // 根据歌曲类型设置颜色
           if (song.includes('原创')) {
-            ctx.fillStyle = '#EF4444'; // 红色系
+            ctx.fillStyle = '#EF4444';
           } else if (song.includes('英文')) {
-            ctx.fillStyle = '#10B981'; // 绿色系
+            ctx.fillStyle = '#10B981';
           } else {
-            ctx.fillStyle = '#0f172a'; // 默认颜色
+            ctx.fillStyle = '#0f172a';
           }
           
           // 绘制歌曲名称
@@ -568,7 +622,8 @@
         });
         
         // 绘制底部信息 - 根据设置决定是否显示
-        const bottomOffset = 70;
+        let strInfo = "----";
+        const bottomOffset = 66;
         let currentY = canvasHeight - bottomOffset;
         
         ctx.font = '16px "Inter", sans-serif';
@@ -576,13 +631,21 @@
         ctx.textAlign = 'center';
         
         if (showSongCount) {
-          ctx.fillText(`共 ${songs.length} 首歌曲`, canvasWidth / 2, currentY);
-          currentY += 30; // 为下一行腾出空间
+            strInfo += `共 ${songs.length} 首歌曲. `; 
         }
         
         if (showDate) {
-          ctx.fillText('生成于 ' + new Date().toLocaleDateString(), canvasWidth / 2, currentY);
+            strInfo += '生成于 ' + new Date().toLocaleDateString();
         }
+        strInfo += "----"
+        currentY += 15;
+        ctx.fillText(strInfo, canvasWidth / 2, currentY);
+        currentY += 30;
+
+        // 绘制价格信息 - 始终显示
+        ctx.fillStyle = '#F59E0B'; // 使用醒目的橙色
+        ctx.font = 'bold 18px "Inter", sans-serif';
+        ctx.fillText(priceInfo, canvasWidth / 2, currentY);
       }
       
       // 绘制装饰元素
@@ -675,6 +738,8 @@
         
         const showSongCount = showSongCountCheckbox.checked;
         const showDate = showDateCheckbox.checked;
+        const columnGap = parseInt(columnGapSlider.value);
+        const priceInfo = priceInfoInput.value.trim() || "40元1首，100元3首";
         
         if (songs.length === 0) {
           showHint('请至少添加一首歌曲', true);
@@ -686,8 +751,10 @@
           songs: songs,
           settings: {
             showSongCount: showSongCount,
-            showDate: showDate
+            showDate: showDate,
+            columnGap: columnGap
           },
+          priceInfo: priceInfo,
           createdAt: new Date().toISOString()
         };
         
@@ -732,10 +799,23 @@
               // 设置歌单名称
               playlistNameInput.value = playlistData.name || '';
               
+              // 设置价格信息
+              if (playlistData.priceInfo) {
+                priceInfoInput.value = playlistData.priceInfo;
+              } else {
+                priceInfoInput.value = "40元1首，100元3首";
+              }
+              
               // 设置显示选项
               if (playlistData.settings) {
                 showSongCountCheckbox.checked = playlistData.settings.showSongCount !== undefined ? playlistData.settings.showSongCount : true;
                 showDateCheckbox.checked = playlistData.settings.showDate !== undefined ? playlistData.settings.showDate : true;
+                
+                // 设置栏间距
+                if (playlistData.settings.columnGap !== undefined) {
+                  columnGapSlider.value = playlistData.settings.columnGap;
+                  columnGapValue.textContent = `${playlistData.settings.columnGap}px`;
+                }
               } else {
                 // 默认为选中状态
                 showSongCountCheckbox.checked = true;
@@ -772,59 +852,22 @@
         // 清空现有歌单
         songList.innerHTML = '';
         
+        const sl1 = oSamples.sample1();
         // 设置歌单名称
-        playlistNameInput.value = '经典华语金曲';
+        playlistNameInput.value = sl1.title;
+        
+        // 设置价格信息
+        priceInfoInput.value = '40元1首，100元3首';
         
         // 设置默认显示选项
         showSongCountCheckbox.checked = true;
         showDateCheckbox.checked = true;
         
-        // 添加示例歌曲
-        const sampleSongs = [
-          "搀扶-马建涛",
-          "大约在冬季-齐秦",
-          "外面的世界-齐秦",
-          "突然的自我-伍佰",
-          "与你到永久-伍佰",
-          "关于学院路 - 原创",
-          "唱自己的歌，走自己的路-原创",
-          "南方雨季-原创",
-          "彩色的梦-原创",
-          "程序员之歌-原创",
-          "辞职之歌-原创",
-          "近视歌手-原创",
-          "请你放心地走-原创",
-          "城市的夜晚-原创",
-          "我的故乡在南方-原创",
-          "凡人歌-李宗盛",
-          "鬼迷心窍-李宗盛",
-          "Yellow Submarine - 英文",
-          "Yesterday Once More-英文",
-          "I Don't  Like To Sleep Alone-英文",
-          "蜗牛与黄鹂鸟-儿歌",
-          "让我们荡起双桨-儿歌",
-          "今天-刘德华",
-          "恭喜发财-刘德华",
-          "春天里-汪峰",
-          "我想有个家-潘美辰",
-          "我的好兄弟-高进",
-          "睡在我上铺的兄弟-老狼",
-          "同桌的你-老狼",
-          "朋友的酒",
-          "老男孩-筷子兄弟",
-          "爱-小虎队",
-          "水手-郑智化",
-          "星星点灯-郑智化",
-          "朋友别哭-吕方",
-          "站台",
-          "路灯下的小姑娘",
-          "故乡-许巍",
-          "蓝莲花-许巍",
-          "曾经的你-许巍",
-          "完美生活-许巍",
-          "旅行-许巍",
-          "十年 - 陈奕迅"
-        ];
+        // 设置默认栏间距
+        columnGapSlider.value = 60;
+        columnGapValue.textContent = '60px';
+        
+        const sampleSongs = sl1.songs;
         
         sampleSongs.forEach(song => {
           addSongInput();
@@ -1033,14 +1076,16 @@
       }
       
       // 保存歌单数据到本地存储
-      function savePlaylistData(name, songs, showSongCount, showDate) {
+      function savePlaylistData(name, songs, showSongCount, showDate, columnGap, priceInfo) {
         const playlistData = {
           name,
           songs,
           settings: {
             showSongCount,
-            showDate
+            showDate,
+            columnGap
           },
+          priceInfo,
           createdAt: new Date().toISOString()
         };
         
@@ -1057,6 +1102,8 @@
         
         const showSongCount = showSongCountCheckbox.checked;
         const showDate = showDateCheckbox.checked;
+        const columnGap = parseInt(columnGapSlider.value);
+        const priceInfo = priceInfoInput.value.trim() || "40元1首，100元3首";
         
         if (songs.length === 0) {
           showHint('请至少添加一首歌曲', true);
@@ -1068,8 +1115,10 @@
           songs: songs,
           settings: {
             showSongCount: showSongCount,
-            showDate: showDate
+            showDate: showDate,
+            columnGap: columnGap
           },
+          priceInfo: priceInfo,
           createdAt: new Date().toISOString()
         };
         
@@ -1221,9 +1270,9 @@
     });
   </script>
 </body>
-</html>  
+</html>
 <!--
 升级
-栏间距再大一些
+code priceInf
 return all new code
 -->
