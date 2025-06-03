@@ -6,14 +6,35 @@ class C4Player {
         this.offsetY = 0;
         this.audio = new Audio();
         this.currentIndex = 0;
-        this.playlist = [
-            { name: "j_90.mp3", url: "j_90.mp3" },
-            { name: "中产阶级 - 郑智化.mp3", url: "中产阶级 - 郑智化.mp3" },
-            { name: "我的明天 - 郑智化.mp3", url: "我的明天 - 郑智化.mp3" },
-            { name: "红河谷1.mp3", url: "红河谷1.mp3" }
+        this.currentPlaylistIndex = 0;
+        this.playlists = [
+            // 默认播放列表
+            [
+                { name: "j_90.mp3", url: "j_90.mp3" },
+                { name: "中产阶级 - 郑智化.mp3", url: "中产阶级 - 郑智化.mp3" },
+                { name: "我的明天 - 郑智化.mp3", url: "我的明天 - 郑智化.mp3" },
+                { name: "红河谷1.mp3", url: "红河谷1.mp3" }
+            ],
+            // 示例播放列表1
+            [
+                { name: "平凡之路.mp3", url: "平凡之路.mp3" },
+                { name: "夜空中最亮的星.mp3", url: "夜空中最亮的星.mp3" },
+                { name: "岁月神偷.mp3", url: "岁月神偷.mp3" },
+                { name: "晴天.mp3", url: "晴天.mp3" }
+            ],
+            // 示例播放列表2
+            [
+                { name: "稻香.mp3", url: "稻香.mp3" },
+                { name: "简单爱.mp3", url: "简单爱.mp3" },
+                { name: "青花瓷.mp3", url: "青花瓷.mp3" },
+                { name: "彩虹.mp3", url: "彩虹.mp3" }
+            ]
         ];
         
-        this.audio.addEventListener('ended', () => this.playNext());
+        // 播放模式：0-顺序播放，1-单曲循环，2-随机播放
+        this.playMode = 0;
+        
+        this.audio.addEventListener('ended', () => this.handleSongEnd());
         this.audio.addEventListener('timeupdate', () => this.updateProgress());
         
         this.createWindow();
@@ -110,6 +131,17 @@ class C4Player {
         controls.style.alignItems = 'center';
         controls.style.marginBottom = '15px';
         
+        // 播放模式按钮
+        this.modeBtn = document.createElement('button');
+        this.modeBtn.textContent = '顺序';
+        this.modeBtn.style.margin = '0 5px';
+        this.modeBtn.style.padding = '5px 10px';
+        this.modeBtn.style.border = 'none';
+        this.modeBtn.style.backgroundColor = '#f0f0f0';
+        this.modeBtn.style.borderRadius = '3px';
+        this.modeBtn.style.cursor = 'pointer';
+        this.modeBtn.onclick = () => this.changePlayMode();
+        
         // 上一曲按钮
         const prevBtn = document.createElement('button');
         prevBtn.textContent = '上一曲';
@@ -143,9 +175,29 @@ class C4Player {
         nextBtn.style.borderRadius = '3px';
         nextBtn.style.cursor = 'pointer';
         nextBtn.onclick = () => this.playNext();
+        
+        // 示例播放列表按钮
+        this.sampleListBtn = document.createElement('button');
+        this.sampleListBtn.textContent = '示例列表1';
+        this.sampleListBtn.style.margin = '0 5px';
+        this.sampleListBtn.style.padding = '5px 10px';
+        this.sampleListBtn.style.border = 'none';
+        this.sampleListBtn.style.backgroundColor = '#f0f0f0';
+        this.sampleListBtn.style.borderRadius = '3px';
+        this.sampleListBtn.style.cursor = 'pointer';
+        this.sampleListBtn.onclick = () => this.toggleSamplePlaylist();
 
         
-        const sampleList1Btn = document.createElement('button');
+        this.sampleList4Btn = document.createElement('button');
+        this.sampleList4Btn.textContent = '示例列表4';
+        this.sampleList4Btn.style.margin = '0 5px';
+        this.sampleList4Btn.style.padding = '5px 10px';
+        this.sampleList4Btn.style.border = 'none';
+        this.sampleList4Btn.style.backgroundColor = '#f0f0f0';
+        this.sampleList4Btn.style.borderRadius = '3px';
+        this.sampleList4Btn.style.cursor = 'pointer';
+        this.sampleList4Btn.onclick = () => this.loadList4();
+
         
         // 音量控制
         const volumeContainer = document.createElement('div');
@@ -174,10 +226,12 @@ class C4Player {
         this.playlistContainer.style.marginTop = '15px';
         
         // 组装控制区
+        controls.appendChild(this.modeBtn);
         controls.appendChild(prevBtn);
         controls.appendChild(this.playPauseBtn);
         controls.appendChild(nextBtn);
-        controls.appendChild(sampleList1Btn);
+        controls.appendChild(this.sampleListBtn);
+        controls.appendChild(this.sampleList4Btn);
         
         // 组装内容区
         playerContent.appendChild(this.songTitle);
@@ -208,6 +262,7 @@ class C4Player {
     
     // 初始化播放列表
     initPlaylist() {
+        this.playlist = this.playlists[this.currentPlaylistIndex];
         this.playlistContainer.innerHTML = '';
         
         const playlistTitle = document.createElement('div');
@@ -296,6 +351,27 @@ class C4Player {
         this.initPlaylist();
     }
     
+    // 切换示例播放列表
+    toggleSamplePlaylist() {
+        this.currentPlaylistIndex = (this.currentPlaylistIndex + 1) % this.playlists.length;
+        this.sampleListBtn.textContent = `示例列表${this.currentPlaylistIndex + 1}`;
+        this.currentIndex = 0;
+        this.loadSong();
+        this.initPlaylist();
+        this.play();
+    }
+    loadList4(){
+        const l4 = ` 
+        j_90.mp3 
+        中产阶级 - 郑智化.mp3 
+        我的明天 - 郑智化.mp3 
+        红河谷1.mp3 
+        `;
+
+        // load l4 as a list
+
+    }
+    
     // 设置音量
     setVolume() {
         this.audio.volume = this.volumeSlider.value;
@@ -356,6 +432,46 @@ class C4Player {
             this.isDragging = false;
         });
     }
+    
+    // 更改播放模式
+    changePlayMode() {
+        this.playMode = (this.playMode + 1) % 3;
+        switch(this.playMode) {
+            case 0:
+                this.modeBtn.textContent = '顺序';
+                break;
+            case 1:
+                this.modeBtn.textContent = '单曲';
+                break;
+            case 2:
+                this.modeBtn.textContent = '随机';
+                break;
+        }
+    }
+    
+    // 处理歌曲结束事件
+    handleSongEnd() {
+        switch(this.playMode) {
+            case 0: // 顺序播放
+                this.playNext();
+                break;
+            case 1: // 单曲循环
+                this.audio.currentTime = 0;
+                this.play();
+                break;
+            case 2: // 随机播放
+                const randomIndex = Math.floor(Math.random() * this.playlist.length);
+                if (randomIndex !== this.currentIndex || this.playlist.length === 1) {
+                    this.currentIndex = randomIndex;
+                    this.loadSong();
+                    this.play();
+                    this.initPlaylist();
+                } else {
+                    this.playNext();
+                }
+                break;
+        }
+    }
 
     toggleWnd() {
         if (this.wnd.style.display === 'none') {
@@ -385,6 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * 升级以上代码，不要生成 html 文件
- * code sampleList1Btn
+ * code l4
  * return all new code
  */
