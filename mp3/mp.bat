@@ -3,8 +3,12 @@ setlocal enabledelayedexpansion
 
 :: 创建UTF-8编码的索引HTML文件
 chcp 65001 > nul
-echo ^<html^>^<head^>^<meta charset="UTF-8"^>^<title^>MP3文件列表^</title^>^</head^>^<body^>^<h1^>MP3文件列表^</h1^> > index.html
+echo ^<html^>^<head^>^<meta charset="UTF-8"^>^<title^>MP3文件列表^</title^> > index.html
+echo ^<script src="player.js"^>^</script^> >> index.html
+echo ^</head^>              >>index.html
+echo ^<body^>^<h1^>MP3文件列表v0. 13^</h1^> >> index.html
 
+echo ^<button id="id_4_btn_toggle_playerWnd" ^>togglePlayerWnd^</button^> >> index.html
 :: 创建文本区域
 echo ^<textarea id="id_4_ta_list" rows="20" cols="50" readonly^> >> index.html
 
