@@ -333,13 +333,18 @@
       const columnGapValue = document.getElementById('columnGapValue');
       const priceInfoInput = document.getElementById('priceInfo');
       
-      // 设置Canvas尺寸为A4比例
+      // 设置Canvas尺寸为A4比例，提高分辨率
       const canvasWidth = 595;
       const canvasHeight = 842;
-      playlistCanvas.width = canvasWidth;
-      playlistCanvas.height = canvasHeight;
+      const scaleFactor = 2; // 放大2倍
+      
+      playlistCanvas.width = canvasWidth * scaleFactor;
+      playlistCanvas.height = canvasHeight * scaleFactor;
+      playlistCanvas.style.width = `${canvasWidth}px`;
+      playlistCanvas.style.height = `${canvasHeight}px`;
       
       const ctx = playlistCanvas.getContext('2d');
+      ctx.scale(scaleFactor, scaleFactor); // 缩放上下文，保持内容大小不变
       
       // 拖拽变量
       let xOffset = 0;
@@ -723,6 +728,8 @@
         const playlistName = playlistNameInput.value.trim() || '歌单';
         const link = document.createElement('a');
         link.download = `${playlistName}.png`;
+        
+        // 使用高清画布尺寸保存图片
         link.href = playlistCanvas.toDataURL('image/png');
         link.click();
         showHint('图片已保存！');
