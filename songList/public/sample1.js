@@ -2,7 +2,7 @@
 class C4Samples{
   sample1(){
     let sl1 = {};
-    sl1.title = "小笛歌单v0.14";
+    sl1.title = "小笛歌单v0.15";
     sl1.songs= [
       "搀扶-马建涛",
       "大约在冬季-齐秦",
