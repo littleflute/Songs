@@ -72,9 +72,9 @@ echo         ^</div^>
 echo     ^</div^>
 echo     ^<script^>
 echo         // 获取DOM元素
-echo         const audioPlayer = document.getElementById('audioPlayer');
-echo         const playlist = document.getElementById('playlist');
-echo         const playlistItems = playlist.querySelectorAll('.playlist-item');
+echo         var audioPlayer = document.getElementById('audioPlayer');
+echo         var playlist = document.getElementById('playlist');
+echo         var playlistItems = playlist.querySelectorAll('.playlist-item');
 echo         
 echo         // 设置初始播放文件
 echo         if (playlistItems.length > 0) {
@@ -83,10 +83,12 @@ echo             audioPlayer.src = playlistItems[0].getAttribute('data-file');
 echo         }
 echo         
 echo         // 为播放列表项添加点击事件
-echo         playlistItems.forEach(item => {
-echo             item.addEventListener('click', () => {
+echo         playlistItems.forEach(function(item) {
+echo             item.addEventListener('click', function() {
 echo                 // 移除所有活动状态
-echo                 playlistItems.forEach(i => i.classList.remove('active'));
+echo                 playlistItems.forEach(function(i) {
+echo                     i.classList.remove('active');
+echo                 });
 echo                 // 添加当前活动状态
 echo                 item.classList.add('active');
 echo                 // 更新播放器源
@@ -97,10 +99,10 @@ echo             });
 echo         });
 echo         
 echo         // 音频结束后自动播放下一首
-echo         audioPlayer.addEventListener('ended', () => {
-echo             const activeItem = playlist.querySelector('.active');
+echo         audioPlayer.addEventListener('ended', function() {
+echo             var activeItem = playlist.querySelector('.active');
 echo             if (activeItem) {
-echo                 const nextItem = activeItem.nextElementSibling;
+echo                 var nextItem = activeItem.nextElementSibling;
 echo                 if (nextItem && nextItem.classList.contains('playlist-item')) {
 echo                     activeItem.classList.remove('active');
 echo                     nextItem.classList.add('active');
@@ -121,4 +123,4 @@ if exist "%tempFile%" del /f /q "%tempFile%"
 echo 播放列表已生成: %htmlFile%
 echo 双击该文件即可在浏览器中打开并播放MP3文件。
 
-pause    
+pause
