@@ -431,8 +431,7 @@
             <div class="controls">
                 <button id="btn-example1"><i class="fas fa-star"></i> 小星星</button>
                 <button id="btn-example2"><i class="fas fa-heart"></i> 欢乐颂</button>
-                <button id="btn-example3"><i class="fas fa-crown"></i> C大调进阶</button>
-                <button id="btn-render" class="secondary"><i class="fas fa-play"></i> 渲染简谱</button>
+                <button id="btn-example3"><i class="fas fa-crown"></i> C大调进阶</button> 
                 <button id="btnToggleCanvasWnd"><i class="fas fa-external-link-alt"></i> 画布窗口</button>
                 <button id="btn-reset"><i class="fas fa-sync"></i> 重置</button>
             </div>
@@ -654,8 +653,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const jsonEditor = document.getElementById('json-editor');
             const staffContainer = document.querySelector('.staff');
-            const jsonError = document.getElementById('json-error');
-            const btnRender = document.getElementById('btn-render');
+            const jsonError = document.getElementById('json-error'); 
             const btnReset = document.getElementById('btn-reset');
             const btnExample1 = document.getElementById('btn-example1');
             const btnExample2 = document.getElementById('btn-example2');
@@ -670,14 +668,7 @@
             let offsetX, offsetY;
             
             // 初始渲染
-            renderStaff();
-            
-            // 渲染按钮事件
-            btnRender.addEventListener('click', function() {
-                renderStaff();
-                renderCanvas();
-            });
-            
+            renderStaff(); 
             // 重置按钮事件
             btnReset.addEventListener('click', function() {
                 jsonEditor.value = `{
@@ -1285,7 +1276,6 @@
 </body>
 </html>      
 <!-- 
-升级
-let window movable when running on cell phone.
+升级 
 return all new code.
 -->
