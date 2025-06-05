@@ -357,6 +357,7 @@
             display: none;
             flex-direction: column;
             z-index: 1000;
+            touch-action: none; /* 防止触摸事件冲突 */
         }
         
         .canvas-header {
@@ -961,24 +962,43 @@
                 canvasWindow.style.display = 'none';
             });
             
-            // 使窗口可拖动
+            // 使窗口可拖动 - 鼠标事件
             const canvasHeader = canvasWindow.querySelector('.canvas-header');
             canvasHeader.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', endDrag);
             
+            // 使窗口可拖动 - 触摸事件
+            canvasHeader.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+            
             function startDrag(e) {
+                e.preventDefault(); // 防止默认行为
                 isDragging = true;
-                offsetX = e.clientX - canvasWindow.getBoundingClientRect().left;
-                offsetY = e.clientY - canvasWindow.getBoundingClientRect().top;
+                
+                // 获取触摸或鼠标位置
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                
+                const rect = canvasWindow.getBoundingClientRect();
+                offsetX = clientX - rect.left;
+                offsetY = clientY - rect.top;
+                
                 canvasWindow.style.cursor = 'grabbing';
             }
             
             function drag(e) {
                 if (!isDragging) return;
                 
-                const x = e.clientX - offsetX;
-                const y = e.clientY - offsetY;
+                e.preventDefault(); // 防止默认行为
+                
+                // 获取触摸或鼠标位置
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                
+                const x = clientX - offsetX;
+                const y = clientY - offsetY;
                 
                 // 确保窗口不会拖出视口
                 const maxX = window.innerWidth - canvasWindow.offsetWidth;
@@ -1263,7 +1283,7 @@
         });
     </script>
 </body>
-</html>    
+</html>      
 <!-- 
 升级
 let window movable when running on cell phone.
