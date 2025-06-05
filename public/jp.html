@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱数据格式设计与可视化</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6e9de4;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: var(--dark-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            height: 75vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-color);
+            margin-bottom: 20px;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            color: var(--secondary-color);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+        
+        button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        
+        button.secondary {
+            background: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        button.secondary:hover {
+            background: #e0a800;
+        }
+        
+        #json-editor {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            resize: none;
+            background: #f8f9fa;
+            flex-grow: 1;
+        }
+        
+        #staff-container {
+            background: #fff;
+            border-radius: 10px;
+            padding: 30px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            background-image: linear-gradient(to bottom, #f9f9f9 0%, #f9f9f9 3%, transparent 3%, transparent 97%, #f9f9f9 97%);
+            background-size: 100% 30px;
+            background-position: 0 40px;
+        }
+        
+        .staff {
+            width: 100%;
+            min-height: 200px;
+            border-bottom: 2px solid #333;
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .staff-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: #333;
+            left: 0;
+        }
+        
+        .staff-line:nth-child(1) { top: 0; }
+        .staff-line:nth-child(2) { top: 10px; }
+        .staff-line:nth-child(3) { top: 20px; }
+        .staff-line:nth-child(4) { top: 30px; }
+        .staff-line:nth-child(5) { top: 40px; }
+        
+        .measure {
+            position: absolute;
+            top: 0;
+            height: 40px;
+            border-right: 2px solid #999;
+            padding: 0 20px;
+        }
+        
+        .note {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #4a6fa5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .note:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(74, 111, 165, 0.7);
+        }
+        
+        .rest {
+            background: #333;
+        }
+        
+        .note-label {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+        
+        .note-dot {
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .preview-panel {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+        }
+        
+        .data-structure {
+            background: #f0f7ff;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .structure-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .structure-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .structure-props {
+            padding-left: 20px;
+        }
+        
+        .prop {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        
+        .prop-name {
+            font-weight: bold;
+            min-width: 120px;
+            color: var(--secondary-color);
+        }
+        
+        .prop-desc {
+            color: #666;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 217, 0, 0.3);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .error {
+            color: var(--danger-color);
+            background: rgba(220, 53, 69, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .note-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .note-example {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f7ff;
+            padding: 15px;
+            border-radius: 10px;
+            width: 120px;
+        }
+        
+        .example-visual {
+            width: 100%;
+            height: 80px;
+            position: relative;
+            margin-bottom: 10px;
+            background-image: linear-gradient(to bottom, transparent 0%, transparent 19%, #ccc 19%, #ccc 21%, transparent 21%, transparent 39%, #ccc 39%, #ccc 41%, transparent 41%, transparent 59%, #ccc 59%, #ccc 61%, transparent 61%, transparent 79%, #ccc 79%, #ccc 81%, transparent 81%);
+            background-size: 100% 80px;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .preview-panel {
+                grid-column: 1 / -1;
+                height: auto;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-music"></i> 简谱数据格式设计与可视化</h1>
+            <p class="subtitle">本演示展示了一个完整的简谱数据格式设计，包含音符、时值、调号、拍号等核心元素，并提供了JSON编辑与实时可视化功能</p>
+            
+            <div class="controls">
+                <button id="btn-example1"><i class="fas fa-star"></i> 小星星</button>
+                <button id="btn-example2"><i class="fas fa-heart"></i> 欢乐颂</button>
+                <button id="btn-render" class="secondary"><i class="fas fa-play"></i> 渲染简谱</button>
+                <button id="btn-reset"><i class="fas fa-sync"></i> 重置</button>
+            </div>
+        </header>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fas fa-code"></i> JSON 编辑器</h2>
+            </div>
+            <textarea id="json-editor">{
+  "metadata": {
+    "title": "小星星",
+    "composer": "传统儿歌",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 100
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+      ]
+    }
+  ]
+}</textarea>
+            <div id="json-error" class="error"></div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fas fa-music"></i> 简谱可视化</h2>
+            </div>
+            <div id="staff-container">
+                <div class="staff">
+                    <!-- 五线谱线条 -->
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    
+                    <!-- 音符将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-panel">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-info-circle"></i> 数据结构说明</h2>
+                </div>
+                <div class="data-structure">
+                    <div class="structure-item">
+                        <div class="structure-title"><i class="fas fa-cube"></i> metadata 对象</div>
+                        <div class="structure-props">
+                            <div class="prop">
+                                <div class="prop-name">title</div>
+                                <div class="prop-desc">乐曲标题</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">composer</div>
+                                <div class="prop-desc">作曲者</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">key</div>
+                                <div class="prop-desc">调号 (如<span class="highlight">"1=C"</span>)</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">timeSignature</div>
+                                <div class="prop-desc">拍号 (如<span class="highlight">"4/4"</span>)</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">tempo</div>
+                                <div class="prop-desc">速度 (BPM)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="structure-item">
+                        <div class="structure-title"><i class="fas fa-bars"></i> measures 数组</div>
+                        <div class="structure-props">
+                            <div class="prop">
+                                <div class="prop-name">index</div>
+                                <div class="prop-desc">小节序号</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">notes</div>
+                                <div class="prop-desc">音符数组</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="structure-item">
+                        <div class="structure-title"><i class="fas fa-music"></i> note 对象</div>
+                        <div class="structure-props">
+                            <div class="prop">
+                                <div class="prop-name">type</div>
+                                <div class="prop-desc"><span class="highlight">"note"</span> 或 <span class="highlight">"rest"</span></div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">pitch</div>
+                                <div class="prop-desc">音高 (1-7，休止符为0)</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">octaveShift</div>
+                                <div class="prop-desc">音区偏移 (0=中音, -1=低音, 1=高音)</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">duration</div>
+                                <div class="prop-desc">基础时值 (1=四分音符)</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">dotted</div>
+                                <div class="prop-desc">是否附点音符</div>
+                            </div>
+                            <div class="prop">
+                                <div class="prop-name">lyric</div>
+                                <div class="prop-desc">歌词 (可选)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instructions">
+                        <h3><i class="fas fa-lightbulb"></i> 使用说明</h3>
+                        <ul>
+                            <li>在左侧编辑JSON数据后，点击"渲染简谱"按钮更新可视化</li>
+                            <li>点击"小星星"或"欢乐颂"按钮加载示例</li>
+                            <li>悬停在音符上可查看详细信息</li>
+                            <li>修改数据后需要重新渲染以更新视图</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-eye"></i> 音符示例</h2>
+                </div>
+                <div class="note-examples">
+                    <div class="note-example">
+                        <div class="example-visual">
+                            <div class="note" style="top: 20px; left: 30px;">1</div>
+                        </div>
+                        <div>中音 Do</div>
+                        <small>octaveShift: 0</small>
+                    </div>
+                    
+                    <div class="note-example">
+                        <div class="example-visual">
+                            <div class="note" style="top: 0px; left: 30px;">5</div>
+                        </div>
+                        <div>高音 Sol</div>
+                        <small>octaveShift: 1</small>
+                    </div>
+                    
+                    <div class="note-example">
+                        <div class="example-visual">
+                            <div class="note rest" style="top: 20px; left: 30px;">X</div>
+                        </div>
+                        <div>四分休止符</div>
+                        <small>type: "rest"</small>
+                    </div>
+                    
+                    <div class="note-example">
+                        <div class="example-visual">
+                            <div class="note" style="top: 20px; left: 30px;">3</div>
+                            <div class="note-dot"></div>
+                        </div>
+                        <div>附点音符</div>
+                        <small>dotted: true</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonEditor = document.getElementById('json-editor');
+            const staffContainer = document.querySelector('.staff');
+            const jsonError = document.getElementById('json-error');
+            const btnRender = document.getElementById('btn-render');
+            const btnReset = document.getElementById('btn-reset');
+            const btnExample1 = document.getElementById('btn-example1');
+            const btnExample2 = document.getElementById('btn-example2');
+            
+            // 初始渲染
+            renderStaff();
+            
+            // 渲染按钮事件
+            btnRender.addEventListener('click', renderStaff);
+            
+            // 重置按钮事件
+            btnReset.addEventListener('click', function() {
+                jsonEditor.value = `{
+  "metadata": {
+    "title": "小星星",
+    "composer": "传统儿歌",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 100
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+      ]
+    }
+  ]
+}`;
+                renderStaff();
+            });
+            
+            // 示例1：小星星
+            btnExample1.addEventListener('click', function() {
+                jsonEditor.value = `{
+  "metadata": {
+    "title": "小星星",
+    "composer": "传统儿歌",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 100
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+      ]
+    }
+  ]
+}`;
+                renderStaff();
+            });
+            
+            // 示例2：欢乐颂
+            btnExample2.addEventListener('click', function() {
+                jsonEditor.value = `{
+  "metadata": {
+    "title": "欢乐颂",
+    "composer": "贝多芬",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 92
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 2, "dotted": false}
+      ]
+    }
+  ]
+}`;
+                renderStaff();
+            });
+            
+            // 渲染简谱
+            function renderStaff() {
+                try {
+                    // 清空错误信息
+                    jsonError.style.display = 'none';
+                    jsonError.textContent = '';
+                    
+                    // 清空五线谱
+                    staffContainer.innerHTML = `
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                    `;
+                    
+                    // 解析JSON
+                    const scoreData = JSON.parse(jsonEditor.value);
+                    
+                    // 更新标题
+                    document.querySelector('h1').innerHTML = `<i class="fas fa-music"></i> ${scoreData.metadata.title} - 简谱数据格式设计`;
+                    
+                    // 渲染小节
+                    let xPos = 50;
+                    let measureWidth = 250;
+                    
+                    scoreData.measures.forEach(measure => {
+                        // 创建小节
+                        const measureElement = document.createElement('div');
+                        measureElement.className = 'measure';
+                        measureElement.style.left = `${xPos}px`;
+                        measureElement.style.width = `${measureWidth}px`;
+                        staffContainer.appendChild(measureElement);
+                        
+                        // 小节标题
+                        const measureLabel = document.createElement('div');
+                        measureLabel.className = 'note-label';
+                        measureLabel.textContent = `小节 ${measure.index}`;
+                        measureLabel.style.left = `${xPos + 10}px`;
+                        staffContainer.appendChild(measureLabel);
+                        
+                        // 渲染音符
+                        let noteX = xPos + 20;
+                        const noteSpacing = measureWidth / (measure.notes.length + 1);
+                        
+                        measure.notes.forEach(note => {
+                            const noteElement = document.createElement('div');
+                            noteElement.className = note.type === 'rest' ? 'note rest' : 'note';
+                            
+                            // 计算音高位置 (中音在中间线)
+                            let noteY = 20; // 默认中音位置
+                            
+                            // 根据音区偏移调整位置
+                            if (note.octaveShift === 1) {
+                                noteY = 5; // 高音
+                            } else if (note.octaveShift === -1) {
+                                noteY = 35; // 低音
+                            } else if (note.octaveShift === 2) {
+                                noteY = -10; // 倍高音
+                            } else if (note.octaveShift === -2) {
+                                noteY = 50; // 倍低音
+                            }
+                            
+                            noteElement.style.top = `${noteY}px`;
+                            noteElement.style.left = `${noteX}px`;
+                            
+                            // 音符内容
+                            if (note.type === 'rest') {
+                                noteElement.textContent = 'X';
+                            } else {
+                                noteElement.textContent = note.pitch;
+                                
+                                // 附点
+                                if (note.dotted) {
+                                    const dot = document.createElement('div');
+                                    dot.className = 'note-dot';
+                                    noteElement.appendChild(dot);
+                                }
+                            }
+                            
+                            // 添加悬停提示
+                            noteElement.title = `音高: ${note.pitch || '休止符'}\n音区: ${getOctaveName(note.octaveShift)}\n时值: ${getDurationName(note.duration, note.dotted)}\n${note.lyric ? '歌词: ' + note.lyric : ''}`;
+                            
+                            staffContainer.appendChild(noteElement);
+                            
+                            // 添加歌词
+                            if (note.lyric) {
+                                const lyricElement = document.createElement('div');
+                                lyricElement.className = 'note-label';
+                                lyricElement.textContent = note.lyric;
+                                lyricElement.style.left = `${noteX - 10}px`;
+                                lyricElement.style.top = '60px';
+                                lyricElement.style.color = '#4a6fa5';
+                                lyricElement.style.fontWeight = 'bold';
+                                staffContainer.appendChild(lyricElement);
+                            }
+                            
+                            noteX += noteSpacing;
+                        });
+                        
+                        xPos += measureWidth + 50;
+                    });
+                    
+                } catch (error) {
+                    // 显示错误信息
+                    jsonError.style.display = 'block';
+                    jsonError.textContent = `JSON解析错误: ${error.message}`;
+                }
+            }
+            
+            // 获取音区名称
+            function getOctaveName(shift) {
+                switch(shift) {
+                    case -2: return '倍低音';
+                    case -1: return '低音';
+                    case 0: return '中音';
+                    case 1: return '高音';
+                    case 2: return '倍高音';
+                    default: return `未知(${shift})`;
+                }
+            }
+            
+            // 获取时值名称
+            function getDurationName(duration, dotted) {
+                let name = '';
+                if (duration === 4) name = '全音符';
+                else if (duration === 2) name = '二分音符';
+                else if (duration === 1) name = '四分音符';
+                else if (duration === 0.5) name = '八分音符';
+                else if (duration === 0.25) name = '十六分音符';
+                else name = `${duration} 拍`;
+                
+                return dotted ? `附点${name}` : name;
+            }
+        });
+    </script>
+</body>
+</html>
