@@ -53,12 +53,12 @@
         h1 {
             color: var(--primary-color);
             margin-bottom: 8px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
         
         .subtitle {
             color: var(--secondary-color);
-            font-size: 1rem;
+            font-size: 0.9rem;
             margin: 0 auto 15px;
             line-height: 1.5;
         }
@@ -66,7 +66,7 @@
         .panel {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: var(--shadow);
             display: flex;
             flex-direction: column;
@@ -82,7 +82,7 @@
         }
         
         .panel-title {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             color: var(--primary-color);
             display: flex;
             align-items: center;
@@ -96,7 +96,7 @@
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
             justify-content: center;
         }
@@ -105,7 +105,7 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 14px;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
@@ -114,7 +114,7 @@
             align-items: center;
             gap: 6px;
             box-shadow: var(--shadow);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         button:hover {
@@ -147,7 +147,7 @@
         #staff-container {
             background: #fff;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             flex-grow: 1;
             overflow-x: auto;
             overflow-y: hidden;
@@ -263,7 +263,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         
         .structure-props {
@@ -273,7 +273,7 @@
         .prop {
             display: flex;
             margin-bottom: 4px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
         
         .prop-name {
@@ -308,13 +308,13 @@
             padding: 12px;
             margin-top: 15px;
             border-radius: 0 8px 8px 0;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
         
         .instructions h3 {
             margin-bottom: 8px;
             color: var(--primary-color);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         
         .instructions ul {
@@ -323,12 +323,13 @@
         
         .instructions li {
             margin-bottom: 6px;
+            font-size: 0.9rem;
         }
         
         .note-examples {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             margin-top: 15px;
             justify-content: center;
         }
@@ -338,10 +339,10 @@
             flex-direction: column;
             align-items: center;
             background: #f0f7ff;
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
             width: 100px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         
         .example-visual {
@@ -389,6 +390,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 1rem;
         }
         
         .canvas-close {
@@ -431,6 +433,23 @@
             display: none;
         }
         
+        /* 移动端优化 */
+        .mobile-scroll-container {
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+        
+        .mobile-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .mobile-scroll-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        /* 响应式设计 */
         @media (min-width: 768px) {
             .container {
                 grid-template-columns: 1fr 1fr;
@@ -456,6 +475,15 @@
                 grid-column: 1 / -1;
                 grid-template-columns: 1fr 1fr;
             }
+            
+            button {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
         }
         
         @media (min-width: 992px) {
@@ -470,6 +498,77 @@
             
             #staff-container {
                 min-height: 400px;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .panel-title {
+                font-size: 1rem;
+            }
+            
+            .controls {
+                gap: 5px;
+            }
+            
+            button {
+                padding: 7px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .note-example {
+                width: 85px;
+                font-size: 0.8rem;
+            }
+            
+            #staff-container {
+                padding: 10px;
+            }
+            
+            .canvas-window {
+                width: 95%;
+                height: 65vh;
+                max-height: 400px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                gap: 10px;
+            }
+            
+            header {
+                padding: 10px;
+            }
+            
+            .panel {
+                padding: 12px;
+            }
+            
+            .controls {
+                gap: 4px;
+            }
+            
+            button {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+            
+            #json-editor {
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            .note-examples {
+                gap: 8px;
+            }
+            
+            .note-example {
+                width: 75px;
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -546,16 +645,18 @@
             <div class="panel-header">
                 <h2 class="panel-title"><i class="fas fa-music"></i> 简谱可视化</h2>
             </div>
-            <div id="staff-container">
-                <div class="staff">
-                    <!-- 五线谱线条 -->
-                    <div class="staff-line"></div>
-                    <div class="staff-line"></div>
-                    <div class="staff-line"></div>
-                    <div class="staff-line"></div>
-                    <div class="staff-line"></div>
-                    
-                    <!-- 音符将在这里动态生成 -->
+            <div class="mobile-scroll-container">
+                <div id="staff-container">
+                    <div class="staff">
+                        <!-- 五线谱线条 -->
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        
+                        <!-- 音符将在这里动态生成 -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -1120,8 +1221,8 @@
                     document.querySelector('h1').innerHTML = `<i class="fas fa-music"></i> ${scoreData.metadata.title} - 简谱数据格式设计`;
                     
                     // 渲染小节
-                    let xPos = 50;
-                    let measureWidth = Math.max(150, Math.min(250, window.innerWidth * 0.2));
+                    let xPos = 30;
+                    let measureWidth = Math.max(120, Math.min(200, window.innerWidth * 0.2));
                     
                     scoreData.measures.forEach(measure => {
                         // 创建小节
@@ -1197,7 +1298,7 @@
                             noteX += noteSpacing;
                         });
                         
-                        xPos += measureWidth + 50;
+                        xPos += measureWidth + 30;
                     });
                     
                     // 设置staff容器的宽度
@@ -1374,7 +1475,7 @@
         });
     </script>
 </body>
-</html>   
+</html>
 <!--
 升级
 手机上演示时，网页宽度超出了手机屏幕
