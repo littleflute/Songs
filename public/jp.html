@@ -29,6 +29,7 @@
             color: var(--dark-color);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
         
         .container {
@@ -343,6 +344,62 @@
             background-size: 100% 80px;
         }
         
+        /* 画布窗口样式 */
+        .canvas-window {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 600px;
+            height: 400px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .canvas-header {
+            padding: 10px 15px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .canvas-header .title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .canvas-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        
+        .canvas-close:hover {
+            transform: scale(1.2);
+        }
+        
+        .canvas-content {
+            flex-grow: 1;
+            padding: 10px;
+            position: relative;
+        }
+        
+        #sheet-canvas {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+        
         @media (max-width: 1200px) {
             .container {
                 grid-template-columns: 1fr 1fr;
@@ -357,6 +414,10 @@
             .container {
                 grid-template-columns: 1fr;
             }
+            .canvas-window {
+                width: calc(100% - 40px);
+                height: 300px;
+            }
         }
     </style>
 </head>
@@ -369,7 +430,9 @@
             <div class="controls">
                 <button id="btn-example1"><i class="fas fa-star"></i> 小星星</button>
                 <button id="btn-example2"><i class="fas fa-heart"></i> 欢乐颂</button>
+                <button id="btn-example3"><i class="fas fa-crown"></i> C大调进阶</button>
                 <button id="btn-render" class="secondary"><i class="fas fa-play"></i> 渲染简谱</button>
+                <button id="btnToggleCanvasWnd"><i class="fas fa-external-link-alt"></i> 画布窗口</button>
                 <button id="btn-reset"><i class="fas fa-sync"></i> 重置</button>
             </div>
         </header>
@@ -524,9 +587,10 @@
                         <h3><i class="fas fa-lightbulb"></i> 使用说明</h3>
                         <ul>
                             <li>在左侧编辑JSON数据后，点击"渲染简谱"按钮更新可视化</li>
-                            <li>点击"小星星"或"欢乐颂"按钮加载示例</li>
+                            <li>点击"小星星"、"欢乐颂"或"C大调进阶"按钮加载示例</li>
                             <li>悬停在音符上可查看详细信息</li>
                             <li>修改数据后需要重新渲染以更新视图</li>
+                            <li>点击"画布窗口"按钮可在独立窗口中查看Canvas渲染效果</li>
                         </ul>
                     </div>
                 </div>
@@ -573,6 +637,17 @@
             </div>
         </div>
     </div>
+    
+    <!-- 画布窗口 -->
+    <div id="canvasWindow" class="canvas-window">
+        <div class="canvas-header">
+            <div class="title"><i class="fas fa-paint-brush"></i> 简谱画布渲染</div>
+            <div id="closeCanvas" class="canvas-close">&times;</div>
+        </div>
+        <div class="canvas-content">
+            <canvas id="sheet-canvas"></canvas>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -583,12 +658,24 @@
             const btnReset = document.getElementById('btn-reset');
             const btnExample1 = document.getElementById('btn-example1');
             const btnExample2 = document.getElementById('btn-example2');
+            const btnExample3 = document.getElementById('btn-example3');
+            const btnToggleCanvasWnd = document.getElementById('btnToggleCanvasWnd');
+            const canvasWindow = document.getElementById('canvasWindow');
+            const closeCanvas = document.getElementById('closeCanvas');
+            const canvas = document.getElementById('sheet-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let isDragging = false;
+            let offsetX, offsetY;
             
             // 初始渲染
             renderStaff();
             
             // 渲染按钮事件
-            btnRender.addEventListener('click', renderStaff);
+            btnRender.addEventListener('click', function() {
+                renderStaff();
+                renderCanvas();
+            });
             
             // 重置按钮事件
             btnReset.addEventListener('click', function() {
@@ -638,6 +725,7 @@
   ]
 }`;
                 renderStaff();
+                renderCanvas();
             });
             
             // 示例1：小星星
@@ -688,6 +776,7 @@
   ]
 }`;
                 renderStaff();
+                renderCanvas();
             });
             
             // 示例2：欢乐颂
@@ -739,9 +828,181 @@
   ]
 }`;
                 renderStaff();
+                renderCanvas();
             });
             
-            // 渲染简谱
+            // 示例3：两个8度的C大调进阶
+            btnExample3.addEventListener('click', function() {
+                jsonEditor.value = `{
+  "metadata": {
+    "title": "C大调进阶练习",
+    "composer": "音乐教学",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 110
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": -1, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 6, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 7, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 1, "dotted": false},
+        {"type": "rest", "pitch": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 5,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 6,
+      "notes": [
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 7,
+      "notes": [
+        {"type": "note", "pitch": 7, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 6, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": -1, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 8,
+      "notes": [
+        {"type": "note", "pitch": 3, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": -1, "duration": 2, "dotted": false},
+        {"type": "rest", "pitch": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 9,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 10,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 11,
+      "notes": [
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 1, "dotted": false}
+      ]
+    },
+    {
+      "index": 12,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false}
+      ]
+    }
+  ]
+}`;
+                renderStaff();
+                renderCanvas();
+            });
+            
+            // 画布窗口切换
+            btnToggleCanvasWnd.addEventListener('click', function() {
+                if (canvasWindow.style.display === 'none' || canvasWindow.style.display === '') {
+                    canvasWindow.style.display = 'flex';
+                    renderCanvas();
+                } else {
+                    canvasWindow.style.display = 'none';
+                }
+            });
+            
+            // 关闭画布窗口
+            closeCanvas.addEventListener('click', function() {
+                canvasWindow.style.display = 'none';
+            });
+            
+            // 使窗口可拖动
+            const canvasHeader = canvasWindow.querySelector('.canvas-header');
+            canvasHeader.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+            
+            function startDrag(e) {
+                isDragging = true;
+                offsetX = e.clientX - canvasWindow.getBoundingClientRect().left;
+                offsetY = e.clientY - canvasWindow.getBoundingClientRect().top;
+                canvasWindow.style.cursor = 'grabbing';
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                
+                // 确保窗口不会拖出视口
+                const maxX = window.innerWidth - canvasWindow.offsetWidth;
+                const maxY = window.innerHeight - canvasWindow.offsetHeight;
+                
+                canvasWindow.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+                canvasWindow.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            }
+            
+            function endDrag() {
+                isDragging = false;
+                canvasWindow.style.cursor = 'grab';
+            }
+            
+            // 渲染简谱到DOM
             function renderStaff() {
                 try {
                     // 清空错误信息
@@ -851,6 +1112,136 @@
                 }
             }
             
+            // 渲染简谱到Canvas
+            function renderCanvas() {
+                try {
+                    // 清空Canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 获取Canvas尺寸
+                    const width = canvas.width = canvas.offsetWidth;
+                    const height = canvas.height = canvas.offsetHeight;
+                    
+                    // 解析JSON
+                    const scoreData = JSON.parse(jsonEditor.value);
+                    
+                    // 绘制标题和元数据
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillStyle = '#333';
+                    ctx.fillText(scoreData.metadata.title, 20, 30);
+                    
+                    ctx.font = '14px Arial';
+                    ctx.fillText(`作曲: ${scoreData.metadata.composer}`, 20, 60);
+                    ctx.fillText(`调号: ${scoreData.metadata.key}`, 20, 85);
+                    ctx.fillText(`拍号: ${scoreData.metadata.timeSignature}`, 20, 110);
+                    
+                    // 设置五线谱起始位置
+                    const staffY = 140;
+                    const staffHeight = 40;
+                    
+                    // 绘制五线谱
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 1;
+                    
+                    for (let i = 0; i < 5; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(20, staffY + i * 10);
+                        ctx.lineTo(width - 20, staffY + i * 10);
+                        ctx.stroke();
+                    }
+                    
+                    // 计算小节宽度
+                    const measureWidth = (width - 40) / scoreData.measures.length;
+                    
+                    // 绘制小节线
+                    ctx.lineWidth = 2;
+                    scoreData.measures.forEach((measure, index) => {
+                        const x = 20 + index * measureWidth;
+                        ctx.beginPath();
+                        ctx.moveTo(x, staffY);
+                        ctx.lineTo(x, staffY + staffHeight);
+                        ctx.stroke();
+                        
+                        // 绘制小节号
+                        ctx.font = '12px Arial';
+                        ctx.fillText(`小节 ${measure.index}`, x + 5, staffY - 10);
+                    });
+                    
+                    // 绘制最后一条小节线
+                    ctx.beginPath();
+                    ctx.moveTo(width - 20, staffY);
+                    ctx.lineTo(width - 20, staffY + staffHeight);
+                    ctx.stroke();
+                    
+                    // 绘制音符
+                    scoreData.measures.forEach((measure, measureIndex) => {
+                        const measureX = 20 + measureIndex * measureWidth;
+                        const notesPerMeasure = measure.notes.length;
+                        const noteSpacing = measureWidth / (notesPerMeasure + 1);
+                        
+                        measure.notes.forEach((note, noteIndex) => {
+                            const noteX = measureX + noteSpacing * (noteIndex + 1);
+                            
+                            // 计算音高位置
+                            let noteY = staffY + 20; // 默认中音位置
+                            
+                            // 根据音区偏移调整位置
+                            if (note.octaveShift === 1) {
+                                noteY = staffY + 5; // 高音
+                            } else if (note.octaveShift === -1) {
+                                noteY = staffY + 35; // 低音
+                            } else if (note.octaveShift === 2) {
+                                noteY = staffY - 10; // 倍高音
+                            } else if (note.octaveShift === -2) {
+                                noteY = staffY + 50; // 倍低音
+                            }
+                            
+                            // 绘制音符
+                            if (note.type === 'rest') {
+                                // 绘制休止符
+                                ctx.fillStyle = '#333';
+                                ctx.font = 'bold 16px Arial';
+                                ctx.fillText('X', noteX - 5, noteY + 5);
+                            } else {
+                                // 绘制音符圆形
+                                ctx.fillStyle = '#4a6fa5';
+                                ctx.beginPath();
+                                ctx.arc(noteX, noteY, 12, 0, Math.PI * 2);
+                                ctx.fill();
+                                
+                                // 绘制音符数字
+                                ctx.fillStyle = 'white';
+                                ctx.font = 'bold 14px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(note.pitch, noteX, noteY);
+                                
+                                // 绘制附点
+                                if (note.dotted) {
+                                    ctx.fillStyle = '#333';
+                                    ctx.beginPath();
+                                    ctx.arc(noteX + 18, noteY - 5, 3, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                            }
+                            
+                            // 绘制歌词
+                            if (note.lyric) {
+                                ctx.fillStyle = '#4a6fa5';
+                                ctx.font = 'bold 14px Arial';
+                                ctx.fillText(note.lyric, noteX, staffY + staffHeight + 30);
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    // 显示错误信息
+                    ctx.fillStyle = '#dc3545';
+                    ctx.font = '16px Arial';
+                    ctx.fillText(`Canvas渲染错误: ${error.message}`, 20, 50);
+                }
+            }
+            
             // 获取音区名称
             function getOctaveName(shift) {
                 switch(shift) {
@@ -875,7 +1266,15 @@
                 
                 return dotted ? `附点${name}` : name;
             }
+            
+            // 监听窗口大小变化，重新渲染Canvas
+            window.addEventListener('resize', renderCanvas);
         });
     </script>
 </body>
-</html>
+</html>    
+<!--
+升级
+let window movable when running on cell phone.
+return all new code.
+-->
