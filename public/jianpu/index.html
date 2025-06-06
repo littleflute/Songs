@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小星星 - 简谱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .metadata {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            font-size: 0.95rem;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .staff-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            background: #f9f6f0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+        
+        .instructions ul {
+            padding-left: 25px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .metadata {
+                font-size: 0.85rem;
+                gap: 15px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>小星星</h1>
+            <div class="subtitle">传统儿歌</div>
+            <div class="metadata">
+                <span>调号: 1=C</span>
+                <span>拍号: 4/4</span>
+                <span>速度: 100 BPM</span>
+            </div>
+        </header>
+        
+        <div class="staff-container">
+            <canvas id="sheetMusicCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="playBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                播放音乐
+            </button>
+            <button id="zoomInBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                放大
+            </button>
+            <button id="zoomOutBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+                    <path d="M19 13H5v-2h14v2z"/>
+                </svg>
+                缩小
+            </button>
+        </div>
+        
+        <div class="instructions">
+            <h3>简谱说明</h3>
+            <ul>
+                <li>数字表示音符：1(Do), 2(Re), 3(Mi), 4(Fa), 5(Sol), 6(La), 7(Si)</li>
+                <li>音符下方横线表示八分音符，无横线为四分音符</li>
+                <li>音符右侧横线表示延长音（二分音符）</li>
+                <li>歌词显示在音符下方</li>
+                <li>在移动设备上可双指缩放查看细节</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 音乐数据
+        const sheetData = {
+            "metadata": {
+                "title": "小星星",
+                "composer": "传统儿歌",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 100
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                }
+            ]
+        };
+
+        // 获取Canvas元素
+        const canvas = document.getElementById('sheetMusicCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 初始缩放级别
+        let scale = 1.0;
+        const baseMeasureWidth = 280;
+        const baseMeasureHeight = 180;
+        const baseStaffHeight = 120;
+        
+        // 设置Canvas尺寸
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = container.clientWidth * dpr;
+            canvas.height = Math.min(window.innerHeight * 0.5, 700) * dpr * scale;
+            
+            canvas.style.width = container.clientWidth + 'px';
+            canvas.style.height = (canvas.height / dpr) + 'px';
+            
+            ctx.scale(dpr, dpr);
+            ctx.translate(0, 0);
+            drawSheetMusic();
+        }
+
+        // 绘制五线谱背景
+        function drawStaff(y, width) {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1.5;
+            
+            // 绘制五条线
+            for (let i = 0; i < 5; i++) {
+                const lineY = y + i * 12;
+                ctx.beginPath();
+                ctx.moveTo(40, lineY);
+                ctx.lineTo(width - 40, lineY);
+                ctx.stroke();
+            }
+            
+            // 绘制谱号
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('𝄞', 15, y + 38);
+        }
+
+        // 绘制音符
+        function drawNote(x, y, note, measureWidth) {
+            const noteX = x;
+            const noteY = y - (note.pitch - 1) * 6;
+            
+            // 绘制音符数字
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#d35400';
+            ctx.fillText(note.pitch, noteX, noteY);
+            
+            // 绘制减时线（八分音符）
+            if (note.duration < 1) {
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(noteX - 8, noteY + 8);
+                ctx.lineTo(noteX + 15, noteY + 8);
+                ctx.stroke();
+            }
+            
+            // 绘制增时线（二分音符）
+            if (note.duration >= 2) {
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(noteX + 15, noteY);
+                ctx.lineTo(noteX + 30, noteY);
+                ctx.stroke();
+                
+                // 如果是全音符，再加一条
+                if (note.duration >= 4) {
+                    ctx.beginPath();
+                    ctx.moveTo(noteX + 15, noteY + 4);
+                    ctx.lineTo(noteX + 30, noteY + 4);
+                    ctx.stroke();
+                }
+            }
+            
+            // 绘制歌词
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#2980b9';
+            ctx.textAlign = 'center';
+            ctx.fillText(note.lyric, noteX + 10, noteY + 40);
+            ctx.textAlign = 'left';
+        }
+
+        // 绘制小节
+        function drawMeasure(measure, x, y, width) {
+            // 绘制小节线
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 25);
+            ctx.lineTo(x, y + 50);
+            ctx.stroke();
+            
+            // 绘制小节内容
+            const noteSpacing = width / (measure.notes.length + 1);
+            let noteX = x + noteSpacing;
+            
+            for (const note of measure.notes) {
+                drawNote(noteX, y, note, width);
+                noteX += noteSpacing;
+            }
+            
+            // 右侧小节线
+            ctx.beginPath();
+            ctx.moveTo(x + width, y - 25);
+            ctx.lineTo(x + width, y + 50);
+            ctx.stroke();
+            
+            // 小节编号
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillText(measure.index, x + width/2, y + 70);
+        }
+
+        // 绘制整个乐谱
+        function drawSheetMusic() {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            // 清除Canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制标题
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#2c3e50';
+            ctx.textAlign = 'center';
+            ctx.fillText(sheetData.metadata.title, width / 2, 50);
+            
+            // 绘制调号
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#34495e';
+            ctx.fillText(`1 = ${sheetData.metadata.key.slice(2)}`, width - 100, 50);
+            
+            // 绘制拍号
+            ctx.fillText(sheetData.metadata.timeSignature, width - 50, 50);
+            
+            // 设置五线谱位置
+            const staffY = 100;
+            
+            // 绘制五线谱
+            drawStaff(staffY, width);
+            
+            // 绘制小节
+            const measureWidth = baseMeasureWidth * scale;
+            const measureHeight = baseMeasureHeight * scale;
+            const measuresPerRow = Math.floor((width - 80) / measureWidth);
+            let x = 60;
+            let y = staffY + 30;
+            let row = 0;
+            
+            for (let i = 0; i < sheetData.measures.length; i++) {
+                if (i > 0 && i % measuresPerRow === 0) {
+                    row++;
+                    x = 60;
+                }
+                
+                const measureY = y + row * measureHeight;
+                drawMeasure(sheetData.measures[i], x, measureY, measureWidth);
+                x += measureWidth + 20;
+            }
+        }
+
+        // 播放音乐
+        function playMusic() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const tempo = sheetData.metadata.tempo;
+            const beatDuration = 60 / tempo;
+            
+            let time = audioContext.currentTime;
+            
+            for (const measure of sheetData.measures) {
+                for (const note of measure.notes) {
+                    const noteDuration = note.duration * beatDuration;
+                    
+                    // 创建振荡器
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    // 设置频率（以C4为基准）
+                    const baseFreq = 261.63; // C4
+                    const pitchOffset = note.pitch - 1;
+                    const frequency = baseFreq * Math.pow(2, pitchOffset / 12);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = frequency;
+                    
+                    // 设置音量包络
+                    gainNode.gain.setValueAtTime(0.8, time);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, time + noteDuration);
+                    
+                    // 连接节点
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // 播放音符
+                    oscillator.start(time);
+                    oscillator.stop(time + noteDuration);
+                    
+                    time += noteDuration;
+                }
+            }
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            setupCanvas();
+            
+            // 添加按钮事件
+            document.getElementById('playBtn').addEventListener('click', playMusic);
+            document.getElementById('zoomInBtn').addEventListener('click', () => {
+                scale = Math.min(scale + 0.1, 1.5);
+                setupCanvas();
+            });
+            
+            document.getElementById('zoomOutBtn').addEventListener('click', () => {
+                scale = Math.max(scale - 0.1, 0.7);
+                setupCanvas();
+            });
+            
+            // 添加触摸事件用于缩放（在移动设备上）
+            let initialDistance = null;
+            
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) {
+                    initialDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                }
+            });
+            
+            canvas.addEventListener('touchmove', e => {
+                if (e.touches.length === 2 && initialDistance !== null) {
+                    e.preventDefault();
+                    const currentDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    
+                    const scaleFactor = currentDistance / initialDistance;
+                    scale = Math.max(0.7, Math.min(scale * scaleFactor, 1.5));
+                    setupCanvas();
+                    
+                    initialDistance = currentDistance;
+                }
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                initialDistance = null;
+            });
+        });
+
+        // 响应窗口大小变化
+        window.addEventListener('resize', setupCanvas);
+    </script>
+</body>
+</html>
