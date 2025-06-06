@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小星星 - 简谱</title>
+    <title>小星星 - 简谱学习应用</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -16,15 +17,141 @@
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
             color: white;
             min-height: 100vh;
-            padding: 20px;
+            padding-top: 70px;
+            overflow-x: hidden;
+        }
+        
+        /* 导航菜单样式 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            padding: 0 20px;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .logo i {
+            color: #ffd700;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            position: relative;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            padding: 25px 20px;
+            display: block;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #ffd700;
+        }
+        
+        .nav-links a:hover::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 3px;
+            background: #ffd700;
+            border-radius: 3px;
+        }
+        
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(0, 0, 0, 0.9);
+            width: 220px;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        
+        .dropdown li {
+            width: 100%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown li:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown a {
+            padding: 15px 20px;
+        }
+        
+        .nav-links li:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .active {
+            color: #ffd700 !important;
+            font-weight: 600;
+        }
+        
+        .active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 3px;
+            background: #ffd700;
+            border-radius: 3px;
+        }
+        
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            font-size: 1.8rem;
         }
         
         .container {
-            max-width: 100%;
+            max-width: 1000px;
             width: 100%;
+            margin: 0 auto;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -36,31 +163,35 @@
             width: 100%;
             margin-bottom: 20px;
             position: relative;
+            animation: fadeIn 1s ease;
         }
         
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             margin-bottom: 8px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             letter-spacing: 1px;
+            color: #ffd700;
         }
         
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 15px;
+            font-style: italic;
         }
         
         .metadata {
             display: flex;
             justify-content: center;
             gap: 25px;
-            font-size: 0.95rem;
+            font-size: 1rem;
             margin-top: 10px;
             background: rgba(255, 255, 255, 0.1);
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 50px;
             backdrop-filter: blur(5px);
+            margin-bottom: 20px;
         }
         
         .staff-container {
@@ -69,15 +200,17 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideUp 0.8s ease;
         }
         
         canvas {
             display: block;
             width: 100%;
             background: #f9f6f0;
+            padding: 20px 0;
         }
         
         .controls {
@@ -86,21 +219,22 @@
             margin: 20px 0;
             flex-wrap: wrap;
             justify-content: center;
+            animation: fadeIn 1.2s ease;
         }
         
         button {
             background: linear-gradient(to right, #4a00e0, #8e2de2);
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 14px 30px;
             border-radius: 50px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-weight: 500;
         }
         
@@ -115,96 +249,529 @@
         
         .instructions {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            padding: 25px;
             border-radius: 15px;
             margin-top: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             backdrop-filter: blur(5px);
+            animation: fadeIn 1.5s ease;
         }
         
         .instructions h3 {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: center;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
+            color: #ffd700;
         }
         
         .instructions ul {
             padding-left: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
         
         .instructions li {
             margin-bottom: 10px;
-            line-height: 1.5;
+            line-height: 1.6;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
         }
         
-        @media (max-width: 480px) {
+        .page-content {
+            display: none;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .page-content h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-align: center;
+        }
+        
+        .page-content p {
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        
+        .about-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .about-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .about-image {
+            flex: 1;
+            min-width: 300px;
+            height: 300px;
+            background: linear-gradient(45deg, #8e2de2, #4a00e0);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .songs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .song-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .song-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .song-card h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .contact-form {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(to right, #ffd700, #ff9800);
+            color: #1a2a6c;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 0;
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: all 0.4s ease;
+            }
+            
+            .nav-links.active {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+            
+            .nav-links li {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .nav-links a {
+                padding: 15px;
+            }
+            
+            .dropdown {
+                position: static;
+                width: 100%;
+                background: rgba(30, 30, 30, 0.9);
+                display: none;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .nav-links li:hover .dropdown {
+                display: block;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .instructions ul {
+                grid-template-columns: 1fr;
+            }
+            
             h1 {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
             
             .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .metadata {
+                font-size: 0.9rem;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+            
+            button {
+                padding: 12px 25px;
                 font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
             }
             
             .metadata {
                 font-size: 0.85rem;
-                gap: 15px;
+                padding: 10px 15px;
             }
             
-            button {
-                padding: 10px 20px;
-                font-size: 0.95rem;
+            .instructions {
+                padding: 20px 15px;
             }
+            
+            .page-content {
+                padding: 20px;
+            }
+            
+            .about-image {
+                height: 200px;
+                font-size: 5rem;
+            }
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>小星星</h1>
-            <div class="subtitle">传统儿歌</div>
-            <div class="metadata">
-                <span>调号: 1=C</span>
-                <span>拍号: 4/4</span>
-                <span>速度: 100 BPM</span>
-            </div>
-        </header>
-        
-        <div class="staff-container">
-            <canvas id="sheetMusicCanvas"></canvas>
-        </div>
-        
-        <div class="controls">
-            <button id="playBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M8 5v14l11-7z"/>
-                </svg>
-                播放音乐
-            </button>
-            <button id="zoomInBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                </svg>
-                放大
-            </button>
-            <button id="zoomOutBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
-                    <path d="M19 13H5v-2h14v2z"/>
-                </svg>
-                缩小
-            </button>
-        </div>
-        
-        <div class="instructions">
-            <h3>简谱说明</h3>
-            <ul>
-                <li>数字表示音符：1(Do), 2(Re), 3(Mi), 4(Fa), 5(Sol), 6(La), 7(Si)</li>
-                <li>音符下方横线表示八分音符，无横线为四分音符</li>
-                <li>音符右侧横线表示延长音（二分音符）</li>
-                <li>歌词显示在音符下方</li>
-                <li>在移动设备上可双指缩放查看细节</li>
+    <!-- 导航菜单 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo" onclick="showPage('home')">
+                <i class="fas fa-music"></i>
+                <span>小星星音乐</span>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="../"  onclick="showPage('home')">首页</a></li>
+                <li><a href="#" class="active" onclick="showPage('home')">[jianpu]</a></li>
+                <li>
+                    <a href="#" onclick="showPage('songs')">乐谱库 <i class="fas fa-caret-down"></i></a>
+                    <ul class="dropdown">
+                        <li><a href="#" onclick="showPage('songs')">儿童歌曲</a></li>
+                        <li><a href="#" onclick="showPage('songs')">流行音乐</a></li>
+                        <li><a href="#" onclick="showPage('songs')">古典音乐</a></li>
+                        <li><a href="#" onclick="showPage('songs')">电影原声</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="showPage('about')">关于我们</a></li>
+                <li><a href="#" onclick="showPage('contact')">联系我们</a></li>
+                <li><a href="#" onclick="showPage('tutorial')">学习教程</a></li>
             </ul>
+            
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 首页内容 -->
+        <div id="home" class="page-content" style="display: block;">
+            <header>
+                <h1>小星星</h1>
+                <div class="subtitle">经典儿童歌曲简谱</div>
+                <div class="metadata">
+                    <span><i class="fas fa-music"></i> 调号: 1=C</span>
+                    <span><i class="fas fa-clock"></i> 拍号: 4/4</span>
+                    <span><i class="fas fa-tachometer-alt"></i> 速度: 100 BPM</span>
+                </div>
+            </header>
+            
+            <div class="staff-container">
+                <canvas id="sheetMusicCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="playBtn">
+                    <i class="fas fa-play"></i>
+                    播放音乐
+                </button>
+                <button id="zoomInBtn">
+                    <i class="fas fa-search-plus"></i>
+                    放大
+                </button>
+                <button id="zoomOutBtn">
+                    <i class="fas fa-search-minus"></i>
+                    缩小
+                </button>
+                <button id="printBtn">
+                    <i class="fas fa-print"></i>
+                    打印乐谱
+                </button>
+            </div>
+            
+            <div class="instructions">
+                <h3>简谱学习说明</h3>
+                <ul>
+                    <li>数字表示音符：1(Do), 2(Re), 3(Mi), 4(Fa), 5(Sol), 6(La), 7(Si)</li>
+                    <li>音符下方横线表示八分音符，无横线为四分音符</li>
+                    <li>音符右侧横线表示延长音（二分音符）</li>
+                    <li>歌词显示在音符下方</li>
+                    <li>在移动设备上可双指缩放查看细节</li>
+                    <li>点上方"播放"按钮可听到当前乐谱的演奏</li>
+                    <li>使用"放大"和"缩小"按钮调整乐谱显示大小</li>
+                    <li>更多歌曲请查看"乐谱库"菜单</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 乐谱库页面 -->
+        <div id="songs" class="page-content">
+            <h2><i class="fas fa-book-open"></i> 乐谱库</h2>
+            <p>浏览我们的精选乐谱库，包含各种类型的音乐简谱，适合不同水平的音乐爱好者学习和演奏。</p>
+            
+            <div class="songs-grid">
+                <div class="song-card" onclick="loadSong('twinkle')">
+                    <h3><i class="fas fa-star"></i> 小星星</h3>
+                    <p>经典儿童歌曲，音乐入门必学曲目</p>
+                    <div class="metadata">
+                        <span>1=C</span>
+                        <span>4/4</span>
+                        <span>初级</span>
+                    </div>
+                </div>
+                
+                <div class="song-card">
+                    <h3><i class="fas fa-child"></i> 两只老虎</h3>
+                    <p>广受欢迎的儿童歌曲，旋律简单易学</p>
+                    <div class="metadata">
+                        <span>1=C</span>
+                        <span>4/4</span>
+                        <span>初级</span>
+                    </div>
+                </div>
+                
+                <div class="song-card">
+                    <h3><i class="fas fa-moon"></i> 月亮代表我的心</h3>
+                    <p>经典华语流行歌曲，邓丽君代表作</p>
+                    <div class="metadata">
+                        <span>1=G</span>
+                        <span>4/4</span>
+                        <span>中级</span>
+                    </div>
+                </div>
+                
+                <div class="song-card">
+                    <h3><i class="fas fa-heart"></i> 卡农</h3>
+                    <p>巴洛克时期经典作品，广受欢迎</p>
+                    <div class="metadata">
+                        <span>1=D</span>
+                        <span>4/4</span>
+                        <span>高级</span>
+                    </div>
+                </div>
+                
+                <div class="song-card">
+                    <h3><i class="fas fa-film"></i> 天空之城</h3>
+                    <p>宫崎骏动画电影主题曲，优美旋律</p>
+                    <div class="metadata">
+                        <span>1=F</span>
+                        <span>3/4</span>
+                        <span>中级</span>
+                    </div>
+                </div>
+                
+                <div class="song-card">
+                    <h3><i class="fas fa-dragon"></i> 茉莉花</h3>
+                    <p>中国传统民歌，享誉世界的经典旋律</p>
+                    <div class="metadata">
+                        <span>1=C</span>
+                        <span>4/4</span>
+                        <span>初级</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 关于页面 -->
+        <div id="about" class="page-content">
+            <h2><i class="fas fa-info-circle"></i> 关于我们</h2>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <p>小星星音乐应用致力于为音乐爱好者提供简单易用的乐谱学习工具。我们专注于将复杂的音乐知识转化为易于理解的简谱形式，让每个人都能轻松学习音乐。</p>
+                    
+                    <p>我们的使命是打破音乐学习的障碍，让音乐教育变得更加普及和有趣。无论您是音乐初学者还是经验丰富的演奏者，都能在这里找到适合您的资源。</p>
+                    
+                    <p>应用特点：</p>
+                    <ul>
+                        <li>直观的简谱显示系统</li>
+                        <li>交互式播放功能</li>
+                        <li>丰富的乐谱库持续更新</li>
+                        <li>适合各种乐器的乐谱</li>
+                        <li>响应式设计，在手机、平板和电脑上都能完美显示</li>
+                    </ul>
+                    
+                    <p>我们的团队由音乐教育者、软件开发者和设计师组成，共同创造这个免费的音乐学习平台。</p>
+                </div>
+                
+                <div class="about-image">
+                    <i class="fas fa-music"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 联系页面 -->
+        <div id="contact" class="page-content">
+            <h2><i class="fas fa-envelope"></i> 联系我们</h2>
+            <p>有任何问题或建议？请随时联系我们，我们将尽快回复您。</p>
+            
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">您的姓名</label>
+                    <input type="text" id="name" placeholder="请输入姓名">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">电子邮箱</label>
+                    <input type="email" id="email" placeholder="请输入邮箱">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">主题</label>
+                    <input type="text" id="subject" placeholder="请输入主题">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">留言内容</label>
+                    <textarea id="message" placeholder="请输入您的留言..."></textarea>
+                </div>
+                
+                <button type="button" class="submit-btn">发送留言</button>
+            </form>
+        </div>
+        
+        <!-- 教程页面 -->
+        <div id="tutorial" class="page-content">
+            <h2><i class="fas fa-graduation-cap"></i> 简谱学习教程</h2>
+            <p>学习简谱是进入音乐世界的第一步。本教程将带您从零开始学习简谱基础知识。</p>
+            
+            <div class="instructions">
+                <h3>简谱基础知识</h3>
+                <ul>
+                    <li><strong>音符表示</strong>：简谱使用数字1-7表示音阶中的七个基本音</li>
+                    <li><strong>音高表示</strong>：在数字上方加一个点表示高八度，下方加一个点表示低八度</li>
+                    <li><strong>节拍表示</strong>：音符后的横线表示延长音，音符下的横线表示短音</li>
+                    <li><strong>休止符</strong>：0表示休止符，休止的时间长短同样用横线表示</li>
+                    <li><strong>调号</strong>：1=C表示C调，这是最常用的调号</li>
+                    <li><strong>拍号</strong>：如4/4表示每小节四拍，每拍四分音符</li>
+                    <li><strong>附点音符</strong>：音符后加一个点表示延长该音符时值的一半</li>
+                    <li><strong>连线</strong>：连接两个相同音高的音符，表示演奏成一个音</li>
+                </ul>
+            </div>
+            
+            <div class="instructions" style="margin-top: 20px;">
+                <h3>学习建议</h3>
+                <ul>
+                    <li>从简单的儿童歌曲开始练习</li>
+                    <li>每天坚持练习15-30分钟</li>
+                    <li>结合节拍器练习，培养节奏感</li>
+                    <li>先唱谱再演奏</li>
+                    <li>尝试用不同乐器演奏同一首曲子</li>
+                    <li>记录自己的演奏并回听改进</li>
+                    <li>加入音乐社群，与他人交流学习</li>
+                    <li>定期挑战稍高于自己水平的曲目</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 小星星音乐应用 | 让音乐学习更简单</p>
+            <p>本网站仅供学习交流使用</p>
         </div>
     </div>
 
@@ -251,6 +818,40 @@
                         {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
                         {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
                         {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                },
+                {
+                    "index": 5,
+                    "notes": [
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "挂"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "在"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "空"}
+                    ]
+                },
+                {
+                    "index": 6,
+                    "notes": [
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "放"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "光"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "明"}
+                    ]
+                },
+                {
+                    "index": 7,
+                    "notes": [
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "好"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "像"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "许"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "多"}
+                    ]
+                },
+                {
+                    "index": 8,
+                    "notes": [
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "眼"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "睛"}
                     ]
                 }
             ]
@@ -468,6 +1069,41 @@
             }
         }
 
+        // 页面导航功能
+        function showPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // 显示请求的页面
+            document.getElementById(pageId).style.display = 'block';
+            
+            // 更新活动菜单项
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // 移动设备上关闭菜单
+            document.querySelector('.nav-links').classList.remove('active');
+            
+            // 如果是首页，重新绘制乐谱
+            if (pageId === 'home') {
+                setupCanvas();
+            }
+            
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+        }
+        
+        // 加载歌曲
+        function loadSong(songName) {
+            if (songName === 'twinkle') {
+                showPage('home');
+            }
+            // 在实际应用中，这里会加载不同的歌曲数据
+        }
+
         // 初始化
         window.addEventListener('load', () => {
             setupCanvas();
@@ -482,6 +1118,10 @@
             document.getElementById('zoomOutBtn').addEventListener('click', () => {
                 scale = Math.max(scale - 0.1, 0.7);
                 setupCanvas();
+            });
+            
+            document.getElementById('printBtn').addEventListener('click', () => {
+                window.print();
             });
             
             // 添加触摸事件用于缩放（在移动设备上）
@@ -515,6 +1155,11 @@
             canvas.addEventListener('touchend', () => {
                 initialDistance = null;
             });
+            
+            // 移动设备菜单切换
+            document.getElementById('hamburger').addEventListener('click', () => {
+                document.querySelector('.nav-links').classList.toggle('active');
+            });
         });
 
         // 响应窗口大小变化
@@ -522,3 +1167,7 @@
     </script>
 </body>
 </html>
+<!--
+升级
+添加导航菜单
+-->
