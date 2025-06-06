@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱阅读器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#EC4899',
+                        neutral: '#6B7280',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-primary/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-white px-4 py-2 rounded-lg shadow-md hover:bg-secondary/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-secondary/50;
+            }
+            .btn-neutral {
+                @apply bg-neutral text-white px-4 py-2 rounded-lg shadow-md hover:bg-neutral/90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-neutral/50;
+            }
+            .card {
+                @apply bg-white rounded-xl shadow-lg p-4 transition-all duration-300 hover:shadow-xl;
+            }
+            .tool-bar {
+                @apply bg-white shadow-md p-2 flex items-center justify-between sticky top-0 z-10;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <!-- 顶部工具条 -->
+    <div class="tool-bar">
+        <h1 class="text-xl font-bold text-primary">简谱阅读器</h1>
+        <button id="openEditorBtn" class="btn-primary flex items-center">
+            <i class="fa fa-music mr-2"></i>导入乐谱
+        </button>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto p-4">
+        <div class="card mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="musicTitle" class="text-lg font-semibold">小星星</h2>
+                <div class="text-sm text-gray-600">
+                    <span id="musicComposer">传统儿歌</span> | 
+                    <span id="musicKey">1=C</span> | 
+                    <span id="musicTime">4/4</span> | 
+                    <span id="musicTempo">100 BPM</span>
+                </div>
+            </div>
+            <!-- 简谱画布 -->
+            <div class="relative w-full" style="padding-bottom: 56.25%;">
+                <canvas id="jpCanvas" class="absolute top-0 left-0 w-full h-full border border-gray-200 rounded-lg bg-white"></canvas>
+            </div>
+        </div>
+
+        <!-- 播放控制区 -->
+        <div class="card">
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button id="playBtn" class="btn-primary flex items-center">
+                    <i class="fa fa-play mr-2"></i>播放
+                </button>
+                <button id="pauseBtn" class="btn-neutral flex items-center">
+                    <i class="fa fa-pause mr-2"></i>暂停
+                </button>
+                <button id="resetBtn" class="btn-neutral flex items-center">
+                    <i class="fa fa-refresh mr-2"></i>重置
+                </button>
+                <button id="zoomInBtn" class="btn-neutral flex items-center">
+                    <i class="fa fa-search-plus mr-2"></i>放大
+                </button>
+                <button id="zoomOutBtn" class="btn-neutral flex items-center">
+                    <i class="fa fa-search-minus mr-2"></i>缩小
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-6 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>简谱阅读器 &copy; 2025</p>
+            <p class="text-sm text-gray-400 mt-2">在移动设备上体验更佳</p>
+        </div>
+    </footer>
+
+    <!-- 乐谱编辑器模态框 -->
+    <div id="editorModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+            <!-- 模态框头部 -->
+            <div class="bg-primary text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">乐谱编辑器</h3>
+                <button id="closeEditorBtn" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- 编辑器工具条 -->
+            <div class="border-b flex p-2">
+                <button id="loadStarBtn" class="btn-primary flex-1 mr-2">
+                    <i class="fa fa-file-text-o mr-2"></i>加载"小星星"
+                </button>
+                <button id="loadScaleBtn" class="btn-secondary flex-1 ml-2">
+                    <i class="fa fa-music mr-2"></i>加载音阶
+                </button>
+            </div>
+            
+            <!-- 文本编辑区 -->
+            <div class="flex-1 overflow-auto p-4">
+                <textarea id="musicJson" class="w-full h-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none" rows="20"></textarea>
+            </div>
+            
+            <!-- 模态框底部 -->
+            <div class="border-t p-4 flex justify-end">
+                <button id="applyMusicBtn" class="btn-primary">
+                    <i class="fa fa-check mr-2"></i>应用乐谱
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例乐谱数据 - 小星星
+        const starMusicData = {
+            "metadata": {
+                "title": "小星星",
+                "composer": "传统儿歌",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 100
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                }
+            ]
+        };
+
+        // 示例乐谱数据 - 音阶
+        const scaleMusicData = {
+            "metadata": {
+                "title": "两个8度音阶",
+                "composer": "音乐教学",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 120
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "1"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "2"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "3"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "4"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "5"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "6"},
+                        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "7"},
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "i"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "7"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "6"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "5"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "4"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "3"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "2"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "1"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "i"},
+                        {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "ii"},
+                        {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "iii"},
+                        {"type": "note", "pitch": 4, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "iv"},
+                        {"type": "note", "pitch": 5, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "v"},
+                        {"type": "note", "pitch": 6, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "vi"},
+                        {"type": "note", "pitch": 7, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "vii"},
+                        {"type": "note", "pitch": 1, "octaveShift": 2, "duration": 0.5, "dotted": false, "lyric": "î"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 7, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "vii"},
+                        {"type": "note", "pitch": 6, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "vi"},
+                        {"type": "note", "pitch": 5, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "v"},
+                        {"type": "note", "pitch": 4, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "iv"},
+                        {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "iii"},
+                        {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "ii"},
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 2, "dotted": false, "lyric": "i"}
+                    ]
+                }
+            ]
+        };
+
+        // 简谱画布类
+        class C4JpCanvas {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.musicData = null;
+                this.scale = 1.0;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.currentMeasure = 0;
+                this.isPlaying = false;
+                this.playbackTimer = null;
+                
+                // 设置画布尺寸
+                this.resizeCanvas();
+                
+                // 绑定事件
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // 初始化鼠标/触摸事件
+                this.initEvents();
+            }
+            
+            // 调整画布尺寸
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                
+                // 重绘
+                if (this.musicData) {
+                    this.drawMusicSheet();
+                }
+            }
+            
+            // 初始化交互事件
+            initEvents() {
+                // 触摸事件（移动设备）
+                let startX, startY;
+                let isDragging = false;
+                
+                this.canvas.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        startX = e.touches[0].clientX - this.offsetX;
+                        startY = e.touches[0].clientY - this.offsetY;
+                        isDragging = true;
+                    }
+                });
+                
+                this.canvas.addEventListener('touchmove', (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        this.offsetX = e.touches[0].clientX - startX;
+                        this.offsetY = e.touches[0].clientY - startY;
+                        this.drawMusicSheet();
+                    }
+                });
+                
+                this.canvas.addEventListener('touchend', () => {
+                    isDragging = false;
+                });
+                
+                // 鼠标事件（桌面设备）
+                this.canvas.addEventListener('mousedown', (e) => {
+                    startX = e.clientX - this.offsetX;
+                    startY = e.clientY - this.offsetY;
+                    isDragging = true;
+                });
+                
+                window.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        this.offsetX = e.clientX - startX;
+                        this.offsetY = e.clientY - startY;
+                        this.drawMusicSheet();
+                    }
+                });
+                
+                window.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+                
+                // 滚轮缩放
+                this.canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const delta = e.deltaY * -0.01;
+                    const oldScale = this.scale;
+                    
+                    this.scale = Math.max(0.5, Math.min(2.0, this.scale * (1 + delta)));
+                    
+                    // 保持缩放中心
+                    const mouseX = e.clientX;
+                    const mouseY = e.clientY;
+                    
+                    this.offsetX = mouseX - (mouseX - this.offsetX) * (this.scale / oldScale);
+                    this.offsetY = mouseY - (mouseY - this.offsetY) * (this.scale / oldScale);
+                    
+                    this.drawMusicSheet();
+                });
+            }
+            
+            // 设置乐谱数据
+            setMusicData(musicData) {
+                this.musicData = musicData;
+                this.currentMeasure = 0;
+                
+                // 更新元数据显示
+                document.getElementById('musicTitle').textContent = musicData.metadata.title || '未知标题';
+                document.getElementById('musicComposer').textContent = musicData.metadata.composer || '未知作者';
+                document.getElementById('musicKey').textContent = musicData.metadata.key || '未知调号';
+                document.getElementById('musicTime').textContent = musicData.metadata.timeSignature || '未知拍号';
+                document.getElementById('musicTempo').textContent = (musicData.metadata.tempo || 100) + ' BPM';
+                
+                // 绘制乐谱
+                this.drawMusicSheet();
+            }
+            
+            // 绘制乐谱
+            drawMusicSheet() {
+                if (!this.musicData) return;
+                
+                // 清除画布
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // 应用缩放和偏移
+                this.ctx.save();
+                this.ctx.scale(this.scale, this.scale);
+                this.ctx.translate(this.offsetX / this.scale, this.offsetY / this.scale);
+                
+                // 设置字体
+                this.ctx.font = '16px Arial';
+                this.ctx.textAlign = 'center';
+                
+                // 绘制乐谱
+                const startX = 50;
+                let currentX = startX;
+                const staffY = 100;
+                const staffHeight = 20;
+                const measureSpacing = 100;
+                
+                // 绘制五线谱
+                this.drawStaff(currentX, staffY, staffHeight, this.musicData.measures.length * measureSpacing);
+                
+                // 绘制音符和歌词
+                this.musicData.measures.forEach((measure, index) => {
+                    const measureX = currentX + index * measureSpacing;
+                    
+                    // 绘制小节线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(measureX, staffY - 10);
+                    this.ctx.lineTo(measureX, staffY + staffHeight + 10);
+                    this.ctx.stroke();
+                    
+                    // 绘制小节号
+                    this.ctx.fillText(`${index + 1}`, measureX, staffY - 15);
+                    
+                    // 计算音符位置
+                    const noteSpacing = (measureSpacing - 20) / measure.notes.length;
+                    let noteX = measureX + 10;
+                    
+                    // 绘制小节内的音符
+                    measure.notes.forEach((note, noteIndex) => {
+                        // 高亮当前播放的音符
+                        if (this.isPlaying && index === this.currentMeasure && noteIndex === 0) {
+                            this.ctx.fillStyle = 'rgba(236, 72, 153, 0.3)';
+                            this.ctx.fillRect(noteX - 5, staffY - 15, noteSpacing * measure.notes.length + 10, staffHeight + 30);
+                            this.ctx.fillStyle = '#000';
+                        }
+                        
+                        // 绘制音符
+                        this.drawNote(noteX, staffY, staffHeight, note);
+                        
+                        // 绘制歌词
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.fillText(note.lyric || '', noteX + noteSpacing / 2, staffY + staffHeight + 30);
+                        
+                        noteX += noteSpacing;
+                    });
+                });
+                
+                // 绘制结束线
+                const endX = currentX + this.musicData.measures.length * measureSpacing;
+                this.ctx.beginPath();
+                this.ctx.moveTo(endX, staffY - 10);
+                this.ctx.lineTo(endX, staffY + staffHeight + 10);
+                this.ctx.moveTo(endX + 5, staffY - 10);
+                this.ctx.lineTo(endX + 5, staffY + staffHeight + 10);
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+                this.ctx.lineWidth = 1;
+                
+                // 恢复上下文
+                this.ctx.restore();
+            }
+            
+            // 绘制五线谱
+            drawStaff(x, y, height, width) {
+                this.ctx.beginPath();
+                
+                // 绘制五条线
+                for (let i = 0; i < 5; i++) {
+                    const lineY = y + i * 4;
+                    this.ctx.moveTo(x, lineY);
+                    this.ctx.lineTo(x + width, lineY);
+                }
+                
+                this.ctx.stroke();
+            }
+            
+            // 绘制单个音符
+            drawNote(x, staffY, staffHeight, note) {
+                // 计算音符在五线谱上的位置
+                // 1-7 对应 do-re-mi-fa-sol-la-ti
+                const pitchPositions = {
+                    1: 4,   // do
+                    2: 3,   // re
+                    3: 2,   // mi
+                    4: 1.5, // fa
+                    5: 1,   // sol
+                    6: 0,   // la
+                    7: -1,  // ti
+                };
+                
+                // 确定音符的垂直位置
+                let position = pitchPositions[note.pitch];
+                
+                // 处理八度变化
+                position -= note.octaveShift * 7;
+                
+                // 计算音符中心的Y坐标
+                const noteY = staffY + position * 4;
+                
+                // 绘制音符符号
+                this.ctx.beginPath();
+                this.ctx.arc(x, noteY, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 绘制符干
+                if (position >= 2) {
+                    // 符干朝上
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + 5, noteY);
+                    this.ctx.lineTo(x + 5, noteY - 20);
+                    this.ctx.stroke();
+                } else {
+                    // 符干朝下
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 5, noteY);
+                    this.ctx.lineTo(x - 5, noteY + 20);
+                    this.ctx.stroke();
+                }
+                
+                // 绘制符尾（根据音符时值）
+                if (note.duration <= 0.5) {
+                    // 八分音符
+                    this.ctx.beginPath();
+                    if (position >= 2) {
+                        // 符干朝上
+                        this.ctx.moveTo(x + 5, noteY - 15);
+                        this.ctx.lineTo(x + 10, noteY - 20);
+                    } else {
+                        // 符干朝下
+                        this.ctx.moveTo(x - 5, noteY + 15);
+                        this.ctx.lineTo(x - 10, noteY + 20);
+                    }
+                    this.ctx.stroke();
+                }
+                
+                // 如果音符超出五线谱范围，添加加线
+                if (position < -1 || position > 4) {
+                    const linesAbove = Math.max(0, Math.ceil((1 - position) / 2));
+                    const linesBelow = Math.max(0, Math.ceil((position - 4) / 2));
+                    
+                    this.ctx.beginPath();
+                    
+                    // 上方加线
+                    for (let i = 1; i <= linesAbove; i++) {
+                        const lineY = staffY - i * 8;
+                        this.ctx.moveTo(x - 8, lineY);
+                        this.ctx.lineTo(x + 8, lineY);
+                    }
+                    
+                    // 下方加线
+                    for (let i = 1; i <= linesBelow; i++) {
+                        const lineY = staffY + 16 + i * 8;
+                        this.ctx.moveTo(x - 8, lineY);
+                        this.ctx.lineTo(x + 8, lineY);
+                    }
+                    
+                    this.ctx.stroke();
+                }
+            }
+            
+            // 播放乐谱
+            play() {
+                if (!this.musicData || this.isPlaying) return;
+                
+                this.isPlaying = true;
+                this.currentMeasure = 0;
+                this.drawMusicSheet();
+                
+                // 计算每个小节的持续时间（毫秒）
+                const tempo = this.musicData.metadata.tempo || 100;
+                const measureDuration = (60 / tempo) * 4 * 1000; // 每小节的毫秒数
+                
+                // 循环播放每个小节
+                this.playbackTimer = setInterval(() => {
+                    this.currentMeasure++;
+                    this.drawMusicSheet();
+                    
+                    // 如果播放完所有小节，停止播放
+                    if (this.currentMeasure >= this.musicData.measures.length) {
+                        this.stop();
+                    }
+                }, measureDuration);
+            }
+            
+            // 暂停播放
+            pause() {
+                if (!this.isPlaying) return;
+                
+                this.isPlaying = false;
+                clearInterval(this.playbackTimer);
+            }
+            
+            // 停止播放
+            stop() {
+                this.pause();
+                this.currentMeasure = 0;
+                this.drawMusicSheet();
+            }
+            
+            // 放大
+            zoomIn() {
+                this.scale = Math.min(2.0, this.scale * 1.1);
+                this.drawMusicSheet();
+            }
+            
+            // 缩小
+            zoomOut() {
+                this.scale = Math.max(0.5, this.scale / 1.1);
+                this.drawMusicSheet();
+            }
+            
+            // 重置视图
+            resetView() {
+                this.scale = 1.0;
+                this.offsetX = 0;
+                this.offsetY = 0;
+                this.drawMusicSheet();
+            }
+        }
+
+        // 初始化画布
+        const jpCanvas = new C4JpCanvas('jpCanvas');
+        jpCanvas.setMusicData(starMusicData);
+        
+        // 初始化编辑器文本框
+        document.getElementById('musicJson').value = JSON.stringify(starMusicData, null, 2);
+        
+        // 模态框控制
+        const modal = document.getElementById('editorModal');
+        
+        document.getElementById('openEditorBtn').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+        
+        document.getElementById('closeEditorBtn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        
+        // 加载示例乐谱
+        document.getElementById('loadStarBtn').addEventListener('click', () => {
+            document.getElementById('musicJson').value = JSON.stringify(starMusicData, null, 2);
+        });
+        
+        document.getElementById('loadScaleBtn').addEventListener('click', () => {
+            document.getElementById('musicJson').value = JSON.stringify(scaleMusicData, null, 2);
+        });
+        
+        // 应用乐谱
+        document.getElementById('applyMusicBtn').addEventListener('click', () => {
+            try {
+                const musicData = JSON.parse(document.getElementById('musicJson').value);
+                jpCanvas.setMusicData(musicData);
+                modal.classList.add('hidden');
+            } catch (e) {
+                alert('解析乐谱JSON失败: ' + e.message);
+            }
+        });
+        
+        // 播放控制
+        document.getElementById('playBtn').addEventListener('click', () => {
+            jpCanvas.play();
+        });
+        
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            jpCanvas.pause();
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            jpCanvas.stop();
+            jpCanvas.resetView();
+        });
+        
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            jpCanvas.zoomIn();
+        });
+        
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            jpCanvas.zoomOut();
+        });
+    </script>
+</body>
+</html>
+    
