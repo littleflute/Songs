@@ -370,7 +370,11 @@
             display: none;
             flex-direction: column;
             z-index: 1000;
+<<<<<<< HEAD
             touch-action: none;
+=======
+            touch-action: none; /* 防止触摸事件冲突 */
+>>>>>>> master
         }
         
         .canvas-header {
@@ -965,16 +969,7 @@
         {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false},
         {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false}
       ]
-    },
-    {
-      "index": 3,
-      "notes": [
-        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false},
-        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false},
-        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false},
-        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false}
-      ]
-    },
+    }, 
     {
       "index": 4,
       "notes": [
@@ -1126,12 +1121,15 @@
                 overlay.style.display = 'none';
             });
             
+<<<<<<< HEAD
             // 点击遮罩层关闭窗口
             overlay.addEventListener('click', function() {
                 canvasWindow.style.display = 'none';
                 overlay.style.display = 'none';
             });
             
+=======
+>>>>>>> master
             // 使窗口可拖动 - 鼠标事件
             const canvasHeader = canvasWindow.querySelector('.canvas-header');
             canvasHeader.addEventListener('mousedown', startDrag);
@@ -1139,14 +1137,27 @@
             document.addEventListener('mouseup', endDrag);
             
             // 使窗口可拖动 - 触摸事件
+<<<<<<< HEAD
             canvasHeader.addEventListener('touchstart', handleTouchStart);
             document.addEventListener('touchmove', handleTouchMove);
+=======
+            canvasHeader.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+>>>>>>> master
             document.addEventListener('touchend', endDrag);
             
             function startDrag(e) {
+                e.preventDefault(); // 防止默认行为
                 isDragging = true;
-                offsetX = e.clientX - canvasWindow.getBoundingClientRect().left;
-                offsetY = e.clientY - canvasWindow.getBoundingClientRect().top;
+                
+                // 获取触摸或鼠标位置
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                
+                const rect = canvasWindow.getBoundingClientRect();
+                offsetX = clientX - rect.left;
+                offsetY = clientY - rect.top;
+                
                 canvasWindow.style.cursor = 'grabbing';
             }
             
@@ -1161,8 +1172,14 @@
             function drag(e) {
                 if (!isDragging) return;
                 
-                const x = e.clientX - offsetX;
-                const y = e.clientY - offsetY;
+                e.preventDefault(); // 防止默认行为
+                
+                // 获取触摸或鼠标位置
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+                
+                const x = clientX - offsetX;
+                const y = clientY - offsetY;
                 
                 // 确保窗口不会拖出视口
                 const maxX = window.innerWidth - canvasWindow.offsetWidth;
@@ -1475,9 +1492,15 @@
         });
     </script>
 </body>
+<<<<<<< HEAD
 </html>
 <!--
 升级
 手机上演示时，网页宽度超出了手机屏幕
+=======
+</html>      
+<!-- 
+升级 
+>>>>>>> master
 return all new code.
 -->
