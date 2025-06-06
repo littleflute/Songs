@@ -504,18 +504,18 @@
             }
             
             drawMeasures(measures) {
-                const startY = 120;
+                // 修复：使用let而不是const
+                let currentY = 120;
                 let startX = 50;
                 const noteSpacing = 50;
                 const measureSpacing = 30;
-                const staffLineY = startY;
                 
-                // 绘制五线谱（简化的基线）
+                // 绘制基线
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = "#888";
                 this.ctx.lineWidth = 1;
-                this.ctx.moveTo(40, staffLineY);
-                this.ctx.lineTo(this.canvas.width - 40, staffLineY);
+                this.ctx.moveTo(40, currentY);
+                this.ctx.lineTo(this.canvas.width - 40, currentY);
                 this.ctx.stroke();
                 
                 this.ctx.font = "bold 32px Arial";
@@ -524,18 +524,18 @@
                 for (const measure of measures) {
                     // 绘制小节号
                     this.ctx.font = "14px Arial";
-                    this.ctx.fillText(measure.index, startX - 20, startY - 30);
+                    this.ctx.fillText(measure.index, startX - 20, currentY - 30);
                     
                     // 绘制小节分隔符
                     this.ctx.beginPath();
                     this.ctx.strokeStyle = "#aaa";
                     this.ctx.lineWidth = 1;
-                    this.ctx.moveTo(startX - 25, staffLineY - 30);
-                    this.ctx.lineTo(startX - 25, staffLineY + 30);
+                    this.ctx.moveTo(startX - 25, currentY - 30);
+                    this.ctx.lineTo(startX - 25, currentY + 30);
                     this.ctx.stroke();
                     
                     for (const note of measure.notes) {
-                        this.drawNote(startX, startY, note);
+                        this.drawNote(startX, currentY, note);
                         startX += noteSpacing;
                     }
                     
@@ -543,8 +543,17 @@
                     
                     // 换行处理
                     if (startX > this.canvas.width - 100) {
+                        // 换行
                         startX = 50;
-                        startY += 120;
+                        currentY += 120;
+                        
+                        // 绘制新行的基线
+                        this.ctx.beginPath();
+                        this.ctx.strokeStyle = "#888";
+                        this.ctx.lineWidth = 1;
+                        this.ctx.moveTo(40, currentY);
+                        this.ctx.lineTo(this.canvas.width - 40, currentY);
+                        this.ctx.stroke();
                     }
                 }
             }
