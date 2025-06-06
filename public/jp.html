@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>简谱数据格式设计与可视化</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -22,14 +22,13 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
             color: var(--dark-color);
             min-height: 100vh;
-            padding: 10px;
+            padding: 20px;
             overflow-x: hidden;
         }
         
@@ -37,37 +36,40 @@
             max-width: 1600px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
         }
         
         header {
+            grid-column: 1 / -1;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
             box-shadow: var(--shadow);
             text-align: center;
         }
         
         h1 {
             color: var(--primary-color);
-            margin-bottom: 8px;
-            font-size: 1.5rem;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
         }
         
         .subtitle {
             color: var(--secondary-color);
-            font-size: 0.9rem;
-            margin: 0 auto 15px;
-            line-height: 1.5;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
         }
         
         .panel {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            padding: 15px;
+            padding: 25px;
             box-shadow: var(--shadow);
+            height: 75vh;
             display: flex;
             flex-direction: column;
         }
@@ -76,17 +78,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 12px;
+            padding-bottom: 15px;
             border-bottom: 2px solid var(--secondary-color);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .panel-title {
-            font-size: 1.1rem;
+            font-size: 1.5rem;
             color: var(--primary-color);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         
         .panel-title i {
@@ -95,9 +97,8 @@
         
         .controls {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 15px;
+            margin-top: 20px;
             justify-content: center;
         }
         
@@ -105,21 +106,20 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 12px 25px;
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             box-shadow: var(--shadow);
-            font-size: 0.85rem;
         }
         
         button:hover {
             background: var(--secondary-color);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
         
         button.secondary {
@@ -133,10 +133,10 @@
         
         #json-editor {
             width: 100%;
-            height: 300px;
+            height: 100%;
             border: 1px solid #ddd;
             border-radius: 10px;
-            padding: 12px;
+            padding: 15px;
             font-family: 'Consolas', monospace;
             font-size: 14px;
             resize: none;
@@ -147,26 +147,24 @@
         #staff-container {
             background: #fff;
             border-radius: 10px;
-            padding: 15px;
+            padding: 30px;
             flex-grow: 1;
-            overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             position: relative;
             background-image: linear-gradient(to bottom, #f9f9f9 0%, #f9f9f9 3%, transparent 3%, transparent 97%, #f9f9f9 97%);
             background-size: 100% 30px;
             background-position: 0 40px;
-            min-height: 200px;
         }
         
         .staff {
-            min-width: 100%;
-            min-height: 150px;
+            width: 100%;
+            min-height: 200px;
             border-bottom: 2px solid #333;
             position: relative;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         
         .staff-line {
@@ -188,13 +186,13 @@
             top: 0;
             height: 40px;
             border-right: 2px solid #999;
-            padding: 0 15px;
+            padding: 0 20px;
         }
         
         .note {
             position: absolute;
-            width: 25px;
-            height: 25px;
+            width: 30px;
+            height: 30px;
             background: #4a6fa5;
             border-radius: 50%;
             display: flex;
@@ -202,10 +200,9 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
             transition: transform 0.2s;
-            z-index: 10;
         }
         
         .note:hover {
@@ -229,9 +226,9 @@
         .note-dot {
             position: absolute;
             top: 50%;
-            right: -8px;
-            width: 5px;
-            height: 5px;
+            right: -10px;
+            width: 6px;
+            height: 6px;
             background: #333;
             border-radius: 50%;
             transform: translateY(-50%);
@@ -239,46 +236,45 @@
         
         .preview-panel {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
         }
         
         .data-structure {
             background: #f0f7ff;
             border-radius: 10px;
-            padding: 15px;
+            padding: 20px;
+            height: 100%;
             overflow-y: auto;
         }
         
         .structure-item {
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
             border-bottom: 1px dashed #ccc;
         }
         
         .structure-title {
             font-weight: bold;
             color: var(--primary-color);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 1rem;
+            gap: 8px;
         }
         
         .structure-props {
-            padding-left: 15px;
+            padding-left: 20px;
         }
         
         .prop {
             display: flex;
-            margin-bottom: 4px;
-            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
         
         .prop-name {
             font-weight: bold;
-            min-width: 100px;
+            min-width: 120px;
             color: var(--secondary-color);
         }
         
@@ -288,50 +284,45 @@
         
         .highlight {
             background-color: rgba(255, 217, 0, 0.3);
-            padding: 2px 4px;
+            padding: 2px 5px;
             border-radius: 3px;
         }
         
         .error {
             color: var(--danger-color);
             background: rgba(220, 53, 69, 0.1);
-            padding: 8px;
+            padding: 10px;
             border-radius: 5px;
-            margin-top: 8px;
+            margin-top: 10px;
             display: none;
-            font-size: 0.9rem;
         }
         
         .instructions {
             background: #f8f9fa;
             border-left: 4px solid var(--primary-color);
-            padding: 12px;
-            margin-top: 15px;
+            padding: 15px;
+            margin-top: 20px;
             border-radius: 0 8px 8px 0;
-            font-size: 0.9rem;
         }
         
         .instructions h3 {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: var(--primary-color);
-            font-size: 1rem;
         }
         
         .instructions ul {
-            padding-left: 18px;
+            padding-left: 20px;
         }
         
         .instructions li {
-            margin-bottom: 6px;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
         }
         
         .note-examples {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
         }
         
         .note-example {
@@ -339,17 +330,16 @@
             flex-direction: column;
             align-items: center;
             background: #f0f7ff;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            width: 100px;
-            font-size: 0.85rem;
+            width: 120px;
         }
         
         .example-visual {
             width: 100%;
-            height: 70px;
+            height: 80px;
             position: relative;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             background-image: linear-gradient(to bottom, transparent 0%, transparent 19%, #ccc 19%, #ccc 21%, transparent 21%, transparent 39%, #ccc 39%, #ccc 41%, transparent 41%, transparent 59%, #ccc 59%, #ccc 61%, transparent 61%, transparent 79%, #ccc 79%, #ccc 81%, transparent 81%);
             background-size: 100% 80px;
         }
@@ -357,16 +347,13 @@
         /* 画布窗口样式 */
         .canvas-window {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 600px;
-            height: 70vh;
-            max-height: 500px;
+            top: 20px;
+            right: 20px;
+            width: 600px;
+            height: 400px;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             display: none;
             flex-direction: column;
             z-index: 1000;
@@ -374,7 +361,7 @@
         }
         
         .canvas-header {
-            padding: 12px 15px;
+            padding: 10px 15px;
             background: var(--primary-color);
             color: white;
             font-weight: bold;
@@ -382,26 +369,19 @@
             justify-content: space-between;
             align-items: center;
             cursor: move;
-            border-radius: 15px 15px 0 0;
-            user-select: none;
+            border-radius: 10px 10px 0 0;
         }
         
         .canvas-header .title {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 1rem;
         }
         
         .canvas-close {
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             transition: transform 0.2s;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
         .canvas-close:hover {
@@ -412,7 +392,6 @@
             flex-grow: 1;
             padding: 10px;
             position: relative;
-            overflow: hidden;
         }
         
         #sheet-canvas {
@@ -422,153 +401,23 @@
             background-color: white;
         }
         
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            display: none;
-        }
-        
-        /* 移动端优化 */
-        .mobile-scroll-container {
-            overflow-x: auto;
-            width: 100%;
-            padding-bottom: 10px;
-        }
-        
-        .mobile-scroll-container::-webkit-scrollbar {
-            height: 6px;
-        }
-        
-        .mobile-scroll-container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 3px;
-        }
-        
-        /* 响应式设计 */
-        @media (min-width: 768px) {
+        @media (max-width: 1200px) {
             .container {
                 grid-template-columns: 1fr 1fr;
             }
-            
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .subtitle {
-                font-size: 1.1rem;
-            }
-            
-            .panel {
-                padding: 25px;
-            }
-            
-            #staff-container {
-                min-height: 300px;
-            }
-            
             .preview-panel {
                 grid-column: 1 / -1;
-                grid-template-columns: 1fr 1fr;
-            }
-            
-            button {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            
-            .controls {
-                gap: 10px;
+                height: auto;
             }
         }
         
-        @media (min-width: 992px) {
+        @media (max-width: 768px) {
             .container {
-                grid-template-columns: 1fr 1fr 1fr;
-            }
-            
-            .preview-panel {
-                grid-column: auto;
                 grid-template-columns: 1fr;
             }
-            
-            #staff-container {
-                min-height: 400px;
-            }
-        }
-        
-        @media (max-width: 767px) {
-            h1 {
-                font-size: 1.3rem;
-            }
-            
-            .panel-title {
-                font-size: 1rem;
-            }
-            
-            .controls {
-                gap: 5px;
-            }
-            
-            button {
-                padding: 7px 12px;
-                font-size: 0.8rem;
-            }
-            
-            .note-example {
-                width: 85px;
-                font-size: 0.8rem;
-            }
-            
-            #staff-container {
-                padding: 10px;
-            }
-            
             .canvas-window {
-                width: 95%;
-                height: 65vh;
-                max-height: 400px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                gap: 10px;
-            }
-            
-            header {
-                padding: 10px;
-            }
-            
-            .panel {
-                padding: 12px;
-            }
-            
-            .controls {
-                gap: 4px;
-            }
-            
-            button {
-                padding: 6px 10px;
-                font-size: 0.75rem;
-            }
-            
-            #json-editor {
-                font-size: 13px;
-                padding: 10px;
-            }
-            
-            .note-examples {
-                gap: 8px;
-            }
-            
-            .note-example {
-                width: 75px;
-                font-size: 0.75rem;
+                width: calc(100% - 40px);
+                height: 300px;
             }
         }
     </style>
@@ -645,18 +494,16 @@
             <div class="panel-header">
                 <h2 class="panel-title"><i class="fas fa-music"></i> 简谱可视化</h2>
             </div>
-            <div class="mobile-scroll-container">
-                <div id="staff-container">
-                    <div class="staff">
-                        <!-- 五线谱线条 -->
-                        <div class="staff-line"></div>
-                        <div class="staff-line"></div>
-                        <div class="staff-line"></div>
-                        <div class="staff-line"></div>
-                        <div class="staff-line"></div>
-                        
-                        <!-- 音符将在这里动态生成 -->
-                    </div>
+            <div id="staff-container">
+                <div class="staff">
+                    <!-- 五线谱线条 -->
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    <div class="staff-line"></div>
+                    
+                    <!-- 音符将在这里动态生成 -->
                 </div>
             </div>
         </div>
@@ -802,9 +649,6 @@
             <canvas id="sheet-canvas"></canvas>
         </div>
     </div>
-    
-    <!-- 遮罩层 -->
-    <div id="overlay" class="overlay"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -821,7 +665,6 @@
             const closeCanvas = document.getElementById('closeCanvas');
             const canvas = document.getElementById('sheet-canvas');
             const ctx = canvas.getContext('2d');
-            const overlay = document.getElementById('overlay');
             
             let isDragging = false;
             let offsetX, offsetY;
@@ -1106,15 +949,17 @@
             
             // 画布窗口切换
             btnToggleCanvasWnd.addEventListener('click', function() {
-                canvasWindow.style.display = 'flex';
-                overlay.style.display = 'block';
-                renderCanvas();
+                if (canvasWindow.style.display === 'none' || canvasWindow.style.display === '') {
+                    canvasWindow.style.display = 'flex';
+                    renderCanvas();
+                } else {
+                    canvasWindow.style.display = 'none';
+                }
             });
             
             // 关闭画布窗口
             closeCanvas.addEventListener('click', function() {
                 canvasWindow.style.display = 'none';
-                overlay.style.display = 'none';
             });
             
             // 使窗口可拖动 - 鼠标事件
@@ -1143,14 +988,6 @@
                 canvasWindow.style.cursor = 'grabbing';
             }
             
-            function handleTouchStart(e) {
-                isDragging = true;
-                const touch = e.touches[0];
-                offsetX = touch.clientX - canvasWindow.getBoundingClientRect().left;
-                offsetY = touch.clientY - canvasWindow.getBoundingClientRect().top;
-                e.preventDefault(); // 防止页面滚动
-            }
-            
             function drag(e) {
                 if (!isDragging) return;
                 
@@ -1171,23 +1008,6 @@
                 canvasWindow.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
             }
             
-            function handleTouchMove(e) {
-                if (!isDragging) return;
-                
-                const touch = e.touches[0];
-                const x = touch.clientX - offsetX;
-                const y = touch.clientY - offsetY;
-                
-                // 确保窗口不会拖出视口
-                const maxX = window.innerWidth - canvasWindow.offsetWidth;
-                const maxY = window.innerHeight - canvasWindow.offsetHeight;
-                
-                canvasWindow.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
-                canvasWindow.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
-                
-                e.preventDefault(); // 防止页面滚动
-            }
-            
             function endDrag() {
                 isDragging = false;
                 canvasWindow.style.cursor = 'grab';
@@ -1202,16 +1022,12 @@
                     
                     // 清空五线谱
                     staffContainer.innerHTML = `
-                        <div class="staff">
-                            <div class="staff-line"></div>
-                            <div class="staff-line"></div>
-                            <div class="staff-line"></div>
-                            <div class="staff-line"></div>
-                            <div class="staff-line"></div>
-                        </div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
+                        <div class="staff-line"></div>
                     `;
-                    
-                    const staff = document.querySelector('.staff');
                     
                     // 解析JSON
                     const scoreData = JSON.parse(jsonEditor.value);
@@ -1220,8 +1036,8 @@
                     document.querySelector('h1').innerHTML = `<i class="fas fa-music"></i> ${scoreData.metadata.title} - 简谱数据格式设计`;
                     
                     // 渲染小节
-                    let xPos = 30;
-                    let measureWidth = Math.max(120, Math.min(200, window.innerWidth * 0.2));
+                    let xPos = 50;
+                    let measureWidth = 250;
                     
                     scoreData.measures.forEach(measure => {
                         // 创建小节
@@ -1229,14 +1045,14 @@
                         measureElement.className = 'measure';
                         measureElement.style.left = `${xPos}px`;
                         measureElement.style.width = `${measureWidth}px`;
-                        staff.appendChild(measureElement);
+                        staffContainer.appendChild(measureElement);
                         
                         // 小节标题
                         const measureLabel = document.createElement('div');
                         measureLabel.className = 'note-label';
                         measureLabel.textContent = `小节 ${measure.index}`;
                         measureLabel.style.left = `${xPos + 10}px`;
-                        staff.appendChild(measureLabel);
+                        staffContainer.appendChild(measureLabel);
                         
                         // 渲染音符
                         let noteX = xPos + 20;
@@ -1280,7 +1096,7 @@
                             // 添加悬停提示
                             noteElement.title = `音高: ${note.pitch || '休止符'}\n音区: ${getOctaveName(note.octaveShift)}\n时值: ${getDurationName(note.duration, note.dotted)}\n${note.lyric ? '歌词: ' + note.lyric : ''}`;
                             
-                            staff.appendChild(noteElement);
+                            staffContainer.appendChild(noteElement);
                             
                             // 添加歌词
                             if (note.lyric) {
@@ -1291,17 +1107,14 @@
                                 lyricElement.style.top = '60px';
                                 lyricElement.style.color = '#4a6fa5';
                                 lyricElement.style.fontWeight = 'bold';
-                                staff.appendChild(lyricElement);
+                                staffContainer.appendChild(lyricElement);
                             }
                             
                             noteX += noteSpacing;
                         });
                         
-                        xPos += measureWidth + 30;
+                        xPos += measureWidth + 50;
                     });
-                    
-                    // 设置staff容器的宽度
-                    staffContainer.style.width = `${xPos + 50}px`;
                     
                 } catch (error) {
                     // 显示错误信息
@@ -1324,17 +1137,17 @@
                     const scoreData = JSON.parse(jsonEditor.value);
                     
                     // 绘制标题和元数据
-                    ctx.font = 'bold 16px Arial';
+                    ctx.font = 'bold 18px Arial';
                     ctx.fillStyle = '#333';
-                    ctx.fillText(scoreData.metadata.title, 20, 25);
+                    ctx.fillText(scoreData.metadata.title, 20, 30);
                     
-                    ctx.font = '12px Arial';
-                    ctx.fillText(`作曲: ${scoreData.metadata.composer}`, 20, 45);
-                    ctx.fillText(`调号: ${scoreData.metadata.key}`, 20, 65);
-                    ctx.fillText(`拍号: ${scoreData.metadata.timeSignature}`, 20, 85);
+                    ctx.font = '14px Arial';
+                    ctx.fillText(`作曲: ${scoreData.metadata.composer}`, 20, 60);
+                    ctx.fillText(`调号: ${scoreData.metadata.key}`, 20, 85);
+                    ctx.fillText(`拍号: ${scoreData.metadata.timeSignature}`, 20, 110);
                     
                     // 设置五线谱起始位置
-                    const staffY = 120;
+                    const staffY = 140;
                     const staffHeight = 40;
                     
                     // 绘制五线谱
@@ -1361,7 +1174,7 @@
                         ctx.stroke();
                         
                         // 绘制小节号
-                        ctx.font = '11px Arial';
+                        ctx.font = '12px Arial';
                         ctx.fillText(`小节 ${measure.index}`, x + 5, staffY - 10);
                     });
                     
@@ -1398,18 +1211,18 @@
                             if (note.type === 'rest') {
                                 // 绘制休止符
                                 ctx.fillStyle = '#333';
-                                ctx.font = 'bold 14px Arial';
+                                ctx.font = 'bold 16px Arial';
                                 ctx.fillText('X', noteX - 5, noteY + 5);
                             } else {
                                 // 绘制音符圆形
                                 ctx.fillStyle = '#4a6fa5';
                                 ctx.beginPath();
-                                ctx.arc(noteX, noteY, 10, 0, Math.PI * 2);
+                                ctx.arc(noteX, noteY, 12, 0, Math.PI * 2);
                                 ctx.fill();
                                 
                                 // 绘制音符数字
                                 ctx.fillStyle = 'white';
-                                ctx.font = 'bold 12px Arial';
+                                ctx.font = 'bold 14px Arial';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillText(note.pitch, noteX, noteY);
@@ -1418,7 +1231,7 @@
                                 if (note.dotted) {
                                     ctx.fillStyle = '#333';
                                     ctx.beginPath();
-                                    ctx.arc(noteX + 15, noteY - 4, 2.5, 0, Math.PI * 2);
+                                    ctx.arc(noteX + 18, noteY - 5, 3, 0, Math.PI * 2);
                                     ctx.fill();
                                 }
                             }
@@ -1426,9 +1239,8 @@
                             // 绘制歌词
                             if (note.lyric) {
                                 ctx.fillStyle = '#4a6fa5';
-                                ctx.font = 'bold 12px Arial';
-                                ctx.textAlign = 'center';
-                                ctx.fillText(note.lyric, noteX, staffY + staffHeight + 25);
+                                ctx.font = 'bold 14px Arial';
+                                ctx.fillText(note.lyric, noteX, staffY + staffHeight + 30);
                             }
                         });
                     });
@@ -1436,8 +1248,8 @@
                 } catch (error) {
                     // 显示错误信息
                     ctx.fillStyle = '#dc3545';
-                    ctx.font = '14px Arial';
-                    ctx.fillText(`Canvas渲染错误: ${error.message}`, 20, 40);
+                    ctx.font = '16px Arial';
+                    ctx.fillText(`Canvas渲染错误: ${error.message}`, 20, 50);
                 }
             }
             
@@ -1466,11 +1278,8 @@
                 return dotted ? `附点${name}` : name;
             }
             
-            // 监听窗口大小变化，重新渲染
-            window.addEventListener('resize', function() {
-                renderStaff();
-                renderCanvas();
-            });
+            // 监听窗口大小变化，重新渲染Canvas
+            window.addEventListener('resize', renderCanvas);
         });
     </script>
 </body>
