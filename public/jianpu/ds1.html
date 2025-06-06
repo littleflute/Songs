@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小星星 - 简谱展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 15px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+        }
+        
+        .metadata {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .meta-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .score-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            padding: 25px 15px;
+            width: 100%;
+            max-width: 800px;
+            overflow: auto;
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #fafafa;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .visualizer {
+            width: 100%;
+            max-width: 500px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            margin-top: 10px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 2px;
+            padding: 15px;
+        }
+        
+        .bar {
+            width: 8px;
+            background: linear-gradient(to top, #4facfe, #00f2fe);
+            border-radius: 4px 4px 0 0;
+            transition: height 0.2s ease;
+        }
+        
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .metadata {
+                gap: 10px;
+            }
+            
+            .meta-item {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .score-container {
+                padding: 15px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.7rem;
+            }
+            
+            .meta-item {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ 小星星 ✨</h1>
+            <div class="metadata">
+                <div class="meta-item">作曲：传统儿歌</div>
+                <div class="meta-item">调号：1=C</div>
+                <div class="meta-item">拍号：4/4</div>
+                <div class="meta-item">速度：100 BPM</div>
+            </div>
+        </header>
+        
+        <div class="score-container">
+            <canvas id="scoreCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="playBtn">播放乐曲</button>
+            <button id="guideBtn">简谱指南</button>
+        </div>
+        
+        <div class="visualizer" id="visualizer">
+            <!-- 可视化效果条将由JS生成 -->
+        </div>
+        
+        <footer>
+            <p>使用HTML5 Canvas绘制的简谱 | 响应式设计适配移动设备</p>
+        </footer>
+    </div>
+
+    <script>
+        // 简谱数据
+        const scoreData = {
+            "metadata": {
+                "title": "小星星",
+                "composer": "传统儿歌",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 100
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                }
+            ]
+        };
+
+        // 音高映射
+        const pitchMap = {
+            1: '哆',
+            2: '唻',
+            3: '咪',
+            4: '发',
+            5: '嗦',
+            6: '啦',
+            7: '唏'
+        };
+
+        // 绘制简谱
+        function drawScore() {
+            const canvas = document.getElementById('scoreCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 响应式调整画布大小
+            const container = canvas.parentElement;
+            const aspectRatio = 1.5;
+            const maxWidth = Math.min(container.clientWidth - 40, 700);
+            const height = maxWidth / aspectRatio;
+            
+            canvas.width = maxWidth;
+            canvas.height = height;
+            
+            // 设置背景
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 设置参数
+            const margin = 30;
+            const measureWidth = (canvas.width - margin * 2) / 4;
+            const lineSpacing = 25;
+            const baseY = canvas.height / 2 - 30;
+            
+            // 绘制标题
+            ctx.font = 'bold 24px "Microsoft YaHei", sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('小星星 - 简谱', canvas.width / 2, 30);
+            
+            // 绘制小节
+            for (let i = 0; i < scoreData.measures.length; i++) {
+                const measure = scoreData.measures[i];
+                const startX = margin + i * measureWidth;
+                
+                // 绘制小节线
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(startX, baseY - lineSpacing * 3);
+                ctx.lineTo(startX, baseY + lineSpacing * 2);
+                ctx.stroke();
+                
+                // 绘制小节编号
+                ctx.font = '14px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText(`小节 ${measure.index}`, startX + measureWidth / 2, baseY + lineSpacing * 3);
+                
+                // 绘制音符
+                let noteX = startX + 15;
+                for (let j = 0; j < measure.notes.length; j++) {
+                    const note = measure.notes[j];
+                    
+                    // 绘制五线谱线（简谱中通常不画，这里为视觉效果）
+                    for (let k = 0; k < 5; k++) {
+                        ctx.beginPath();
+                        ctx.moveTo(startX, baseY - k * lineSpacing / 2);
+                        ctx.lineTo(startX + measureWidth, baseY - k * lineSpacing / 2);
+                        ctx.strokeStyle = '#ddd';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                    
+                    // 绘制音符
+                    const noteY = baseY - (note.pitch - 1) * 8;
+                    
+                    // 绘制音符圆
+                    ctx.fillStyle = '#3498db';
+                    ctx.beginPath();
+                    ctx.arc(noteX, noteY, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 绘制音符数字
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(note.pitch, noteX, noteY);
+                    
+                    // 绘制歌词
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.font = '16px "Microsoft YaHei", sans-serif';
+                    ctx.fillText(note.lyric, noteX, baseY + lineSpacing * 1.5);
+                    
+                    // 绘制时值
+                    if (note.duration === 2) {
+                        // 二分音符绘制下划线
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(noteX - 15, noteY + 15);
+                        ctx.lineTo(noteX + 15, noteY + 15);
+                        ctx.stroke();
+                    }
+                    
+                    // 绘制音高标记
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '12px "Microsoft YaHei", sans-serif';
+                    ctx.fillText(pitchMap[note.pitch], noteX, noteY - 20);
+                    
+                    // 移动到下一个音符位置
+                    noteX += measureWidth / (measure.notes.length + 1);
+                }
+                
+                // 绘制小节结束线
+                if (i === scoreData.measures.length - 1) {
+                    // 终止线（双线）
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(startX + measureWidth, baseY - lineSpacing * 3);
+                    ctx.lineTo(startX + measureWidth, baseY + lineSpacing * 2);
+                    ctx.stroke();
+                    
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(startX + measureWidth - 5, baseY - lineSpacing * 3);
+                    ctx.lineTo(startX + measureWidth - 5, baseY + lineSpacing * 2);
+                    ctx.stroke();
+                } else {
+                    // 普通小节线
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(startX + measureWidth, baseY - lineSpacing * 3);
+                    ctx.lineTo(startX + measureWidth, baseY + lineSpacing * 2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // 创建可视化效果
+        function createVisualizer() {
+            const visualizer = document.getElementById('visualizer');
+            visualizer.innerHTML = '';
+            
+            for (let i = 0; i < 32; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${Math.random() * 80 + 10}px`;
+                bar.style.animationDelay = `${i * 0.05}s`;
+                visualizer.appendChild(bar);
+            }
+        }
+
+        // 播放音乐
+        function playMusic() {
+            const visualizerBars = document.querySelectorAll('.bar');
+            
+            // 停止之前的动画
+            visualizerBars.forEach(bar => {
+                bar.style.animation = 'none';
+            });
+            
+            // 开始新的动画
+            setTimeout(() => {
+                visualizerBars.forEach(bar => {
+                    bar.style.animation = 'pulse 1.2s infinite alternate';
+                });
+            }, 10);
+        }
+
+        // 显示简谱指南
+        function showGuide() {
+            alert("简谱指南：\n\n" +
+                  "1. 数字表示音高：1(哆), 2(唻), 3(咪), 4(发), 5(嗦), 6(啦), 7(唏)\n" +
+                  "2. 音符下的文字是歌词\n" +
+                  "3. 带下划线的音符是二分音符（两拍）\n" +
+                  "4. 不带下划线的是四分音符（一拍）\n" +
+                  "5. 每小节有四拍（4/4拍）");
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            drawScore();
+            createVisualizer();
+            
+            // 响应窗口大小变化
+            window.addEventListener('resize', () => {
+                drawScore();
+            });
+            
+            // 添加按钮事件
+            document.getElementById('playBtn').addEventListener('click', playMusic);
+            document.getElementById('guideBtn').addEventListener('click', showGuide);
+        });
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { height: 20%; }
+                100% { height: ${Math.floor(Math.random() * 60 + 40)}%; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
