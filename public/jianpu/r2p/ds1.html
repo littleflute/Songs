@@ -631,28 +631,13 @@
             draw(data) {
                 this.data = data;
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                this.drawStaff();
                 this.drawNotes();
                 this.updateMetadata();
             }
             
-            drawStaff() {
-                this.ctx.strokeStyle = '#000';
-                this.ctx.lineWidth = 1;
-                
-                // 绘制五条线（简谱基准线）
-                for (let i = 0; i < 5; i++) {
-                    const y = this.startY + i * 5;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(30, y);
-                    this.ctx.lineTo(this.canvas.width - 30, y);
-                    this.ctx.stroke();
-                }
-            }
-            
             drawNotes() {
                 let x = this.startX;
-                let y = this.startY + 10; // 中心位置
+                let y = this.startY;
                 
                 // 绘制标题
                 this.ctx.font = '24px Arial';
@@ -669,8 +654,8 @@
                 this.ctx.strokeStyle = '#000';
                 this.ctx.lineWidth = 2;
                 this.ctx.beginPath();
-                this.ctx.moveTo(x - 15, this.startY - 15);
-                this.ctx.lineTo(x - 15, this.startY + 25);
+                this.ctx.moveTo(x - 15, y - 15);
+                this.ctx.lineTo(x - 15, y + 25);
                 this.ctx.stroke();
                 
                 // 绘制每个小节
@@ -684,8 +669,8 @@
                     this.ctx.strokeStyle = '#000';
                     this.ctx.lineWidth = 2;
                     this.ctx.beginPath();
-                    this.ctx.moveTo(x - 10, this.startY - 15);
-                    this.ctx.lineTo(x - 10, this.startY + 25);
+                    this.ctx.moveTo(x - 10, y - 15);
+                    this.ctx.lineTo(x - 10, y + 25);
                     this.ctx.stroke();
                     
                     x += 20; // 小节间距
@@ -735,6 +720,13 @@
                     this.ctx.moveTo(x - 5, y + 18);
                     this.ctx.lineTo(x + 20, y + 18);
                     this.ctx.stroke();
+                }
+                
+                // 绘制附点
+                if (note.dotted) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(x + 20, y - 5, this.dotSize, 0, Math.PI * 2);
+                    this.ctx.fill();
                 }
                 
                 // 绘制歌词
