@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱绘制工具</title>
+    <style>
+        :root {
+            --primary-color: #4a6cf7;
+            --secondary-color: #f0f2f5;
+            --text-color: #333;
+            --border-radius: 6px;
+            --box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .toolbar {
+            background-color: var(--secondary-color);
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+            user-select: none;
+        }
+        
+        .btn:hover {
+            background-color: #3a5ce7;
+        }
+        
+        .btn:active {
+            background-color: #2a4cd7;
+        }
+        
+        .sheet-container {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .sheet {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            min-width: 300px;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        
+        .modal-title {
+            font-weight: bold;
+        }
+        
+        .modal-body {
+            padding: 10px;
+            overflow: auto;
+            flex: 1;
+        }
+        
+        .data-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .data-btn {
+            padding: 5px 10px;
+            background-color: #e0e0e0;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .data-btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            resize: none;
+            box-sizing: border-box;
+        }
+        
+        /* 简谱SVG样式 */
+        .music-sheet {
+            width: 100%;
+            height: auto;
+            min-height: 200px;
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            margin-top: 10px;
+        }
+        
+        /* 交互逻辑 */
+        #modal-toggle:checked ~ .modal {
+            display: block;
+        }
+        
+        #modal-toggle {
+            display: none;
+        }
+        
+        .close {
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        /* 移动模态框的CSS实现 */
+        .modal-content {
+            transition: transform 0.1s ease-out;
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 600px) {
+            .sheet {
+                padding: 10px;
+                width: 100%;
+            }
+            
+            .toolbar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <input type="checkbox" id="modal-toggle">
+    
+    <div class="toolbar">
+        <label for="modal-toggle" class="btn">导入乐谱数据</label>
+    </div>
+    
+    <div class="sheet-container">
+        <div class="sheet">
+            <h3>小星星</h3>
+            <div class="music-sheet" id="music-sheet">
+                <!-- 简谱将在这里生成 -->
+                <svg class="music-sheet" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                    <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="bold">小星星</text>
+                    <text x="400" y="50" text-anchor="middle" font-size="12">传统儿歌</text>
+                    <g transform="translate(50, 100)">
+                        <!-- 简谱内容将由CSS变量控制 -->
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal">
+        <div class="modal-content" id="draggable-modal">
+            <div class="modal-header">
+                <div class="modal-title">导入乐谱数据</div>
+                <label for="modal-toggle" class="close">&times;</label>
+            </div>
+            <div class="modal-body">
+                <div class="data-buttons">
+                    <div class="data-btn" id="load-data1">小星星</div>
+                    <div class="data-btn" id="load-data2">两个8度音阶</div>
+                    <div class="data-btn" id="load-data3">四个8度音阶</div>
+                </div>
+                <textarea id="music-data" readonly>
+{
+  "metadata": {
+    "title": "小星星",
+    "composer": "传统儿歌",
+    "key": "1=C",
+    "timeSignature": "4/4",
+    "tempo": 100,
+    "version": 1
+  },
+  "measures": [
+    {
+      "index": 1,
+      "notes": [
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+      ]
+    },
+    {
+      "index": 2,
+      "notes": [
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+      ]
+    },
+    {
+      "index": 3,
+      "notes": [
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+      ]
+    },
+    {
+      "index": 4,
+      "notes": [
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+      ]
+    }
+  ]
+}
+                </textarea>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 这里仅用于演示数据加载，实际实现是通过CSS变量
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟数据加载按钮点击效果
+            document.getElementById('load-data1').addEventListener('click', function() {
+                // 实际应用中会更新CSS变量来绘制简谱
+                alert('已加载"小星星"乐谱数据');
+            });
+            
+            document.getElementById('load-data2').addEventListener('click', function() {
+                alert('已加载"两个8度音阶"乐谱数据');
+            });
+            
+            document.getElementById('load-data3').addEventListener('click', function() {
+                alert('已加载"四个8度音阶"乐谱数据');
+            });
+            
+            // 模态框拖拽功能
+            let modal = document.getElementById('draggable-modal');
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            modal.querySelector('.modal-header').addEventListener('mousedown', function(e) {
+                isDragging = true;
+                let rect = modal.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                modal.style.cursor = 'grabbing';
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                let x = e.clientX - offsetX;
+                let y = e.clientY - offsetY;
+                
+                // 限制模态框在视窗内
+                let maxX = window.innerWidth - modal.offsetWidth;
+                let maxY = window.innerHeight - modal.offsetHeight;
+                
+                x = Math.max(0, Math.min(x, maxX));
+                y = Math.max(0, Math.min(y, maxY));
+                
+                modal.style.transform = `translate(${x}px, ${y}px)`;
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                modal.style.cursor = 'grab';
+            });
+        });
+    </script>
+</body>
+</html>
+    
