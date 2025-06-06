@@ -370,11 +370,7 @@
             display: none;
             flex-direction: column;
             z-index: 1000;
-<<<<<<< HEAD
-            touch-action: none;
-=======
             touch-action: none; /* 防止触摸事件冲突 */
->>>>>>> master
         }
         
         .canvas-header {
@@ -1121,15 +1117,6 @@
                 overlay.style.display = 'none';
             });
             
-<<<<<<< HEAD
-            // 点击遮罩层关闭窗口
-            overlay.addEventListener('click', function() {
-                canvasWindow.style.display = 'none';
-                overlay.style.display = 'none';
-            });
-            
-=======
->>>>>>> master
             // 使窗口可拖动 - 鼠标事件
             const canvasHeader = canvasWindow.querySelector('.canvas-header');
             canvasHeader.addEventListener('mousedown', startDrag);
@@ -1137,13 +1124,8 @@
             document.addEventListener('mouseup', endDrag);
             
             // 使窗口可拖动 - 触摸事件
-<<<<<<< HEAD
-            canvasHeader.addEventListener('touchstart', handleTouchStart);
-            document.addEventListener('touchmove', handleTouchMove);
-=======
             canvasHeader.addEventListener('touchstart', startDrag, { passive: false });
             document.addEventListener('touchmove', drag, { passive: false });
->>>>>>> master
             document.addEventListener('touchend', endDrag);
             
             function startDrag(e) {
@@ -1492,15 +1474,8 @@
         });
     </script>
 </body>
-<<<<<<< HEAD
-</html>
-<!--
-升级
-手机上演示时，网页宽度超出了手机屏幕
-=======
 </html>      
 <!-- 
 升级 
->>>>>>> master
 return all new code.
 -->
