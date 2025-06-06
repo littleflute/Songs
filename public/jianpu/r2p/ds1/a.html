@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简谱绘制工具</title>
+    <title>简谱绘制工具 - 移动优化版</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: none;
         }
         
         body {
@@ -169,6 +170,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            touch-action: none;
         }
         
         .window-title {
@@ -283,25 +285,99 @@
             line-height: 1.5;
         }
         
+        /* 移动设备优化 */
+        .mobile-toolbar {
+            display: none;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mobile-toolbar button {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .mobile-toolbar button:last-child {
+            margin-bottom: 0;
+        }
+        
         @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
             .toolbar {
+                display: none;
+            }
+            
+            .mobile-toolbar {
+                display: block;
+            }
+            
+            .music-container {
+                padding: 15px;
+            }
+            
+            .canvas-container {
+                padding: 15px;
+            }
+            
+            .music-header {
                 flex-direction: column;
-                align-items: center;
-            }
-            
-            .toolbar button {
-                width: 100%;
-            }
-            
-            .draggable-window {
-                width: 90%;
-                left: 5%;
-                top: 50px;
+                align-items: flex-start;
+                gap: 10px;
             }
             
             .music-info {
                 flex-direction: column;
                 gap: 5px;
+            }
+            
+            #musicCanvas {
+                width: 100%;
+                height: auto;
+            }
+            
+            .draggable-window {
+                width: 90%;
+                left: 5%;
+                top: 20px;
+                transform: none !important;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .window-toolbar {
+                flex-direction: column;
+            }
+            
+            .window-toolbar button {
+                min-width: 100%;
             }
         }
     </style>
@@ -310,9 +386,31 @@
     <div class="container">
         <header>
             <h1>简谱绘制工具</h1>
-            <p class="subtitle">基于Canvas的简谱绘制解决方案，支持音符、八度标记、时值标记和歌词显示，专为移动设备优化</p>
+            <p class="subtitle">基于Canvas的简谱绘制解决方案，支持音符、八度标记、时值标记和歌词显示，完美适配移动设备</p>
         </header>
         
+        <!-- 移动设备专用工具栏 -->
+        <div class="mobile-toolbar">
+            <button id="mobileShowWindowBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                打开数据面板
+            </button>
+            <button id="mobileLoadExample1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                    <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                    <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                加载示例1
+            </button>
+        </div>
+        
+        <!-- 桌面工具栏 -->
         <div class="toolbar">
             <button id="showWindowBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -360,19 +458,19 @@
             </div>
             
             <div class="feature-card">
-                <h3>技术特性</h3>
+                <h3>移动优化</h3>
                 <ul>
-                    <li>纯Canvas绘制，无外部依赖</li>
-                    <li>响应式设计，完美适配移动设备</li>
-                    <li>可拖动控制面板</li>
-                    <li>支持JSON数据导入</li>
-                    <li>高性能渲染</li>
+                    <li>完全支持触摸拖动</li>
+                    <li>响应式设计</li>
+                    <li>移动设备专用工具栏</li>
+                    <li>触摸友好的控制元素</li>
+                    <li>自适应布局</li>
                 </ul>
             </div>
         </div>
         
         <footer>
-            <p>简谱绘制工具 &copy; 2023 | 基于Canvas的乐谱可视化解决方案</p>
+            <p>简谱绘制工具 &copy; 2023 | 基于Canvas的乐谱可视化解决方案 | 移动优化版</p>
         </footer>
     </div>
     
@@ -755,16 +853,22 @@
             const windowHeader = document.getElementById('windowHeader');
             
             let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
+            let currentX = 0;
+            let currentY = 0;
+            let initialX = 0;
+            let initialY = 0;
             let xOffset = 0;
             let yOffset = 0;
             
+            // 添加鼠标事件监听
             windowHeader.addEventListener('mousedown', dragStart);
             document.addEventListener('mouseup', dragEnd);
             document.addEventListener('mousemove', drag);
+            
+            // 添加触摸事件监听
+            windowHeader.addEventListener('touchstart', touchStart, { passive: false });
+            document.addEventListener('touchend', touchEnd, { passive: false });
+            document.addEventListener('touchmove', touchMove, { passive: false });
             
             function dragStart(e) {
                 initialX = e.clientX - xOffset;
@@ -775,9 +879,21 @@
                 }
             }
             
+            function touchStart(e) {
+                if (e.target === windowHeader || windowHeader.contains(e.target)) {
+                    isDragging = true;
+                    initialX = e.touches[0].clientX - xOffset;
+                    initialY = e.touches[0].clientY - yOffset;
+                }
+            }
+            
             function dragEnd() {
                 initialX = currentX;
                 initialY = currentY;
+                isDragging = false;
+            }
+            
+            function touchEnd() {
                 isDragging = false;
             }
             
@@ -794,48 +910,76 @@
                 }
             }
             
+            function touchMove(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                    
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    setTranslate(currentX, currentY, draggableWindow);
+                }
+            }
+            
             function setTranslate(xPos, yPos, el) {
                 el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
             }
             
             // 按钮事件
-            document.getElementById('showWindowBtn').addEventListener('click', () => {
-                draggableWindow.style.display = 'block';
-            });
+            function setupButtonEvents() {
+                // 桌面端按钮
+                document.getElementById('showWindowBtn').addEventListener('click', () => {
+                    draggableWindow.style.display = 'block';
+                });
+                
+                document.getElementById('closeWindowBtn').addEventListener('click', () => {
+                    draggableWindow.style.display = 'none';
+                });
+                
+                document.getElementById('loadExample1').addEventListener('click', () => {
+                    canvas.draw(examples.example1);
+                    document.getElementById('jsonData').value = JSON.stringify(examples.example1, null, 2);
+                });
+                
+                document.getElementById('loadExample2').addEventListener('click', () => {
+                    canvas.draw(examples.example2);
+                    document.getElementById('jsonData').value = JSON.stringify(examples.example2, null, 2);
+                });
+                
+                document.getElementById('loadExample3').addEventListener('click', () => {
+                    canvas.draw(examples.example3);
+                    document.getElementById('jsonData').value = JSON.stringify(examples.example3, null, 2);
+                });
+                
+                document.getElementById('loadExample4').addEventListener('click', () => {
+                    canvas.draw(examples.example4);
+                    document.getElementById('jsonData').value = JSON.stringify(examples.example4, null, 2);
+                });
+                
+                // 移动端按钮
+                document.getElementById('mobileShowWindowBtn').addEventListener('click', () => {
+                    draggableWindow.style.display = 'block';
+                });
+                
+                document.getElementById('mobileLoadExample1').addEventListener('click', () => {
+                    canvas.draw(examples.example1);
+                    document.getElementById('jsonData').value = JSON.stringify(examples.example1, null, 2);
+                });
+                
+                // 文本数据导入
+                document.getElementById('jsonData').addEventListener('input', (e) => {
+                    try {
+                        const data = JSON.parse(e.target.value);
+                        canvas.draw(data);
+                    } catch (error) {
+                        // 忽略解析错误
+                    }
+                });
+            }
             
-            document.getElementById('closeWindowBtn').addEventListener('click', () => {
-                draggableWindow.style.display = 'none';
-            });
-            
-            document.getElementById('loadExample1').addEventListener('click', () => {
-                canvas.draw(examples.example1);
-                document.getElementById('jsonData').value = JSON.stringify(examples.example1, null, 2);
-            });
-            
-            document.getElementById('loadExample2').addEventListener('click', () => {
-                canvas.draw(examples.example2);
-                document.getElementById('jsonData').value = JSON.stringify(examples.example2, null, 2);
-            });
-            
-            document.getElementById('loadExample3').addEventListener('click', () => {
-                canvas.draw(examples.example3);
-                document.getElementById('jsonData').value = JSON.stringify(examples.example3, null, 2);
-            });
-            
-            document.getElementById('loadExample4').addEventListener('click', () => {
-                canvas.draw(examples.example4);
-                document.getElementById('jsonData').value = JSON.stringify(examples.example4, null, 2);
-            });
-            
-            // 文本数据导入
-            document.getElementById('jsonData').addEventListener('input', (e) => {
-                try {
-                    const data = JSON.parse(e.target.value);
-                    canvas.draw(data);
-                } catch (error) {
-                    // 忽略解析错误
-                }
-            });
+            setupButtonEvents();
         });
     </script>
 </body>
