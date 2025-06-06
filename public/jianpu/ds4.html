@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱绘制工具 - C4JpCanvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .toolbar {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn.import {
+            background: linear-gradient(45deg, #0072ff, #00c6ff);
+        }
+        
+        .btn.export {
+            background: linear-gradient(45deg, #11998e, #38ef7d);
+        }
+        
+        .canvas-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        canvas {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        
+        /* 可移动窗口样式 */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-header {
+            padding: 18px 20px;
+            background: rgba(30, 30, 60, 0.9);
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: rgba(255, 65, 108, 0.2);
+            color: #ff416c;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 65, 108, 0.4);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .data-textarea {
+            width: 100%;
+            height: 250px;
+            background: rgba(10, 10, 25, 0.7);
+            color: #f0f0f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: none;
+            margin-bottom: 20px;
+        }
+        
+        .modal-toolbar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.import-star {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+        }
+        
+        .modal-btn.import-scale {
+            background: linear-gradient(45deg, #56ab2f, #a8e063);
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            display: none;
+        }
+        
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .canvas-container {
+                padding: 15px;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>简谱绘制工具 - C4JpCanvas</h1>
+        <p class="subtitle">使用Canvas绘制简谱，支持音符、高低音点、减时线和增时线</p>
+    </header>
+    
+    <div class="toolbar">
+        <button class="btn" id="togglePanelBtn">
+            <i>📋</i> 打开控制面板
+        </button>
+        <button class="btn import" id="importStarBtn">
+            <i>⭐</i> 导入小星星
+        </button>
+        <button class="btn export" id="importScaleBtn">
+            <i>🎼</i> 导入音阶
+        </button>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="musicCanvas" width="750" height="300"></canvas>
+    </div>
+    
+    <div class="modal" id="controlPanel">
+        <div class="modal-header" id="panelHeader">
+            <div class="modal-title">控制面板</div>
+            <button class="close-btn" id="closePanelBtn">×</button>
+        </div>
+        <div class="modal-body">
+            <textarea class="data-textarea" id="dataTextarea" placeholder="在此粘贴乐谱JSON数据..."></textarea>
+            <div class="modal-toolbar">
+                <button class="modal-btn import-star" id="modalImportStarBtn">导入小星星</button>
+                <button class="modal-btn import-scale" id="modalImportScaleBtn">导入音阶</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overlay" id="overlay"></div>
+    
+    <footer>
+        <p>© 2023 简谱绘制工具 | 使用纯JavaScript和Canvas实现</p>
+    </footer>
+
+    <script>
+        // 简谱绘制类
+        class C4JpCanvas {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.data = null;
+                this.noteWidth = 30;
+                this.noteHeight = 40;
+                this.startX = 50;
+                this.startY = 150;
+                this.measureSpacing = 20;
+                this.measureLineHeight = 80;
+                this.currentX = this.startX;
+                this.currentY = this.startY;
+            }
+            
+            // 清除画布
+            clear() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.currentX = this.startX;
+                this.currentY = this.startY;
+            }
+            
+            // 绘制简谱
+            draw(data) {
+                this.data = data;
+                this.clear();
+                
+                // 绘制标题信息
+                this.drawTitle();
+                
+                // 绘制小节
+                this.data.measures.forEach((measure, index) => {
+                    this.drawMeasure(measure, index);
+                });
+            }
+            
+            // 绘制标题
+            drawTitle() {
+                this.ctx.save();
+                this.ctx.font = "24px 'Microsoft YaHei', sans-serif";
+                this.ctx.fillStyle = "#333";
+                this.ctx.textAlign = "center";
+                this.ctx.fillText(this.data.metadata.title, this.canvas.width / 2, 40);
+                
+                this.ctx.font = "16px 'Microsoft YaHei', sans-serif";
+                this.ctx.fillStyle = "#666";
+                const info = `调号: ${this.data.metadata.key} | 拍号: ${this.data.metadata.timeSignature} | 速度: ${this.data.metadata.tempo} BPM`;
+                this.ctx.fillText(info, this.canvas.width / 2, 70);
+                this.ctx.restore();
+            }
+            
+            // 绘制小节
+            drawMeasure(measure, measureIndex) {
+                this.ctx.save();
+                
+                // 绘制小节线
+                if (measureIndex > 0) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.currentX - 10, this.currentY - this.measureLineHeight/2);
+                    this.ctx.lineTo(this.currentX - 10, this.currentY + this.measureLineHeight/2);
+                    this.ctx.strokeStyle = "#000";
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                }
+                
+                // 绘制小节编号
+                this.ctx.font = "12px Arial";
+                this.ctx.fillStyle = "#999";
+                this.ctx.fillText(measure.index, this.currentX - 30, this.currentY + 50);
+                
+                // 绘制音符
+                measure.notes.forEach(note => {
+                    this.drawNote(note);
+                });
+                
+                this.currentX += this.measureSpacing;
+                this.ctx.restore();
+            }
+            
+            // 绘制音符
+            drawNote(note) {
+                this.ctx.save();
+                
+                // 绘制音符数字
+                this.ctx.font = "bold 32px Arial";
+                this.ctx.fillStyle = "#000";
+                this.ctx.textAlign = "center";
+                this.ctx.textBaseline = "middle";
+                this.ctx.fillText(note.pitch, this.currentX, this.currentY);
+                
+                // 绘制高低音点
+                if (note.octaveShift !== 0) {
+                    const dotY = note.octaveShift > 0 ? this.currentY - 20 : this.currentY + 20;
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.currentX, dotY, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // 绘制减时线（八分音符）
+                if (note.duration < 1) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.currentX - 15, this.currentY + 20);
+                    this.ctx.lineTo(this.currentX + 15, this.currentY + 20);
+                    this.ctx.strokeStyle = "#000";
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.stroke();
+                }
+                
+                // 绘制增时线（二分音符及以上）
+                if (note.duration > 1) {
+                    const lines = note.duration - 1; // 需要绘制的增时线数量
+                    for (let i = 0; i < lines; i++) {
+                        const offset = 15 + i * 15;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.currentX + offset, this.currentY);
+                        this.ctx.lineTo(this.currentX + offset + 15, this.currentY);
+                        this.ctx.strokeStyle = "#000";
+                        this.ctx.lineWidth = 1.5;
+                        this.ctx.stroke();
+                    }
+                }
+                
+                // 绘制歌词
+                if (note.lyric) {
+                    this.ctx.font = "14px 'Microsoft YaHei', sans-serif";
+                    this.ctx.fillStyle = "#e74c3c";
+                    this.ctx.textBaseline = "top";
+                    this.ctx.fillText(note.lyric, this.currentX - 8, this.currentY + 25);
+                }
+                
+                // 移动到下一个音符位置
+                this.currentX += this.noteWidth;
+                this.ctx.restore();
+            }
+        }
+
+        // 示例数据
+        const starData = {
+            "metadata": {
+                "title": "小星星",
+                "composer": "传统儿歌",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 100
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                }
+            ]
+        };
+
+        // 音阶数据
+        const scaleData = {
+            "metadata": {
+                "title": "C大调音阶",
+                "composer": "练习曲",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 120
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"pitch": 2, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 3, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 4, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 5, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 6, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 7, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 2, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 2, "duration": 0.5, "dotted": false}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"pitch": 1, "octaveShift": 2, "duration": 0.5, "dotted": false},
+                        {"pitch": 7, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 6, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 5, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 4, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 3, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 2, "octaveShift": 1, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false},
+                        {"pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false}
+                    ]
+                }
+            ]
+        };
+
+        // 初始化Canvas
+        const canvas = new C4JpCanvas("musicCanvas");
+        canvas.draw(starData);
+        
+        // DOM元素
+        const togglePanelBtn = document.getElementById("togglePanelBtn");
+        const controlPanel = document.getElementById("controlPanel");
+        const closePanelBtn = document.getElementById("closePanelBtn");
+        const overlay = document.getElementById("overlay");
+        const importStarBtn = document.getElementById("importStarBtn");
+        const importScaleBtn = document.getElementById("importScaleBtn");
+        const modalImportStarBtn = document.getElementById("modalImportStarBtn");
+        const modalImportScaleBtn = document.getElementById("modalImportScaleBtn");
+        const dataTextarea = document.getElementById("dataTextarea");
+        const panelHeader = document.getElementById("panelHeader");
+        
+        // 打开控制面板
+        togglePanelBtn.addEventListener("click", () => {
+            controlPanel.style.display = "block";
+            overlay.style.display = "block";
+            dataTextarea.value = JSON.stringify(starData, null, 2);
+        });
+        
+        // 关闭控制面板
+        closePanelBtn.addEventListener("click", () => {
+            controlPanel.style.display = "none";
+            overlay.style.display = "none";
+        });
+        
+        // 点击遮罩层关闭面板
+        overlay.addEventListener("click", () => {
+            controlPanel.style.display = "none";
+            overlay.style.display = "none";
+        });
+        
+        // 导入小星星
+        importStarBtn.addEventListener("click", () => {
+            canvas.draw(starData);
+        });
+        
+        modalImportStarBtn.addEventListener("click", () => {
+            canvas.draw(starData);
+            dataTextarea.value = JSON.stringify(starData, null, 2);
+        });
+        
+        // 导入音阶
+        importScaleBtn.addEventListener("click", () => {
+            canvas.draw(scaleData);
+        });
+        
+        modalImportScaleBtn.addEventListener("click", () => {
+            canvas.draw(scaleData);
+            dataTextarea.value = JSON.stringify(scaleData, null, 2);
+        });
+        
+        // 实现面板拖动功能
+        let isDragging = false;
+        let offsetX, offsetY;
+        
+        panelHeader.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            offsetX = e.clientX - controlPanel.offsetLeft;
+            offsetY = e.clientY - controlPanel.offsetTop;
+        });
+        
+        document.addEventListener("mousemove", (e) => {
+            if (isDragging) {
+                controlPanel.style.left = `${e.clientX - offsetX}px`;
+                controlPanel.style.top = `${e.clientY - offsetY}px`;
+            }
+        });
+        
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+        
+        // 触摸事件支持（移动设备）
+        panelHeader.addEventListener("touchstart", (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            offsetX = touch.clientX - controlPanel.offsetLeft;
+            offsetY = touch.clientY - controlPanel.offsetTop;
+            e.preventDefault();
+        });
+        
+        document.addEventListener("touchmove", (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                controlPanel.style.left = `${touch.clientX - offsetX}px`;
+                controlPanel.style.top = `${touch.clientY - offsetY}px`;
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener("touchend", () => {
+            isDragging = false;
+        });
+        
+        // 初始化文本区域内容
+        dataTextarea.value = JSON.stringify(starData, null, 2);
+    </script>
+</body>
+</html>
