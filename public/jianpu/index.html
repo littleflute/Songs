@@ -204,7 +204,6 @@
             margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: slideUp 0.8s ease;
-            position: relative;
         }
         
         canvas {
@@ -405,134 +404,6 @@
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
         }
         
-        /* 新增样式 */
-        .piano-container {
-            width: 100%;
-            max-width: 600px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 2px;
-        }
-        
-        .key {
-            position: relative;
-            width: 40px;
-            height: 120px;
-            background: white;
-            border-radius: 0 0 5px 5px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding-bottom: 10px;
-            transition: background-color 0.1s;
-        }
-        
-        .key.sharp {
-            background: #222;
-            height: 70px;
-            width: 28px;
-            z-index: 2;
-            margin: 0 -14px;
-            color: white;
-        }
-        
-        .key.active {
-            background: linear-gradient(to bottom, #ffd700, #ff9800);
-        }
-        
-        .key-label {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .key.sharp .key-label {
-            color: white;
-        }
-        
-        .progress-container {
-            width: 100%;
-            max-width: 600px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            margin: 15px 0;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background: linear-gradient(to right, #ffd700, #ff9800);
-            transition: width 0.1s linear;
-        }
-        
-        .note-guide {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .note-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 10px;
-        }
-        
-        .note-symbol {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #ffd700;
-        }
-        
-        .play-highlight {
-            position: absolute;
-            background: rgba(255, 215, 0, 0.3);
-            border-radius: 5px;
-            transition: all 0.1s ease;
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        .feature-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-            width: 100%;
-        }
-        
-        .feature-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.12);
-        }
-        
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #ffd700;
-        }
-        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -547,12 +418,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
         }
         
         @media (max-width: 900px) {
@@ -624,16 +489,6 @@
                 padding: 12px 25px;
                 font-size: 1rem;
             }
-            
-            .key {
-                width: 30px;
-                height: 100px;
-            }
-            
-            .key.sharp {
-                width: 20px;
-                margin: 0 -10px;
-            }
         }
         
         @media (max-width: 480px) {
@@ -658,17 +513,6 @@
                 height: 200px;
                 font-size: 5rem;
             }
-            
-            .key {
-                width: 25px;
-                height: 90px;
-                font-size: 0.9rem;
-            }
-            
-            .key.sharp {
-                width: 18px;
-                margin: 0 -9px;
-            }
         }
         
         .footer {
@@ -692,7 +536,8 @@
             </a>
             
             <ul class="nav-links">
-                <li><a href="#" class="active" onclick="showPage('home')">首页</a></li>
+                <li><a href="../"  onclick="showPage('home')">首页</a></li>
+                <li><a href="#" class="active" onclick="showPage('home')">[jianpu]</a></li>
                 <li>
                     <a href="#" onclick="showPage('songs')">乐谱库 <i class="fas fa-caret-down"></i></a>
                     <ul class="dropdown">
@@ -735,10 +580,6 @@
                     <i class="fas fa-play"></i>
                     播放音乐
                 </button>
-                <button id="stopBtn">
-                    <i class="fas fa-stop"></i>
-                    停止
-                </button>
                 <button id="zoomInBtn">
                     <i class="fas fa-search-plus"></i>
                     放大
@@ -753,14 +594,6 @@
                 </button>
             </div>
             
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            
-            <div class="piano-container" id="pianoContainer">
-                <!-- 钢琴键盘由JS生成 -->
-            </div>
-            
             <div class="instructions">
                 <h3>简谱学习说明</h3>
                 <ul>
@@ -773,37 +606,6 @@
                     <li>使用"放大"和"缩小"按钮调整乐谱显示大小</li>
                     <li>更多歌曲请查看"乐谱库"菜单</li>
                 </ul>
-            </div>
-            
-            <div class="note-guide">
-                <div class="note-item">
-                    <div class="note-symbol">1</div>
-                    <div>Do</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">2</div>
-                    <div>Re</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">3</div>
-                    <div>Mi</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">4</div>
-                    <div>Fa</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">5</div>
-                    <div>Sol</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">6</div>
-                    <div>La</div>
-                </div>
-                <div class="note-item">
-                    <div class="note-symbol">7</div>
-                    <div>Si</div>
-                </div>
             </div>
         </div>
         
@@ -873,37 +675,6 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="feature-cards">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h3>丰富曲库</h3>
-                    <p>超过200首经典曲目，涵盖各种风格和难度</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-download"></i>
-                    </div>
-                    <h3>免费下载</h3>
-                    <p>所有乐谱均可免费下载打印</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3>学习资源</h3>
-                    <p>配套视频教程和练习指导</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h3>移动端支持</h3>
-                    <p>在手机和平板上完美使用</p>
-                </div>
-            </div>
         </div>
         
         <!-- 关于页面 -->
@@ -930,47 +701,6 @@
                 
                 <div class="about-image">
                     <i class="fas fa-music"></i>
-                </div>
-            </div>
-            
-            <h3 style="margin-top: 40px; text-align: center; color: #ffd700;">用户评价</h3>
-            <div class="feature-cards">
-                <div class="feature-card">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                        <div style="width: 50px; height: 50px; background: #ffd700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user" style="color: #1a2a6c;"></i>
-                        </div>
-                        <div>
-                            <h4>张老师</h4>
-                            <div style="color: #ffd700;">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p>"这个应用让我的音乐课变得更有趣，学生们特别喜欢互动功能！"</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                        <div style="width: 50px; height: 50px; background: #ffd700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user" style="color: #1a2a6c;"></i>
-                        </div>
-                        <div>
-                            <h4>李同学</h4>
-                            <div style="color: #ffd700;">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <p>"作为一个初学者，简谱让我更容易理解音乐原理，钢琴键盘功能太棒了！"</p>
                 </div>
             </div>
         </div>
@@ -1036,30 +766,6 @@
                     <li>加入音乐社群，与他人交流学习</li>
                     <li>定期挑战稍高于自己水平的曲目</li>
                 </ul>
-            </div>
-            
-            <h3 style="margin-top: 40px; text-align: center; color: #ffd700;">学习路径</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
-                <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 20px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px; color: #ffd700;">1</div>
-                    <h4>基础音符</h4>
-                    <p>学习7个基本音符和它们的唱名</p>
-                </div>
-                <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 20px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px; color: #ffd700;">2</div>
-                    <h4>节奏训练</h4>
-                    <p>掌握不同音符的时值和节奏</p>
-                </div>
-                <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 20px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px; color: #ffd700;">3</div>
-                    <h4>简单曲目</h4>
-                    <p>练习《小星星》等入门曲目</p>
-                </div>
-                <div style="flex: 1; min-width: 200px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 20px; text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px; color: #ffd700;">4</div>
-                    <h4>进阶技巧</h4>
-                    <p>学习调号变化和复杂节奏</p>
-                </div>
             </div>
         </div>
         
@@ -1151,403 +857,216 @@
             ]
         };
 
-        // 简谱绘制类
-        class C4JianpuCanvas {
-            constructor(canvas, sheetData) {
-                this.canvas = canvas;
-                this.ctx = canvas.getContext('2d');
-                this.data = sheetData;
-                this.scale = 1.0;
-                this.baseMeasureWidth = 280;
-                this.baseMeasureHeight = 180;
-                this.baseStaffHeight = 120;
-                this.isPlaying = false;
-                this.currentNoteIndex = 0;
-                this.totalDuration = 0;
-                this.highlightElements = [];
-                this.audioContext = null;
-                this.playTimeout = null;
-                
-                // 计算总时长
-                this.calculateTotalDuration();
+        // 获取Canvas元素
+        const canvas = document.getElementById('sheetMusicCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 初始缩放级别
+        let scale = 1.0;
+        const baseMeasureWidth = 280;
+        const baseMeasureHeight = 180;
+        const baseStaffHeight = 120;
+        
+        // 设置Canvas尺寸
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = container.clientWidth * dpr;
+            canvas.height = Math.min(window.innerHeight * 0.5, 700) * dpr * scale;
+            
+            canvas.style.width = container.clientWidth + 'px';
+            canvas.style.height = (canvas.height / dpr) + 'px';
+            
+            ctx.scale(dpr, dpr);
+            ctx.translate(0, 0);
+            drawSheetMusic();
+        }
+
+        // 绘制五线谱背景
+        function drawStaff(y, width) {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1.5;
+            
+            // 绘制五条线
+            for (let i = 0; i < 5; i++) {
+                const lineY = y + i * 12;
+                ctx.beginPath();
+                ctx.moveTo(40, lineY);
+                ctx.lineTo(width - 40, lineY);
+                ctx.stroke();
             }
             
-            calculateTotalDuration() {
-                this.totalDuration = 0;
-                for (const measure of this.data.measures) {
-                    for (const note of measure.notes) {
-                        this.totalDuration += note.duration;
-                    }
+            // 绘制谱号
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('𝄞', 15, y + 38);
+        }
+
+        // 绘制音符
+        function drawNote(x, y, note, measureWidth) {
+            const noteX = x;
+            const noteY = y - (note.pitch - 1) * 6;
+            
+            // 绘制音符数字
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#d35400';
+            ctx.fillText(note.pitch, noteX, noteY);
+            
+            // 绘制减时线（八分音符）
+            if (note.duration < 1) {
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(noteX - 8, noteY + 8);
+                ctx.lineTo(noteX + 15, noteY + 8);
+                ctx.stroke();
+            }
+            
+            // 绘制增时线（二分音符）
+            if (note.duration >= 2) {
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(noteX + 15, noteY);
+                ctx.lineTo(noteX + 30, noteY);
+                ctx.stroke();
+                
+                // 如果是全音符，再加一条
+                if (note.duration >= 4) {
+                    ctx.beginPath();
+                    ctx.moveTo(noteX + 15, noteY + 4);
+                    ctx.lineTo(noteX + 30, noteY + 4);
+                    ctx.stroke();
                 }
             }
             
-            setupCanvas() {
-                const container = this.canvas.parentElement;
-                const dpr = window.devicePixelRatio || 1;
-                
-                this.canvas.width = container.clientWidth * dpr;
-                this.canvas.height = Math.min(window.innerHeight * 0.5, 700) * dpr * this.scale;
-                
-                this.canvas.style.width = container.clientWidth + 'px';
-                this.canvas.style.height = (this.canvas.height / dpr) + 'px';
-                
-                this.ctx.scale(dpr, dpr);
-                this.ctx.translate(0, 0);
-                this.drawSheetMusic();
+            // 绘制歌词
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#2980b9';
+            ctx.textAlign = 'center';
+            ctx.fillText(note.lyric, noteX + 10, noteY + 40);
+            ctx.textAlign = 'left';
+        }
+
+        // 绘制小节
+        function drawMeasure(measure, x, y, width) {
+            // 绘制小节线
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 25);
+            ctx.lineTo(x, y + 50);
+            ctx.stroke();
+            
+            // 绘制小节内容
+            const noteSpacing = width / (measure.notes.length + 1);
+            let noteX = x + noteSpacing;
+            
+            for (const note of measure.notes) {
+                drawNote(noteX, y, note, width);
+                noteX += noteSpacing;
             }
             
-            drawStaff(y, width) {
-                this.ctx.strokeStyle = '#333';
-                this.ctx.lineWidth = 1.5;
-                
-                // 绘制五条线
-                for (let i = 0; i < 5; i++) {
-                    const lineY = y + i * 12;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(40, lineY);
-                    this.ctx.lineTo(width - 40, lineY);
-                    this.ctx.stroke();
-                }
-                
-                // 绘制谱号
-                this.ctx.font = '36px Arial';
-                this.ctx.fillStyle = '#333';
-                this.ctx.fillText('𝄞', 15, y + 38);
-            }
+            // 右侧小节线
+            ctx.beginPath();
+            ctx.moveTo(x + width, y - 25);
+            ctx.lineTo(x + width, y + 50);
+            ctx.stroke();
             
-            drawNote(x, y, note, measureWidth, isCurrent = false) {
-                const noteX = x;
-                const noteY = y - (note.pitch - 1) * 6;
-                
-                // 如果是当前播放的音符，添加高亮背景
-                if (isCurrent) {
-                    this.ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-                    this.ctx.fillRect(noteX - 15, noteY - 15, 50, 40);
-                    this.highlightElements.push({
-                        x: noteX - 15,
-                        y: noteY - 15,
-                        width: 50,
-                        height: 40
-                    });
-                }
-                
-                // 绘制音符数字
-                this.ctx.font = 'bold 24px Arial';
-                this.ctx.fillStyle = isCurrent ? '#c0392b' : '#d35400';
-                this.ctx.fillText(note.pitch, noteX, noteY);
-                
-                // 绘制减时线（八分音符）
-                if (note.duration < 1) {
-                    this.ctx.strokeStyle = '#333';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(noteX - 8, noteY + 8);
-                    this.ctx.lineTo(noteX + 15, noteY + 8);
-                    this.ctx.stroke();
-                }
-                
-                // 绘制增时线（二分音符）
-                if (note.duration >= 2) {
-                    this.ctx.strokeStyle = '#333';
-                    this.ctx.lineWidth = 2;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(noteX + 15, noteY);
-                    this.ctx.lineTo(noteX + 30, noteY);
-                    this.ctx.stroke();
-                    
-                    // 如果是全音符，再加一条
-                    if (note.duration >= 4) {
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(noteX + 15, noteY + 4);
-                        this.ctx.lineTo(noteX + 30, noteY + 4);
-                        this.ctx.stroke();
-                    }
-                }
-                
-                // 绘制歌词
-                this.ctx.font = '16px Arial';
-                this.ctx.fillStyle = isCurrent ? '#2980b9' : '#3498db';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText(note.lyric, noteX + 10, noteY + 40);
-                this.ctx.textAlign = 'left';
-            }
+            // 小节编号
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#7f8c8d';
+            ctx.fillText(measure.index, x + width/2, y + 70);
+        }
+
+        // 绘制整个乐谱
+        function drawSheetMusic() {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
             
-            drawMeasure(measure, x, y, width, currentNoteIndex) {
-                // 绘制小节线
-                this.ctx.strokeStyle = '#333';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, y - 25);
-                this.ctx.lineTo(x, y + 50);
-                this.ctx.stroke();
-                
-                // 绘制小节内容
-                const noteSpacing = width / (measure.notes.length + 1);
-                let noteX = x + noteSpacing;
-                let noteIndex = 0;
-                
-                for (const note of measure.notes) {
-                    const isCurrent = (currentNoteIndex === noteIndex);
-                    this.drawNote(noteX, y, note, width, isCurrent);
-                    noteX += noteSpacing;
-                    noteIndex++;
+            // 清除Canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // 绘制标题
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#2c3e50';
+            ctx.textAlign = 'center';
+            ctx.fillText(sheetData.metadata.title, width / 2, 50);
+            
+            // 绘制调号
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#34495e';
+            ctx.fillText(`1 = ${sheetData.metadata.key.slice(2)}`, width - 100, 50);
+            
+            // 绘制拍号
+            ctx.fillText(sheetData.metadata.timeSignature, width - 50, 50);
+            
+            // 设置五线谱位置
+            const staffY = 100;
+            
+            // 绘制五线谱
+            drawStaff(staffY, width);
+            
+            // 绘制小节
+            const measureWidth = baseMeasureWidth * scale;
+            const measureHeight = baseMeasureHeight * scale;
+            const measuresPerRow = Math.floor((width - 80) / measureWidth);
+            let x = 60;
+            let y = staffY + 30;
+            let row = 0;
+            
+            for (let i = 0; i < sheetData.measures.length; i++) {
+                if (i > 0 && i % measuresPerRow === 0) {
+                    row++;
+                    x = 60;
                 }
                 
-                // 右侧小节线
-                this.ctx.beginPath();
-                this.ctx.moveTo(x + width, y - 25);
-                this.ctx.lineTo(x + width, y + 50);
-                this.ctx.stroke();
-                
-                // 小节编号
-                this.ctx.font = '14px Arial';
-                this.ctx.fillStyle = '#7f8c8d';
-                this.ctx.fillText(measure.index, x + width/2, y + 70);
-            }
-            
-            drawSheetMusic(currentNoteIndex = -1) {
-                const width = this.canvas.clientWidth;
-                const height = this.canvas.clientHeight;
-                
-                // 清除Canvas
-                this.ctx.clearRect(0, 0, width, height);
-                
-                // 绘制标题
-                this.ctx.font = 'bold 28px Arial';
-                this.ctx.fillStyle = '#2c3e50';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillText(this.data.metadata.title, width / 2, 50);
-                
-                // 绘制调号
-                this.ctx.font = '20px Arial';
-                this.ctx.fillStyle = '#34495e';
-                this.ctx.fillText(`1 = ${this.data.metadata.key.slice(2)}`, width - 100, 50);
-                
-                // 绘制拍号
-                this.ctx.fillText(this.data.metadata.timeSignature, width - 50, 50);
-                
-                // 设置五线谱位置
-                const staffY = 100;
-                
-                // 绘制五线谱
-                this.drawStaff(staffY, width);
-                
-                // 绘制小节
-                const measureWidth = this.baseMeasureWidth * this.scale;
-                const measureHeight = this.baseMeasureHeight * this.scale;
-                const measuresPerRow = Math.floor((width - 80) / measureWidth);
-                let x = 60;
-                let y = staffY + 30;
-                let row = 0;
-                let globalNoteIndex = 0;
-                
-                this.highlightElements = [];
-                
-                for (let i = 0; i < this.data.measures.length; i++) {
-                    if (i > 0 && i % measuresPerRow === 0) {
-                        row++;
-                        x = 60;
-                    }
-                    
-                    const measureY = y + row * measureHeight;
-                    this.drawMeasure(
-                        this.data.measures[i], 
-                        x, 
-                        measureY, 
-                        measureWidth,
-                        currentNoteIndex - globalNoteIndex
-                    );
-                    
-                    x += measureWidth + 20;
-                    globalNoteIndex += this.data.measures[i].notes.length;
-                }
-            }
-            
-            playMusic() {
-                if (this.isPlaying) {
-                    this.stopMusic();
-                    return;
-                }
-                
-                this.isPlaying = true;
-                this.currentNoteIndex = 0;
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const tempo = this.data.metadata.tempo;
-                const beatDuration = 60 / tempo;
-                
-                let accumulatedTime = 0;
-                let noteIndex = 0;
-                
-                const playNextNote = () => {
-                    if (!this.isPlaying || noteIndex >= this.totalDuration) {
-                        this.isPlaying = false;
-                        this.currentNoteIndex = -1;
-                        this.drawSheetMusic();
-                        document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i> 播放音乐';
-                        return;
-                    }
-                    
-                    // 更新UI
-                    this.currentNoteIndex = noteIndex;
-                    this.drawSheetMusic(this.currentNoteIndex);
-                    
-                    // 更新进度条
-                    const progress = (noteIndex / this.totalDuration) * 100;
-                    document.getElementById('progressBar').style.width = `${progress}%`;
-                    
-                    // 查找当前音符
-                    let currentMeasureIndex = 0;
-                    let currentNote = null;
-                    let noteCounter = 0;
-                    
-                    for (const measure of this.data.measures) {
-                        for (const note of measure.notes) {
-                            if (noteCounter === noteIndex) {
-                                currentNote = note;
-                                break;
-                            }
-                            noteCounter++;
-                        }
-                        if (currentNote) break;
-                        currentMeasureIndex++;
-                    }
-                    
-                    if (currentNote) {
-                        // 播放音符
-                        const oscillator = this.audioContext.createOscillator();
-                        const gainNode = this.audioContext.createGain();
-                        
-                        const baseFreq = 261.63; // C4
-                        const pitchOffset = currentNote.pitch - 1;
-                        const frequency = baseFreq * Math.pow(2, pitchOffset / 12);
-                        
-                        oscillator.type = 'sine';
-                        oscillator.frequency.value = frequency;
-                        
-                        gainNode.gain.setValueAtTime(0.8, this.audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(
-                            0.01, 
-                            this.audioContext.currentTime + currentNote.duration * beatDuration
-                        );
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(this.audioContext.destination);
-                        
-                        oscillator.start();
-                        oscillator.stop(this.audioContext.currentTime + currentNote.duration * beatDuration);
-                        
-                        // 高亮对应的钢琴键
-                        const pianoKey = document.querySelector(`.key[data-note="${currentNote.pitch}"]`);
-                        if (pianoKey) {
-                            pianoKey.classList.add('active');
-                            setTimeout(() => {
-                                pianoKey.classList.remove('active');
-                            }, currentNote.duration * beatDuration * 500);
-                        }
-                    }
-                    
-                    // 计划下一个音符
-                    noteIndex++;
-                    this.playTimeout = setTimeout(playNextNote, currentNote.duration * beatDuration * 1000);
-                };
-                
-                playNextNote();
-                
-                // 更新按钮状态
-                document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i> 暂停播放';
-            }
-            
-            stopMusic() {
-                this.isPlaying = false;
-                if (this.playTimeout) {
-                    clearTimeout(this.playTimeout);
-                    this.playTimeout = null;
-                }
-                
-                if (this.audioContext) {
-                    this.audioContext.close();
-                    this.audioContext = null;
-                }
-                
-                this.currentNoteIndex = -1;
-                this.drawSheetMusic();
-                document.getElementById('progressBar').style.width = '0';
-                document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i> 播放音乐';
-                
-                // 移除所有高亮
-                document.querySelectorAll('.key.active').forEach(key => {
-                    key.classList.remove('active');
-                });
-            }
-            
-            zoomIn() {
-                this.scale = Math.min(this.scale + 0.1, 1.5);
-                this.setupCanvas();
-            }
-            
-            zoomOut() {
-                this.scale = Math.max(this.scale - 0.1, 0.7);
-                this.setupCanvas();
+                const measureY = y + row * measureHeight;
+                drawMeasure(sheetData.measures[i], x, measureY, measureWidth);
+                x += measureWidth + 20;
             }
         }
 
-        // 创建钢琴键盘
-        function createPiano() {
-            const pianoContainer = document.getElementById('pianoContainer');
-            pianoContainer.innerHTML = '';
-            
-            const notes = [
-                {pitch: 1, label: '1'},
-                {pitch: 2, label: '2'},
-                {pitch: 3, label: '3'},
-                {pitch: 4, label: '4'},
-                {pitch: 5, label: '5'},
-                {pitch: 6, label: '6'},
-                {pitch: 7, label: '7'},
-            ];
-            
-            notes.forEach(note => {
-                const key = document.createElement('div');
-                key.className = 'key';
-                key.dataset.note = note.pitch;
-                key.innerHTML = `<div class="key-label">${note.label}</div>`;
-                
-                key.addEventListener('click', () => {
-                    // 播放对应音符
-                    playPianoNote(note.pitch);
-                    
-                    // 添加高亮效果
-                    key.classList.add('active');
-                    setTimeout(() => {
-                        key.classList.remove('active');
-                    }, 300);
-                });
-                
-                pianoContainer.appendChild(key);
-            });
-        }
-        
-        // 播放钢琴音符
-        function playPianoNote(pitch) {
+        // 播放音乐
+        function playMusic() {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const tempo = sheetData.metadata.tempo;
+            const beatDuration = 60 / tempo;
             
-            const baseFreq = 261.63; // C4
-            const pitchOffset = pitch - 1;
-            const frequency = baseFreq * Math.pow(2, pitchOffset / 12);
+            let time = audioContext.currentTime;
             
-            oscillator.type = 'sine';
-            oscillator.frequency.value = frequency;
-            
-            gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.5);
+            for (const measure of sheetData.measures) {
+                for (const note of measure.notes) {
+                    const noteDuration = note.duration * beatDuration;
+                    
+                    // 创建振荡器
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    // 设置频率（以C4为基准）
+                    const baseFreq = 261.63; // C4
+                    const pitchOffset = note.pitch - 1;
+                    const frequency = baseFreq * Math.pow(2, pitchOffset / 12);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = frequency;
+                    
+                    // 设置音量包络
+                    gainNode.gain.setValueAtTime(0.8, time);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, time + noteDuration);
+                    
+                    // 连接节点
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // 播放音符
+                    oscillator.start(time);
+                    oscillator.stop(time + noteDuration);
+                    
+                    time += noteDuration;
+                }
+            }
         }
 
         // 页面导航功能
@@ -1565,18 +1084,12 @@
                 link.classList.remove('active');
             });
             
-            // 为当前页面菜单项添加active
-            const currentPageLink = document.querySelector(`.nav-links a[onclick*="${pageId}"]`);
-            if (currentPageLink) {
-                currentPageLink.classList.add('active');
-            }
-            
             // 移动设备上关闭菜单
             document.querySelector('.nav-links').classList.remove('active');
             
             // 如果是首页，重新绘制乐谱
             if (pageId === 'home') {
-                jianpuCanvas.setupCanvas();
+                setupCanvas();
             }
             
             // 滚动到顶部
@@ -1591,33 +1104,20 @@
             // 在实际应用中，这里会加载不同的歌曲数据
         }
 
-        // 全局变量
-        let jianpuCanvas;
-
         // 初始化
         window.addEventListener('load', () => {
-            const canvas = document.getElementById('sheetMusicCanvas');
-            jianpuCanvas = new C4JianpuCanvas(canvas, sheetData);
-            jianpuCanvas.setupCanvas();
-            
-            // 创建钢琴键盘
-            createPiano();
+            setupCanvas();
             
             // 添加按钮事件
-            document.getElementById('playBtn').addEventListener('click', () => {
-                jianpuCanvas.playMusic();
-            });
-            
-            document.getElementById('stopBtn').addEventListener('click', () => {
-                jianpuCanvas.stopMusic();
-            });
-            
+            document.getElementById('playBtn').addEventListener('click', playMusic);
             document.getElementById('zoomInBtn').addEventListener('click', () => {
-                jianpuCanvas.zoomIn();
+                scale = Math.min(scale + 0.1, 1.5);
+                setupCanvas();
             });
             
             document.getElementById('zoomOutBtn').addEventListener('click', () => {
-                jianpuCanvas.zoomOut();
+                scale = Math.max(scale - 0.1, 0.7);
+                setupCanvas();
             });
             
             document.getElementById('printBtn').addEventListener('click', () => {
@@ -1645,8 +1145,8 @@
                     );
                     
                     const scaleFactor = currentDistance / initialDistance;
-                    jianpuCanvas.scale = Math.max(0.7, Math.min(jianpuCanvas.scale * scaleFactor, 1.5));
-                    jianpuCanvas.setupCanvas();
+                    scale = Math.max(0.7, Math.min(scale * scaleFactor, 1.5));
+                    setupCanvas();
                     
                     initialDistance = currentDistance;
                 }
@@ -1663,11 +1163,7 @@
         });
 
         // 响应窗口大小变化
-        window.addEventListener('resize', () => {
-            if (jianpuCanvas) {
-                jianpuCanvas.setupCanvas();
-            }
-        });
+        window.addEventListener('resize', setupCanvas);
     </script>
 </body>
 </html>
