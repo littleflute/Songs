@@ -4,7 +4,8 @@
     "composer": "传统儿歌",
     "key": "1=C",
     "timeSignature": "4/4",
-    "tempo": 100
+    "tempo": 100,
+    "version": 0.07
   },
   "measures": [
     {
