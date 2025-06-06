@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱绘制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to right, #ff8a00, #da1b60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .toolbar {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toolbar button {
+            background: linear-gradient(45deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toolbar button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toolbar button:active {
+            transform: translateY(1px);
+        }
+        
+        .music-container {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .music-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .music-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .music-info {
+            display: flex;
+            gap: 20px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .canvas-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+            overflow: auto;
+        }
+        
+        #musicCanvas {
+            background: white;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .draggable-window {
+            position: fixed;
+            top: 150px;
+            left: 50px;
+            width: 450px;
+            background: rgba(20, 20, 40, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .window-header {
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            padding: 15px 20px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .window-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .window-body {
+            padding: 20px;
+        }
+        
+        .window-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .window-toolbar button {
+            flex: 1;
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .window-toolbar button:hover {
+            background: rgba(106, 17, 203, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        textarea {
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-family: monospace;
+            font-size: 14px;
+            resize: none;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 30px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #6a11cb;
+        }
+        
+        .feature-card ul {
+            padding-left: 20px;
+        }
+        
+        .feature-card li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .toolbar button {
+                width: 100%;
+            }
+            
+            .draggable-window {
+                width: 90%;
+                left: 5%;
+                top: 50px;
+            }
+            
+            .music-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>简谱绘制工具</h1>
+            <p class="subtitle">基于Canvas的简谱绘制解决方案，支持音符、八度标记、时值标记和歌词显示，专为移动设备优化</p>
+        </header>
+        
+        <div class="toolbar">
+            <button id="showWindowBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                打开数据面板
+            </button>
+        </div>
+        
+        <div class="music-container">
+            <div class="music-header">
+                <div class="music-title" id="currentTitle">小星星</div>
+                <div class="music-info">
+                    <div>调号: <span id="currentKey">1=C</span></div>
+                    <div>拍号: <span id="currentTimeSignature">4/4</span></div>
+                    <div>速度: <span id="currentTempo">100</span> BPM</div>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="musicCanvas" width="1000" height="300"></canvas>
+            </div>
+        </div>
+        
+        <div class="feature-list">
+            <div class="feature-card">
+                <h3>简谱绘制功能</h3>
+                <ul>
+                    <li>四分音符：无横线</li>
+                    <li>八分音符：音符下方一条横线</li>
+                    <li>十六分音符：音符下方两条横线</li>
+                    <li>高八度音：音符上方加点</li>
+                    <li>低八度音：音符下方加点</li>
+                    <li>支持歌词显示</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>测试数据</h3>
+                <ul>
+                    <li>示例1: 《小星星》简谱</li>
+                    <li>示例2: 两个八度音阶（八分音符）</li>
+                    <li>示例3: 四个八度音阶（十六分音符）</li>
+                    <li>示例4: 混合时值与八度变化</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <h3>技术特性</h3>
+                <ul>
+                    <li>纯Canvas绘制，无外部依赖</li>
+                    <li>响应式设计，完美适配移动设备</li>
+                    <li>可拖动控制面板</li>
+                    <li>支持JSON数据导入</li>
+                    <li>高性能渲染</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>简谱绘制工具 &copy; 2023 | 基于Canvas的乐谱可视化解决方案</p>
+        </footer>
+    </div>
+    
+    <div class="draggable-window" id="draggableWindow">
+        <div class="window-header" id="windowHeader">
+            <div class="window-title">数据控制面板</div>
+            <button class="close-btn" id="closeWindowBtn">×</button>
+        </div>
+        <div class="window-body">
+            <div class="window-toolbar">
+                <button id="loadExample1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                        <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                        <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    导入小星星
+                </button>
+                <button id="loadExample2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    导入双八度音阶
+                </button>
+                <button id="loadExample3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13M9 9l12-2"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    导入四八度音阶
+                </button>
+                <button id="loadExample4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    导入混合示例
+                </button>
+            </div>
+            <textarea id="jsonData" placeholder="在此粘贴JSON数据或使用上方按钮加载示例..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据
+        const examples = {
+            example1: {
+                metadata: {
+                    title: "小星星",
+                    composer: "传统儿歌",
+                    key: "1=C",
+                    timeSignature: "4/4",
+                    tempo: 100,
+                    version: 1
+                },
+                measures: [
+                    {
+                        index: 1,
+                        notes: [
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 1, dotted: false, lyric: "一"},
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 1, dotted: false, lyric: "闪"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 1, dotted: false, lyric: "一"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 1, dotted: false, lyric: "闪"}
+                        ]
+                    },
+                    {
+                        index: 2,
+                        notes: [
+                            {type: "note", pitch: 6, octaveShift: 0, duration: 1, dotted: false, lyric: "亮"},
+                            {type: "note", pitch: 6, octaveShift: 0, duration: 1, dotted: false, lyric: "晶"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 2, dotted: false, lyric: "晶"}
+                        ]
+                    },
+                    {
+                        index: 3,
+                        notes: [
+                            {type: "note", pitch: 4, octaveShift: 0, duration: 1, dotted: false, lyric: "满"},
+                            {type: "note", pitch: 4, octaveShift: 0, duration: 1, dotted: false, lyric: "天"},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 1, dotted: false, lyric: "都"},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 1, dotted: false, lyric: "是"}
+                        ]
+                    },
+                    {
+                        index: 4,
+                        notes: [
+                            {type: "note", pitch: 2, octaveShift: 0, duration: 1, dotted: false, lyric: "小"},
+                            {type: "note", pitch: 2, octaveShift: 0, duration: 1, dotted: false, lyric: "星"},
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 2, dotted: false, lyric: "星"}
+                        ]
+                    }
+                ]
+            },
+            
+            example2: {
+                metadata: {
+                    title: "两个八度音阶",
+                    composer: "测试数据",
+                    key: "1=C",
+                    timeSignature: "4/4",
+                    tempo: 120,
+                    version: 1
+                },
+                measures: [
+                    {
+                        index: 1,
+                        notes: [
+                            {type: "note", pitch: 1, octaveShift: -1, duration: 0.5, dotted: false, lyric: "低"},
+                            {type: "note", pitch: 2, octaveShift: -1, duration: 0.5, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 3, octaveShift: -1, duration: 0.5, dotted: false, lyric: "阶"},
+                            {type: "note", pitch: 4, octaveShift: -1, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 5, octaveShift: -1, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 6, octaveShift: -1, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 7, octaveShift: -1, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 0.5, dotted: false, lyric: ""}
+                        ]
+                    },
+                    {
+                        index: 2,
+                        notes: [
+                            {type: "note", pitch: 2, octaveShift: 0, duration: 0.5, dotted: false, lyric: "中"},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 0.5, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 4, octaveShift: 0, duration: 0.5, dotted: false, lyric: "阶"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 6, octaveShift: 0, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 7, octaveShift: 0, duration: 0.5, dotted: false, lyric: ""},
+                            {type: "note", pitch: 1, octaveShift: 1, duration: 0.5, dotted: false, lyric: "高"},
+                            {type: "note", pitch: 2, octaveShift: 1, duration: 0.5, dotted: false, lyric: "音"}
+                        ]
+                    }
+                ]
+            },
+            
+            example3: {
+                metadata: {
+                    title: "四个八度音阶",
+                    composer: "测试数据",
+                    key: "1=C",
+                    timeSignature: "4/4",
+                    tempo: 140,
+                    version: 1
+                },
+                measures: [
+                    {
+                        index: 1,
+                        notes: [
+                            {type: "note", pitch: 5, octaveShift: -2, duration: 0.25, dotted: false, lyric: "低"},
+                            {type: "note", pitch: 6, octaveShift: -2, duration: 0.25, dotted: false, lyric: "低"},
+                            {type: "note", pitch: 7, octaveShift: -2, duration: 0.25, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 1, octaveShift: -1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 2, octaveShift: -1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 3, octaveShift: -1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 4, octaveShift: -1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 5, octaveShift: -1, duration: 0.25, dotted: false, lyric: ""}
+                        ]
+                    },
+                    {
+                        index: 2,
+                        notes: [
+                            {type: "note", pitch: 6, octaveShift: -1, duration: 0.25, dotted: false, lyric: "中"},
+                            {type: "note", pitch: 7, octaveShift: -1, duration: 0.25, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 2, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 4, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 6, octaveShift: 0, duration: 0.25, dotted: false, lyric: ""}
+                        ]
+                    },
+                    {
+                        index: 3,
+                        notes: [
+                            {type: "note", pitch: 7, octaveShift: 0, duration: 0.25, dotted: false, lyric: "高"},
+                            {type: "note", pitch: 1, octaveShift: 1, duration: 0.25, dotted: false, lyric: "高"},
+                            {type: "note", pitch: 2, octaveShift: 1, duration: 0.25, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 3, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 4, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 5, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 6, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 7, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""}
+                        ]
+                    },
+                    {
+                        index: 4,
+                        notes: [
+                            {type: "note", pitch: 1, octaveShift: 2, duration: 0.25, dotted: false, lyric: "超"},
+                            {type: "note", pitch: 2, octaveShift: 2, duration: 0.25, dotted: false, lyric: "高"},
+                            {type: "note", pitch: 3, octaveShift: 2, duration: 0.25, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 4, octaveShift: 2, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 5, octaveShift: 2, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 6, octaveShift: 2, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 7, octaveShift: 2, duration: 0.25, dotted: false, lyric: ""},
+                            {type: "note", pitch: 1, octaveShift: 3, duration: 0.25, dotted: false, lyric: ""}
+                        ]
+                    }
+                ]
+            },
+            
+            example4: {
+                metadata: {
+                    title: "混合示例",
+                    composer: "测试数据",
+                    key: "1=C",
+                    timeSignature: "4/4",
+                    tempo: 90,
+                    version: 1
+                },
+                measures: [
+                    {
+                        index: 1,
+                        notes: [
+                            {type: "note", pitch: 1, octaveShift: -1, duration: 1, dotted: false, lyric: "低"},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 0.5, dotted: false, lyric: "中"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 0.5, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 1, octaveShift: 1, duration: 0.25, dotted: false, lyric: "高"},
+                            {type: "note", pitch: 2, octaveShift: 1, duration: 0.25, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 3, octaveShift: 1, duration: 0.25, dotted: false, lyric: "阶"},
+                            {type: "note", pitch: 5, octaveShift: 1, duration: 0.25, dotted: false, lyric: ""}
+                        ]
+                    },
+                    {
+                        index: 2,
+                        notes: [
+                            {type: "note", pitch: 1, octaveShift: 0, duration: 0.5, dotted: true, lyric: "附"},
+                            {type: "note", pitch: 2, octaveShift: 0, duration: 0.25, dotted: false, lyric: "点"},
+                            {type: "note", pitch: 3, octaveShift: 0, duration: 0.5, dotted: false, lyric: "音"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 0.5, dotted: false, lyric: "符"},
+                            {type: "note", pitch: 6, octaveShift: 0, duration: 0.5, dotted: false, lyric: "测"},
+                            {type: "note", pitch: 5, octaveShift: 0, duration: 0.5, dotted: false, lyric: "试"}
+                        ]
+                    }
+                ]
+            }
+        };
+        
+        // 简谱绘制类
+        class C4JpCanvas {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.data = null;
+                this.noteWidth = 40;
+                this.noteHeight = 20;
+                this.spacing = 25;
+                this.startX = 50;
+                this.startY = 150;
+                this.lineHeight = 30;
+                this.lyricOffset = 35;
+                this.dotSize = 4;
+            }
+            
+            draw(data) {
+                this.data = data;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.drawNotes();
+                this.updateMetadata();
+            }
+            
+            drawNotes() {
+                let x = this.startX;
+                let y = this.startY;
+                
+                // 绘制标题
+                this.ctx.font = '24px Arial';
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillText(this.data.metadata.title, this.startX, 40);
+                
+                // 绘制调号、拍号和速度
+                this.ctx.font = '16px Arial';
+                this.ctx.fillText(`调号: ${this.data.metadata.key}`, this.startX, 70);
+                this.ctx.fillText(`拍号: ${this.data.metadata.timeSignature}`, this.startX + 150, 70);
+                this.ctx.fillText(`速度: ${this.data.metadata.tempo} BPM`, this.startX + 300, 70);
+                
+                // 绘制小节线
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x - 15, y - 15);
+                this.ctx.lineTo(x - 15, y + 25);
+                this.ctx.stroke();
+                
+                // 绘制每个小节
+                for (const measure of this.data.measures) {
+                    for (const note of measure.notes) {
+                        this.drawNote(x, y, note);
+                        x += this.noteWidth + this.spacing;
+                    }
+                    
+                    // 绘制小节线
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 10, y - 15);
+                    this.ctx.lineTo(x - 10, y + 25);
+                    this.ctx.stroke();
+                    
+                    x += 20; // 小节间距
+                }
+            }
+            
+            drawNote(x, y, note) {
+                // 绘制音符
+                this.ctx.font = 'bold 24px Arial';
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillText(note.pitch.toString(), x, y);
+                
+                // 绘制八度点
+                if (note.octaveShift > 0) {
+                    // 高八度点（音符上方）
+                    for (let i = 0; i < note.octaveShift; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(x + 10, y - 15 - (i * 8), this.dotSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                } else if (note.octaveShift < 0) {
+                    // 低八度点（音符下方）
+                    for (let i = 0; i < Math.abs(note.octaveShift); i++) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(x + 10, y + 15 + (i * 8), this.dotSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                }
+                
+                // 绘制时值横线
+                if (note.duration === 0.5) { // 八分音符
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 5, y + 15);
+                    this.ctx.lineTo(x + 20, y + 15);
+                    this.ctx.stroke();
+                } else if (note.duration === 0.25) { // 十六分音符
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 5, y + 12);
+                    this.ctx.lineTo(x + 20, y + 12);
+                    this.ctx.stroke();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 5, y + 18);
+                    this.ctx.lineTo(x + 20, y + 18);
+                    this.ctx.stroke();
+                }
+                
+                // 绘制附点
+                if (note.dotted) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(x + 20, y - 5, this.dotSize, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // 绘制歌词
+                if (note.lyric) {
+                    this.ctx.font = '14px Arial';
+                    this.ctx.fillStyle = '#333';
+                    this.ctx.fillText(note.lyric, x - 5, y + this.lyricOffset);
+                }
+            }
+            
+            updateMetadata() {
+                document.getElementById('currentTitle').textContent = this.data.metadata.title;
+                document.getElementById('currentKey').textContent = this.data.metadata.key;
+                document.getElementById('currentTimeSignature').textContent = this.data.metadata.timeSignature;
+                document.getElementById('currentTempo').textContent = this.data.metadata.tempo;
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = new C4JpCanvas('musicCanvas');
+            canvas.draw(examples.example1);
+            
+            // 窗口拖动功能
+            const draggableWindow = document.getElementById('draggableWindow');
+            const windowHeader = document.getElementById('windowHeader');
+            
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            
+            windowHeader.addEventListener('mousedown', dragStart);
+            document.addEventListener('mouseup', dragEnd);
+            document.addEventListener('mousemove', drag);
+            
+            function dragStart(e) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                
+                if (e.target === windowHeader || windowHeader.contains(e.target)) {
+                    isDragging = true;
+                }
+            }
+            
+            function dragEnd() {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+            
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    setTranslate(currentX, currentY, draggableWindow);
+                }
+            }
+            
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+            }
+            
+            // 按钮事件
+            document.getElementById('showWindowBtn').addEventListener('click', () => {
+                draggableWindow.style.display = 'block';
+            });
+            
+            document.getElementById('closeWindowBtn').addEventListener('click', () => {
+                draggableWindow.style.display = 'none';
+            });
+            
+            document.getElementById('loadExample1').addEventListener('click', () => {
+                canvas.draw(examples.example1);
+                document.getElementById('jsonData').value = JSON.stringify(examples.example1, null, 2);
+            });
+            
+            document.getElementById('loadExample2').addEventListener('click', () => {
+                canvas.draw(examples.example2);
+                document.getElementById('jsonData').value = JSON.stringify(examples.example2, null, 2);
+            });
+            
+            document.getElementById('loadExample3').addEventListener('click', () => {
+                canvas.draw(examples.example3);
+                document.getElementById('jsonData').value = JSON.stringify(examples.example3, null, 2);
+            });
+            
+            document.getElementById('loadExample4').addEventListener('click', () => {
+                canvas.draw(examples.example4);
+                document.getElementById('jsonData').value = JSON.stringify(examples.example4, null, 2);
+            });
+            
+            // 文本数据导入
+            document.getElementById('jsonData').addEventListener('input', (e) => {
+                try {
+                    const data = JSON.parse(e.target.value);
+                    canvas.draw(data);
+                } catch (error) {
+                    // 忽略解析错误
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+<!--
+
+-->
