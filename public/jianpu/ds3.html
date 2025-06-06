@@ -323,6 +323,34 @@
             70% { box-shadow: 0 0 0 12px rgba(255, 215, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
         }
+        
+        /* 新增：速度控制面板 */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 20px;
+            border-radius: 30px;
+            margin-top: 10px;
+        }
+        
+        .speed-control label {
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .speed-control input {
+            width: 60px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -333,8 +361,15 @@
             <div class="metadata">
                 <div class="meta-item"><i class="fas fa-key"></i> 调号: 1=C</div>
                 <div class="meta-item"><i class="fas fa-compress-alt"></i> 节拍: 4/4</div>
-                <div class="meta-item"><i class="fas fa-tachometer-alt"></i> 速度: 100 BPM</div>
+                <div class="meta-item"><i class="fas fa-tachometer-alt"></i> 速度: <span id="bpmValue">100</span> BPM</div>
                 <div class="meta-item"><i class="fas fa-code"></i> 乐谱数据</div>
+            </div>
+            
+            <!-- 新增速度控制 -->
+            <div class="speed-control">
+                <label for="bpmControl"><i class="fas fa-running"></i> 速度控制:</label>
+                <input type="number" id="bpmControl" min="40" max="200" value="100">
+                <label>BPM</label>
             </div>
         </header>
         
@@ -366,6 +401,7 @@
                 <li><strong>黄色高亮</strong>表示当前播放的音符</li>
                 <li><strong>乐谱数据窗口</strong>可拖动和关闭</li>
                 <li><strong>进度条</strong>显示当前播放进度</li>
+                <li><strong>速度控制</strong>可在40-200 BPM范围内调整</li>
             </ul>
         </div>
     </div>
@@ -641,6 +677,8 @@
             const closeWindow = document.getElementById('closeWindow');
             const jsonData = document.getElementById('jsonData');
             const progressBar = document.getElementById('progressBar');
+            const bpmControl = document.getElementById('bpmControl');
+            const bpmValue = document.getElementById('bpmValue');
             
             // 设置JSON数据
             jsonData.value = JSON.stringify(scoreData, null, 2);
@@ -652,18 +690,24 @@
             let timer;
             let totalDuration = 0;
             let playedDuration = 0;
+            let currentBPM = 100;
+            
+            // 计算每拍的毫秒数
+            function getMsPerBeat(bpm) {
+                return 60000 / bpm;
+            }
             
             // 计算总时长
-            function calculateTotalDuration() {
+            function calculateTotalDuration(bpm) {
                 totalDuration = 0;
                 scoreData.measures.forEach(measure => {
                     measure.notes.forEach(note => {
-                        totalDuration += note.duration * 600 / scoreData.metadata.tempo;
+                        totalDuration += note.duration * getMsPerBeat(bpm);
                     });
                 });
             }
             
-            calculateTotalDuration();
+            calculateTotalDuration(currentBPM);
             
             // 音符频率映射 (C4调)
             const noteFrequencies = {
@@ -701,6 +745,9 @@
                 currentMeasure = 0;
                 playedDuration = 0;
                 progressBar.style.width = '0%';
+                
+                // 使用当前BPM重新计算总时长
+                calculateTotalDuration(currentBPM);
                 
                 playNextNote();
             }
@@ -749,7 +796,7 @@
                     jpCanvas.highlightNote(currentMeasure, currentNote);
                     
                     // 播放音符
-                    const noteDuration = note.duration * 600 / scoreData.metadata.tempo;
+                    const noteDuration = note.duration * getMsPerBeat(currentBPM);
                     playTone(noteFrequencies[note.pitch], noteDuration);
                     
                     // 更新进度条
@@ -775,11 +822,17 @@
                 oscillator.type = 'sine';
                 oscillator.frequency.value = frequency;
                 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration / 1000);
+                // 使用更平滑的淡入淡出
+                const now = audioContext.currentTime;
+                const durationInSec = duration / 1000;
                 
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + duration / 1000);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + durationInSec - 0.05);
+                gainNode.gain.linearRampToValueAtTime(0, now + durationInSec);
+                
+                oscillator.start(now);
+                oscillator.stop(now + durationInSec);
             }
             
             // 缩放控制
@@ -826,6 +879,29 @@
             
             document.addEventListener('mouseup', () => {
                 isDragging = false;
+            });
+            
+            // BPM控制
+            bpmControl.addEventListener('input', () => {
+                let newBPM = parseInt(bpmControl.value);
+                if (isNaN(newBPM)) {
+                    newBPM = 100;
+                }
+                if (newBPM < 40) newBPM = 40;
+                if (newBPM > 200) newBPM = 200;
+                
+                currentBPM = newBPM;
+                bpmControl.value = currentBPM;
+                bpmValue.textContent = currentBPM;
+                
+                // 更新总时长
+                calculateTotalDuration(currentBPM);
+                
+                // 如果正在播放，重新计算总时长
+                if (isPlaying) {
+                    playedDuration = 0;
+                    progressBar.style.width = '0%';
+                }
             });
         });
     </script>
