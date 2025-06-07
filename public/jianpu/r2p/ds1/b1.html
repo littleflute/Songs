@@ -784,7 +784,10 @@
                 initialY = clientY - yOffset;
                 
                 if (e.target === windowHeader || windowHeader.contains(e.target)) {
-                    isDragging = true;
+                    // 确保只有点击窗口头部才能拖动
+                    if (!e.target.closest('.close-btn')) {
+                        isDragging = true;
+                    }
                 }
             }
             
@@ -821,7 +824,8 @@
                 draggableWindow.style.display = 'block';
             });
             
-            document.getElementById('closeWindowBtn').addEventListener('click', () => {
+            document.getElementById('closeWindowBtn').addEventListener('click', (e) => {
+                e.stopPropagation(); // 阻止事件冒泡到窗口头部
                 draggableWindow.style.display = 'none';
             });
             
