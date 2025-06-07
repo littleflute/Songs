@@ -1,32 +1,99 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    /* 原有样式保持不变 */
     .cube-container {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-width: 400px;
+      gap: 8px;
+      padding: 10px;
+      max-width: 600px;
+      margin: 0 auto;
     }
-    
+
     .face {
       display: grid;
-      grid-template-columns: repeat(3, 50px);
+      grid-template-columns: repeat(3, 1fr);
       gap: 2px;
-      padding: 5px;
+      padding: 3px;
       background: #333;
       border-radius: 5px;
+      aspect-ratio: 1;
     }
 
     .sticker {
-      width: 50px;
-      height: 50px;
+      width: 100%;
+      height: 100%;
       border: 1px solid #000;
       border-radius: 3px;
+      min-width: 20px;
+      min-height: 20px;
     }
 
     .controls {
-      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      background: #0056b3;
+    }
+
+    @media (max-width: 600px) {
+      .cube-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      button {
+        flex: 1 1 45%;
+        padding: 15px;
+        font-size: 14px;
+      }
+      
+      .controls {
+        flex-direction: row;
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .cube-container {
+        gap: 5px;
+        padding: 5px;
+      }
+      
+      .face {
+        gap: 1px;
+        padding: 2px;
+      }
+    }
+
+    /* 新增Canvas样式 */
+    #id_4_div_canvas_wrap {
+      text-align: center;
+      margin: 20px auto;
+    }
+
+    #cubeCanvas {
+      border: 1px solid #ccc;
+      background: #f0f0f0;
     }
   </style>
 </head>
@@ -44,19 +111,20 @@
     <div class="face" id="B"></div>
     <div class="face" id="D"></div>
   </div>
+  <div id="id_4_div_canvas_wrap">
+    <canvas id="cubeCanvas" width="400" height="400"></canvas>
+  </div>
 
   <script>
-    // 颜色常量
     const COLORS = {
-      'U': '#FFFFFF',  // 白
-      'D': '#FFFF00',  // 黄
-      'L': '#FFA500',  // 橙
-      'R': '#FF0000',  // 红
-      'F': '#00FF00',  // 绿
-      'B': '#0000FF'   // 蓝
+      'U': '#FFFFFF',
+      'D': '#FFFF00',
+      'L': '#FFA500',
+      'R': '#FF0000',
+      'F': '#00FF00',
+      'B': '#0000FF'
     };
 
-    // 魔方状态
     let cube = {
       U: Array(3).fill().map(() => Array(3).fill('U')),
       D: Array(3).fill().map(() => Array(3).fill('D')),
@@ -66,7 +134,198 @@
       B: Array(3).fill().map(() => Array(3).fill('B'))
     };
 
-    // 邻接关系配置
+    // 新增3D渲染相关代码
+    class Cube3D {
+      constructor(cube) {
+        this.cube = cube;
+      }
+
+      getFaceColor(face, x, y, z) {
+        let row, col;
+        switch(face) {
+          case 'F': 
+            row = Math.round(1 - y);
+            col = Math.round(x + 1);
+            break;
+          case 'B':
+            row = Math.round(1 - y);
+            col = Math.round(1 - x);
+            break;
+          case 'L':
+            row = Math.round(1 - y);
+            col = Math.round(z + 1);
+            break;
+          case 'R':
+            row = Math.round(1 - y);
+            col = Math.round(1 - z);
+            break;
+          case 'U':
+            row = Math.round(1 - z);
+            col = Math.round(x + 1);
+            break;
+          case 'D':
+            row = Math.round(z + 1);
+            col = Math.round(x + 1);
+            break;
+        }
+        return COLORS[this.cube[face][row][col]];
+      }
+
+      getFacesToDraw() {
+        const faces = [];
+        for(let x = -1; x <= 1; x++) {
+          for(let y = -1; y <= 1; y++) {
+            for(let z = -1; z <= 1; z++) {
+              if(x === -1) {
+                faces.push({ 
+                  face: 'L', 
+                  color: this.getFaceColor('L', x, y, z),
+                  x, y, z, dir: 'x'
+                });
+              }
+              if(x === 1) {
+                faces.push({ 
+                  face: 'R',
+                  color: this.getFaceColor('R', x, y, z),
+                  x, y, z, dir: 'x'
+                });
+              }
+              if(y === 1) {
+                faces.push({ 
+                  face: 'U',
+                  color: this.getFaceColor('U', x, y, z),
+                  x, y, z, dir: 'y'
+                });
+              }
+              if(y === -1) {
+                faces.push({ 
+                  face: 'D',
+                  color: this.getFaceColor('D', x, y, z),
+                  x, y, z, dir: 'y'
+                });
+              }
+              if(z === 1) {
+                faces.push({ 
+                  face: 'F',
+                  color: this.getFaceColor('F', x, y, z),
+                  x, y, z, dir: 'z'
+                });
+              }
+              if(z === -1) {
+                faces.push({ 
+                  face: 'B',
+                  color: this.getFaceColor('B', x, y, z),
+                  x, y, z, dir: 'z'
+                });
+              }
+            }
+          }
+        }
+        return faces;
+      }
+    }
+
+    class Renderer {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.theta = Math.PI / 4;
+        this.scale = 120;
+        this.cameraZ = 4;
+        this.centerX = canvas.width / 2;
+        this.centerY = canvas.height / 2;
+      }
+
+      project(point3D) {
+        // Apply rotation around Y-axis
+        const x = point3D.x * Math.cos(this.theta) + point3D.z * Math.sin(this.theta);
+        const z = -point3D.x * Math.sin(this.theta) + point3D.z * Math.cos(this.theta);
+        const y = point3D.y;
+
+        // Perspective projection
+        const depth = z + this.cameraZ;
+        return {
+          x: (x / depth) * this.scale + this.centerX,
+          y: (-y / depth) * this.scale + this.centerY,
+          depth
+        };
+      }
+
+      drawFace(face) {
+        const size = 0.48; // Slightly smaller to show gaps
+        let corners = [];
+        
+        switch(face.dir) {
+          case 'x':
+            corners = [
+              { x: face.x, y: face.y - size, z: face.z - size },
+              { x: face.x, y: face.y - size, z: face.z + size },
+              { x: face.x, y: face.y + size, z: face.z + size },
+              { x: face.x, y: face.y + size, z: face.z - size }
+            ];
+            break;
+          case 'y':
+            corners = [
+              { x: face.x - size, y: face.y, z: face.z - size },
+              { x: face.x - size, y: face.y, z: face.z + size },
+              { x: face.x + size, y: face.y, z: face.z + size },
+              { x: face.x + size, y: face.y, z: face.z - size }
+            ];
+            break;
+          case 'z':
+            corners = [
+              { x: face.x - size, y: face.y - size, z: face.z },
+              { x: face.x + size, y: face.y - size, z: face.z },
+              { x: face.x + size, y: face.y + size, z: face.z },
+              { x: face.x - size, y: face.y + size, z: face.z }
+            ];
+            break;
+        }
+
+        const projected = corners.map(p => this.project(p));
+        
+        this.ctx.fillStyle = face.color;
+        this.ctx.beginPath();
+        this.ctx.moveTo(projected[0].x, projected[0].y);
+        projected.slice(1).forEach(p => this.ctx.lineTo(p.x, p.y));
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // Draw border
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        this.ctx.stroke();
+      }
+
+      render(cube3D) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const faces = cube3D.getFacesToDraw();
+        
+        // Sort by depth
+        faces.forEach(face => {
+          const center = this.project(face);
+          face.depth = center.depth;
+        });
+        
+        faces.sort((a, b) => b.depth - a.depth);
+        
+        faces.forEach(face => this.drawFace(face));
+      }
+    }
+
+    // 初始化3D渲染
+    const canvas = document.getElementById('cubeCanvas');
+    const cube3D = new Cube3D(cube);
+    const renderer = new Renderer(canvas);
+
+    // 修改原有rotate函数
+    function rotate(faceKey, direction) {
+      cube[faceKey] = rotateFace(cube[faceKey], direction);
+      rotateEdges(faceKey, direction);
+      renderCube();
+      renderer.render(cube3D); // 更新3D渲染
+    }
+
+    // 剩余原有JavaScript代码保持不变
     const adjacentEdges = {
       F: {
         top:    { face: 'U', edge: 'bottom', reverse: false },
@@ -76,7 +335,6 @@
       }
     };
 
-    // 初始化渲染
     function renderCube() {
       Object.entries(cube).forEach(([faceKey, faceData]) => {
         const faceElement = document.getElementById(faceKey);
@@ -87,7 +345,6 @@
       });
     }
 
-    // 旋转面
     function rotateFace(face, direction) {
       const newFace = [];
       for (let i = 0; i < 3; i++) {
@@ -98,7 +355,6 @@
       return newFace;
     }
 
-    // 旋转边
     function rotateEdges(faceKey, direction) {
       const edges = ['top', 'right', 'bottom', 'left'];
       const temp = edges.map(edge => {
@@ -131,15 +387,28 @@
       else if (edge === 'right') data.forEach((v, i) => face[i][2] = v);
     }
 
-    // 综合旋转操作
-    function rotate(faceKey, direction) {
-      cube[faceKey] = rotateFace(cube[faceKey], direction);
-      rotateEdges(faceKey, direction);
-      renderCube();
-    }
-
-    // 初始渲染
+    // 初始化渲染
     renderCube();
+    renderer.render(cube3D);
+
+    // 触摸事件（保持原有功能）
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+    });
+
+    document.addEventListener('touchend', e => {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchEndX - touchStartX;
+      if (Math.abs(diff) > 30) {
+        rotate('F', diff > 0 ? 'clockwise' : 'counter');
+      }
+    });
   </script>
 </body>
 </html>
+<!--
+升级
+让所有内容刚好充满屏幕
+return all new code
+-->

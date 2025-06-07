@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D魔方真实演示系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        #cube-container {
+            flex: 1;
+            min-height: 70vh;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .controls {
+            width: 300px;
+            background: rgba(30, 40, 70, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ff9a76;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 154, 118, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3498db, #8e44ad);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #3ca0db, #9b59b6);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #e74c3c, #e67e22);
+            font-size: 18px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .instructions {
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .cube-side {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+        
+        .front { background-color: #ff3b30; }
+        .back { background-color: #ff9500; }
+        .top { background-color: #ffffff; }
+        .bottom { background-color: #ffcc00; }
+        .left { background-color: #007aff; }
+        .right { background-color: #4cd964; }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            margin-top: auto;
+            font-size: 1rem;
+            color: #aaa;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                width: 100%;
+            }
+            
+            #cube-container {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>三维魔方真实演示系统</h1>
+        <p class="subtitle">基于WebGL技术实现的交互式3D魔方，支持各层旋转操作和全方位视角查看</p>
+    </header>
+    
+    <div class="container">
+        <div id="cube-container"></div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h2>魔方旋转控制</h2>
+                <div class="btn-group">
+                    <button id="rotate-front">前面顺时针</button>
+                    <button id="rotate-front-inv">前面逆时针</button>
+                    <button id="rotate-back">后面顺时针</button>
+                    <button id="rotate-back-inv">后面逆时针</button>
+                    <button id="rotate-top">上面顺时针</button>
+                    <button id="rotate-top-inv">上面逆时针</button>
+                    <button id="rotate-bottom">下面顺时针</button>
+                    <button id="rotate-bottom-inv">下面逆时针</button>
+                    <button id="rotate-left">左面顺时针</button>
+                    <button id="rotate-left-inv">左面逆时针</button>
+                    <button id="rotate-right">右面顺时针</button>
+                    <button id="rotate-right-inv">右面逆时针</button>
+                </div>
+            </div>
+            
+            <button class="reset-btn" id="reset-cube">重置魔方</button>
+            
+            <div class="instructions">
+                <h2>操作指南</h2>
+                <p>使用鼠标拖拽可以旋转整个魔方</p>
+                <p>使用按钮旋转魔方各层：</p>
+                <ul>
+                    <li>前面：<span class="cube-side front"></span> 红色面</li>
+                    <li>后面：<span class="cube-side back"></span> 橙色面</li>
+                    <li>上面：<span class="cube-side top"></span> 白色面</li>
+                    <li>下面：<span class="cube-side bottom"></span> 黄色面</li>
+                    <li>左面：<span class="cube-side left"></span> 蓝色面</li>
+                    <li>右面：<span class="cube-side right"></span> 绿色面</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2023 三维魔方真实演示系统 | 基于Three.js开发</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    
+    <script>
+        // 初始化场景
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0c1125);
+        
+        // 初始化相机
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(8, 8, 8);
+        
+        // 初始化渲染器
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(document.getElementById('cube-container').offsetWidth, 
+                         document.getElementById('cube-container').offsetHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('cube-container').appendChild(renderer.domElement);
+        
+        // 添加轨道控制器
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // 添加灯光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight1.position.set(10, 20, 15);
+        scene.add(directionalLight1);
+        
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight2.position.set(-10, -20, -15);
+        scene.add(directionalLight2);
+        
+        // 魔方数据结构
+        const cubeSize = 3;
+        const cubePieces = [];
+        const cubeGroup = new THREE.Group();
+        scene.add(cubeGroup);
+        
+        // 颜色定义
+        const colors = [
+            new THREE.Color(0xff3b30), // 前面 - 红
+            new THREE.Color(0xff9500), // 后面 - 橙
+            new THREE.Color(0xffffff), // 上面 - 白
+            new THREE.Color(0xffcc00), // 下面 - 黄
+            new THREE.Color(0x007aff), // 左面 - 蓝
+            new THREE.Color(0x4cd964)  // 右面 - 绿
+        ];
+        
+        // 创建魔方
+        function createCube() {
+            const pieceSize = 0.95;
+            const spacing = 1.05;
+            
+            for (let x = 0; x < cubeSize; x++) {
+                for (let y = 0; y < cubeSize; y++) {
+                    for (let z = 0; z < cubeSize; z++) {
+                        // 跳过中心不可见的立方体
+                        if (x === 1 && y === 1 && z === 1) continue;
+                        
+                        const geometry = new THREE.BoxGeometry(pieceSize, pieceSize, pieceSize);
+                        const materials = [];
+                        
+                        // 六个面的材质
+                        for (let i = 0; i < 6; i++) {
+                            // 根据位置确定颜色
+                            let color;
+                            
+                            if (z === 0 && i === 4) color = colors[0]; // 前面
+                            else if (z === 2 && i === 5) color = colors[1]; // 后面
+                            else if (y === 2 && i === 2) color = colors[2]; // 上面
+                            else if (y === 0 && i === 3) color = colors[3]; // 下面
+                            else if (x === 0 && i === 0) color = colors[4]; // 左面
+                            else if (x === 2 && i === 1) color = colors[5]; // 右面
+                            else color = new THREE.Color(0x222222); // 内部面
+                            
+                            materials.push(new THREE.MeshLambertMaterial({ color }));
+                        }
+                        
+                        const piece = new THREE.Mesh(geometry, materials);
+                        piece.position.set(
+                            (x - 1) * spacing,
+                            (y - 1) * spacing,
+                            (z - 1) * spacing
+                        );
+                        
+                        piece.userData.position = { x, y, z };
+                        cubePieces.push(piece);
+                        cubeGroup.add(piece);
+                    }
+                }
+            }
+        }
+        
+        // 旋转魔方层
+        function rotateLayer(layer, axis, angle, inverse = false) {
+            const rotationGroup = new THREE.Group();
+            scene.add(rotationGroup);
+            
+            const piecesToRotate = cubePieces.filter(piece => {
+                const pos = piece.userData.position;
+                if (axis === 'x' && pos.x === layer) return true;
+                if (axis === 'y' && pos.y === layer) return true;
+                if (axis === 'z' && pos.z === layer) return true;
+                return false;
+            });
+            
+            piecesToRotate.forEach(piece => {
+                cubeGroup.remove(piece);
+                rotationGroup.add(piece);
+            });
+            
+            const rotationAngle = inverse ? -angle : angle;
+            const rotationAxis = new THREE.Vector3();
+            if (axis === 'x') rotationAxis.set(1, 0, 0);
+            if (axis === 'y') rotationAxis.set(0, 1, 0);
+            if (axis === 'z') rotationAxis.set(0, 0, 1);
+            
+            rotationGroup.rotateOnWorldAxis(rotationAxis, rotationAngle);
+            
+            // 更新位置和旋转
+            rotationGroup.children.forEach(piece => {
+                rotationGroup.remove(piece);
+                cubeGroup.add(piece);
+                
+                // 更新位置数据
+                const worldPos = new THREE.Vector3();
+                piece.getWorldPosition(worldPos);
+                piece.position.copy(worldPos);
+                
+                // 更新用户数据位置
+                piece.userData.position.x = Math.round(worldPos.x + 1);
+                piece.userData.position.y = Math.round(worldPos.y + 1);
+                piece.userData.position.z = Math.round(worldPos.z + 1);
+                
+                // 重置旋转
+                piece.rotation.set(0, 0, 0);
+            });
+            
+            scene.remove(rotationGroup);
+        }
+        
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // 初始化
+        createCube();
+        animate();
+        
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            camera.aspect = document.getElementById('cube-container').offsetWidth / 
+                            document.getElementById('cube-container').offsetHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.getElementById('cube-container').offsetWidth, 
+                            document.getElementById('cube-container').offsetHeight);
+        });
+        
+        // 按钮事件
+        document.getElementById('rotate-front').addEventListener('click', () => rotateLayer(0, 'z', Math.PI / 2));
+        document.getElementById('rotate-front-inv').addEventListener('click', () => rotateLayer(0, 'z', Math.PI / 2, true));
+        document.getElementById('rotate-back').addEventListener('click', () => rotateLayer(2, 'z', Math.PI / 2));
+        document.getElementById('rotate-back-inv').addEventListener('click', () => rotateLayer(2, 'z', Math.PI / 2, true));
+        document.getElementById('rotate-top').addEventListener('click', () => rotateLayer(2, 'y', Math.PI / 2));
+        document.getElementById('rotate-top-inv').addEventListener('click', () => rotateLayer(2, 'y', Math.PI / 2, true));
+        document.getElementById('rotate-bottom').addEventListener('click', () => rotateLayer(0, 'y', Math.PI / 2));
+        document.getElementById('rotate-bottom-inv').addEventListener('click', () => rotateLayer(0, 'y', Math.PI / 2, true));
+        document.getElementById('rotate-left').addEventListener('click', () => rotateLayer(0, 'x', Math.PI / 2));
+        document.getElementById('rotate-left-inv').addEventListener('click', () => rotateLayer(0, 'x', Math.PI / 2, true));
+        document.getElementById('rotate-right').addEventListener('click', () => rotateLayer(2, 'x', Math.PI / 2));
+        document.getElementById('rotate-right-inv').addEventListener('click', () => rotateLayer(2, 'x', Math.PI / 2, true));
+        
+        // 重置魔方
+        document.getElementById('reset-cube').addEventListener('click', () => {
+            cubeGroup.rotation.set(0, 0, 0);
+            cubeGroup.position.set(0, 0, 0);
+            controls.reset();
+        });
+    </script>
+</body>
+</html>

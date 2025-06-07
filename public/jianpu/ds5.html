@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>简谱绘制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 20px;
+        }
+
+        .toolbar {
+            background: rgba(40, 40, 60, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar button {
+            background: linear-gradient(to bottom, #4a7bff, #2a4cb4);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .toolbar button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to bottom, #5a8bff, #3a5cd4);
+        }
+
+        .toolbar button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .canvas-container {
+            flex: 1;
+            background: rgba(30, 30, 45, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4), 
+                        0 8px 25px rgba(0, 0, 0, 0.4);
+            overflow: auto;
+            position: relative;
+        }
+
+        canvas {
+            background: #f8f4e9;
+            border-radius: 8px;
+            display: block;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            margin: 0 auto;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background: linear-gradient(145deg, #2c3e50, #1c2833);
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow: hidden;
+            display: none;
+        }
+
+        .panel-header {
+            background: linear-gradient(to right, #4a7bff, #2a4cb4);
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #4a7bff;
+            color: white;
+            font-family: monospace;
+            margin-bottom: 20px;
+            resize: vertical;
+        }
+
+        .panel-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .panel-toolbar button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .panel-toolbar button:nth-child(1) {
+            background: linear-gradient(to bottom, #ff6b6b, #c44d4d);
+        }
+
+        .panel-toolbar button:nth-child(2) {
+            background: linear-gradient(to bottom, #4ecdc4, #2a8f87);
+        }
+
+        .panel-toolbar button:nth-child(3) {
+            background: linear-gradient(to bottom, #ffe66d, #d4b84a);
+        }
+
+        .panel-toolbar button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .toolbar button {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .panel-toolbar {
+                flex-direction: column;
+            }
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>简谱绘制工具</h1>
+        <p class="subtitle">在画布上绘制简谱，支持导入不同乐谱数据，可在移动设备上完美展示</p>
+    </header>
+
+    <div class="container">
+        <div class="toolbar">
+            <button id="showPanelBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"></path>
+                </svg>
+                打开控制面板
+            </button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="jpCanvas"></canvas>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span>小星星</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span>两个八度音阶</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffe66d;"></div>
+                    <span>四个八度音阶</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="control-panel" id="controlPanel">
+        <div class="panel-header">
+            <span>乐谱控制面板</span>
+            <button class="close-btn">×</button>
+        </div>
+        <div class="panel-content">
+            <textarea id="jsonData" placeholder="乐谱JSON数据将显示在这里..."></textarea>
+            <div class="panel-toolbar">
+                <button id="loadData1">导入小星星</button>
+                <button id="loadData2">导入两个八度音阶</button>
+                <button id="loadData3">导入四个八度音阶</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>简谱绘制工具 | 支持移动设备 | 纯CSS实现 | 2023</p>
+    </footer>
+
+    <script>
+        // 预设乐谱数据
+        const scoreData1 = {
+            "metadata": {
+                "title": "小星星",
+                "composer": "传统儿歌",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 100
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                    ]
+                },
+                {
+                    "index": 3,
+                    "notes": [
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                    ]
+                },
+                {
+                    "index": 4,
+                    "notes": [
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                    ]
+                }
+            ]
+        };
+
+        const scoreData2 = {
+            "metadata": {
+                "title": "两个八度音阶练习",
+                "composer": "音阶练习",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 120
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": ""}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": ""}
+                    ]
+                }
+            ]
+        };
+
+        const scoreData3 = {
+            "metadata": {
+                "title": "四个八度音阶练习",
+                "composer": "音阶练习",
+                "key": "1=C",
+                "timeSignature": "4/4",
+                "tempo": 140
+            },
+            "measures": [
+                {
+                    "index": 1,
+                    "notes": [
+                        {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""}
+                    ]
+                },
+                {
+                    "index": 2,
+                    "notes": [
+                        {"type": "note", "pitch": 7, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 3, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 7, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 6, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 5, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 4, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 3, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 2, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""},
+                        {"type": "note", "pitch": 1, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": ""}
+                    ]
+                }
+            ]
+        };
+
+        // 简谱绘制类
+        class C4JpCanvas {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.resizeCanvas();
+                
+                // 监听窗口大小变化
+                window.addEventListener('resize', () => {
+                    this.resizeCanvas();
+                });
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                const width = container.clientWidth - 40; // 减去内边距
+                const height = Math.min(window.innerHeight * 0.5, 500);
+                
+                this.canvas.width = width;
+                this.canvas.height = height;
+            }
+            
+            drawScore(scoreData) {
+                if (!scoreData) return;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.font = "bold 24px Arial";
+                this.ctx.textAlign = "center";
+                this.ctx.textBaseline = "middle";
+                
+                // 绘制标题和元数据
+                this.ctx.fillStyle = "#2c3e50";
+                this.ctx.font = "bold 28px 'Microsoft YaHei'";
+                this.ctx.fillText(scoreData.metadata.title, this.canvas.width/2, 40);
+                
+                this.ctx.font = "16px 'Microsoft YaHei'";
+                this.ctx.fillText(`${scoreData.metadata.composer} | ${scoreData.metadata.key} | ${scoreData.metadata.timeSignature} | ♪=${scoreData.metadata.tempo}`, 
+                                this.canvas.width/2, 70);
+                
+                // 绘制小节
+                this.drawMeasures(scoreData.measures);
+            }
+            
+            drawMeasures(measures) {
+                // 修复：使用let而不是const
+                let currentY = 120;
+                let startX = 50;
+                const noteSpacing = 50;
+                const measureSpacing = 30;
+                
+                // 绘制基线
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = "#888";
+                this.ctx.lineWidth = 1;
+                this.ctx.moveTo(40, currentY);
+                this.ctx.lineTo(this.canvas.width - 40, currentY);
+                this.ctx.stroke();
+                
+                this.ctx.font = "bold 32px Arial";
+                this.ctx.fillStyle = "#2c3e50";
+                
+                for (const measure of measures) {
+                    // 绘制小节号
+                    this.ctx.font = "14px Arial";
+                    this.ctx.fillText(measure.index, startX - 20, currentY - 30);
+                    
+                    // 绘制小节分隔符
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = "#aaa";
+                    this.ctx.lineWidth = 1;
+                    this.ctx.moveTo(startX - 25, currentY - 30);
+                    this.ctx.lineTo(startX - 25, currentY + 30);
+                    this.ctx.stroke();
+                    
+                    for (const note of measure.notes) {
+                        this.drawNote(startX, currentY, note);
+                        startX += noteSpacing;
+                    }
+                    
+                    startX += measureSpacing;
+                    
+                    // 换行处理
+                    if (startX > this.canvas.width - 100) {
+                        // 换行
+                        startX = 50;
+                        currentY += 120;
+                        
+                        // 绘制新行的基线
+                        this.ctx.beginPath();
+                        this.ctx.strokeStyle = "#888";
+                        this.ctx.lineWidth = 1;
+                        this.ctx.moveTo(40, currentY);
+                        this.ctx.lineTo(this.canvas.width - 40, currentY);
+                        this.ctx.stroke();
+                    }
+                }
+            }
+            
+            drawNote(x, y, note) {
+                // 设置不同数据源的颜色
+                let color;
+                if (note.duration === 1 || note.duration === 2) {
+                    color = "#ff6b6b"; // 小星星
+                } else if (note.duration === 0.5) {
+                    color = "#4ecdc4"; // 两个八度音阶
+                } else {
+                    color = "#ffe66d"; // 四个八度音阶
+                }
+                
+                this.ctx.fillStyle = color;
+                this.ctx.font = "bold 36px Arial";
+                
+                // 绘制音符
+                this.ctx.fillText(note.pitch.toString(), x, y);
+                
+                // 绘制高低八度点
+                if (note.octaveShift > 0) {
+                    // 高八度点在音符上方
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y - 28, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                } else if (note.octaveShift < 0) {
+                    // 低八度点在音符下方
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y + 28, 4, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // 绘制时值横线
+                if (note.duration === 0.5) {
+                    // 八分音符 - 一条横线
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.moveTo(x - 15, y + 25);
+                    this.ctx.lineTo(x + 15, y + 25);
+                    this.ctx.stroke();
+                } else if (note.duration === 0.25) {
+                    // 十六分音符 - 两条横线
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.moveTo(x - 15, y + 22);
+                    this.ctx.lineTo(x + 15, y + 22);
+                    this.ctx.stroke();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x - 15, y + 28);
+                    this.ctx.lineTo(x + 15, y + 28);
+                    this.ctx.stroke();
+                }
+                
+                // 绘制歌词
+                if (note.lyric) {
+                    this.ctx.font = "16px 'Microsoft YaHei'";
+                    this.ctx.fillStyle = "#2c3e50";
+                    this.ctx.fillText(note.lyric, x, y + 50);
+                }
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = new C4JpCanvas('jpCanvas');
+            const controlPanel = document.getElementById('controlPanel');
+            const overlay = document.getElementById('overlay');
+            const showPanelBtn = document.getElementById('showPanelBtn');
+            const closeBtn = document.querySelector('.close-btn');
+            const jsonDataTextarea = document.getElementById('jsonData');
+            
+            // 初始化时绘制小星星
+            canvas.drawScore(scoreData1);
+            jsonDataTextarea.value = JSON.stringify(scoreData1, null, 2);
+            
+            // 显示控制面板
+            showPanelBtn.addEventListener('click', () => {
+                controlPanel.style.display = 'block';
+                overlay.style.display = 'block';
+            });
+            
+            // 关闭控制面板
+            closeBtn.addEventListener('click', () => {
+                controlPanel.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            
+            overlay.addEventListener('click', () => {
+                controlPanel.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            
+            // 导入数据按钮
+            document.getElementById('loadData1').addEventListener('click', () => {
+                jsonDataTextarea.value = JSON.stringify(scoreData1, null, 2);
+                canvas.drawScore(scoreData1);
+            });
+            
+            document.getElementById('loadData2').addEventListener('click', () => {
+                jsonDataTextarea.value = JSON.stringify(scoreData2, null, 2);
+                canvas.drawScore(scoreData2);
+            });
+            
+            document.getElementById('loadData3').addEventListener('click', () => {
+                jsonDataTextarea.value = JSON.stringify(scoreData3, null, 2);
+                canvas.drawScore(scoreData3);
+            });
+            
+            // 实现面板拖动功能
+            let isDragging = false;
+            let offsetX, offsetY;
+            const header = document.querySelector('.panel-header');
+            
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - controlPanel.offsetLeft;
+                offsetY = e.clientY - controlPanel.offsetTop;
+            });
+            
+            header.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                const touch = e.touches[0];
+                offsetX = touch.clientX - controlPanel.offsetLeft;
+                offsetY = touch.clientY - controlPanel.offsetTop;
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    controlPanel.style.left = (e.clientX - offsetX) + 'px';
+                    controlPanel.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (isDragging) {
+                    const touch = e.touches[0];
+                    controlPanel.style.left = (touch.clientX - offsetX) + 'px';
+                    controlPanel.style.top = (touch.clientY - offsetY) + 'px';
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            document.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+        });
+    </script>
+</body>
+</html>

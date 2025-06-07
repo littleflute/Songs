@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简谱查看器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        neutral: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg shadow-md hover:bg-primary/90 transition-all duration-300;
+            }
+            .btn-secondary {
+                @apply bg-secondary text-white px-4 py-2 rounded-lg shadow-md hover:bg-secondary/90 transition-all duration-300;
+            }
+            .btn-neutral {
+                @apply bg-neutral text-dark px-4 py-2 rounded-lg shadow-md hover:bg-neutral/80 transition-all duration-300;
+            }
+            .window-drag {
+                @apply cursor-move;
+            }
+            .note-canvas {
+                @apply bg-white rounded-lg shadow-lg border border-gray-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-2">简谱查看器</h1>
+            <p class="text-gray-600 text-[clamp(1rem,2vw,1.2rem)]">在手机上也能完美查看的简谱工具</p>
+        </header>
+
+        <!-- 工具栏 -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap gap-3">
+                <button id="openImportWindow" class="btn-primary flex items-center">
+                    <i class="fa fa-music mr-2"></i> 导入乐谱
+                </button>
+                <button id="zoomIn" class="btn-neutral flex items-center">
+                    <i class="fa fa-search-plus mr-2"></i> 放大
+                </button>
+                <button id="zoomOut" class="btn-neutral flex items-center">
+                    <i class="fa fa-search-minus mr-2"></i> 缩小
+                </button>
+                <button id="resetZoom" class="btn-neutral flex items-center">
+                    <i class="fa fa-refresh mr-2"></i> 重置
+                </button>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-gray-600">缩放比例:</span>
+                <span id="zoomLevel" class="font-medium">100%</span>
+            </div>
+        </div>
+
+        <!-- 画布容器 -->
+        <div class="relative overflow-hidden bg-white rounded-lg shadow-lg border border-gray-200 mb-8 h-[80vh]" id="canvasContainer">
+            <canvas id="musicCanvas" class="note-canvas w-full h-full"></canvas>
+        </div>
+
+        <!-- 移动窗口 (默认隐藏) -->
+        <div id="importWindow" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+            <div id="windowContent" class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0">
+                <!-- 窗口头部 -->
+                <div class="bg-primary text-white p-4 rounded-t-lg flex justify-between items-center window-drag">
+                    <h3 class="font-semibold text-lg">导入乐谱</h3>
+                    <button id="closeWindow" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- 工具条 -->
+                <div class="bg-gray-100 p-2 border-b border-gray-200">
+                    <div class="flex gap-2 overflow-x-auto py-1">
+                        <button class="import-btn btn-secondary text-sm flex-shrink-0" data-source="twinkle">小星星</button>
+                        <button class="import-btn btn-secondary text-sm flex-shrink-0" data-source="scale2">两八度音阶</button>
+                        <button class="import-btn btn-secondary text-sm flex-shrink-0" data-source="scale4">四八度音阶</button>
+                    </div>
+                </div>
+                
+                <!-- 文本框 -->
+                <div class="p-4">
+                    <textarea id="musicData" class="w-full h-64 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" placeholder="请粘贴乐谱数据..."></textarea>
+                    <div class="mt-4 flex justify-end">
+                        <button id="applyMusicData" class="btn-primary">应用数据</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-sm mt-12">
+            <p>简谱查看器 &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化缩放级别
+        let zoomLevel = 1;
+        const zoomStep = 0.1;
+        const maxZoom = 2;
+        const minZoom = 0.5;
+        
+        // 乐谱数据
+        const musicData = {
+            twinkle: {
+                "metadata": {
+                    "title": "小星星",
+                    "composer": "传统儿歌",
+                    "key": "1=C",
+                    "timeSignature": "4/4",
+                    "tempo": 100
+                },
+                "measures": [
+                    {
+                        "index": 1,
+                        "notes": [
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "一"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "闪"}
+                        ]
+                    },
+                    {
+                        "index": 2,
+                        "notes": [
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "亮"},
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "晶"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "晶"}
+                        ]
+                    },
+                    {
+                        "index": 3,
+                        "notes": [
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "满"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "天"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "都"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "是"}
+                        ]
+                    },
+                    {
+                        "index": 4,
+                        "notes": [
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "小"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "星"},
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "星"}
+                        ]
+                    }
+                ]
+            },
+            scale2: {
+                "metadata": {
+                    "title": "两八度音阶",
+                    "composer": "演示",
+                    "key": "1=C",
+                    "timeSignature": "4/4",
+                    "tempo": 120
+                },
+                "measures": [
+                    {
+                        "index": 1,
+                        "notes": [
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "1"}
+                        ]
+                    },
+                    {
+                        "index": 2,
+                        "notes": [
+                            {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "1"}
+                        ]
+                    }
+                ]
+            },
+            scale4: {
+                "metadata": {
+                    "title": "四八度音阶",
+                    "composer": "演示",
+                    "key": "1=C",
+                    "timeSignature": "4/4",
+                    "tempo": 140
+                },
+                "measures": [
+                    {
+                        "index": 1,
+                        "notes": [
+                            {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 6, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 7, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "5"}
+                        ]
+                    },
+                    {
+                        "index": 2,
+                        "notes": [
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 4, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 5, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 6, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "6"}
+                        ]
+                    },
+                    {
+                        "index": 3,
+                        "notes": [
+                            {"type": "note", "pitch": 7, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 1, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 2, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 3, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 4, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 5, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 6, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 7, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "7"}
+                        ]
+                    },
+                    {
+                        "index": 4,
+                        "notes": [
+                            {"type": "note", "pitch": 1, "octaveShift": 3, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 7, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 6, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 5, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 4, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 3, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 2, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 1, "octaveShift": 2, "duration": 0.25, "dotted": false, "lyric": "1"}
+                        ]
+                    },
+                    {
+                        "index": 5,
+                        "notes": [
+                            {"type": "note", "pitch": 7, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 6, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 5, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 4, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 3, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 2, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "7"}
+                        ]
+                    },
+                    {
+                        "index": 6,
+                        "notes": [
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 7, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 6, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "6"}
+                        ]
+                    },
+                    {
+                        "index": 7,
+                        "notes": [
+                            {"type": "note", "pitch": 5, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "5"},
+                            {"type": "note", "pitch": 4, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "4"},
+                            {"type": "note", "pitch": 3, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "3"},
+                            {"type": "note", "pitch": 2, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "2"},
+                            {"type": "note", "pitch": 1, "octaveShift": -1, "duration": 0.25, "dotted": false, "lyric": "1"},
+                            {"type": "note", "pitch": 7, "octaveShift": -2, "duration": 0.25, "dotted": false, "lyric": "7"},
+                            {"type": "note", "pitch": 6, "octaveShift": -2, "duration": 0.25, "dotted": false, "lyric": "6"},
+                            {"type": "note", "pitch": 5, "octaveShift": -2, "duration": 0.25, "dotted": false, "lyric": "5"}
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // 简谱绘制类
+        class C4JpCanvas {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.data = null;
+                
+                // 简谱绘制参数
+                this.noteWidth = 40;           // 音符宽度
+                this.noteHeight = 50;          // 音符高度
+                this.lyricOffset = 20;         // 歌词偏移量
+                this.systemSpacing = 80;       // 系统间距
+                this.measureSpacing = 30;      // 小节间距
+                this.staffLineCount = 5;       // 五线谱线数
+                this.staffLineSpacing = 8;     // 五线谱线间距
+                this.dotSize = 4;              // 点的大小
+                this.ledgerLineLength = 15;    // 加线长度
+                
+                // 响应式调整
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+            
+            resize() {
+                // 设置画布尺寸与容器相同
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                
+                // 如果有数据，重绘
+                if (this.data) {
+                    this.draw();
+                }
+            }
+            
+            setData(data) {
+                this.data = data;
+                this.draw();
+            }
+            
+            draw() {
+                if (!this.data) return;
+                
+                // 清除画布
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // 应用缩放
+                this.ctx.scale(zoomLevel, zoomLevel);
+                
+                // 绘制乐谱
+                this.drawMetadata();
+                this.drawMusic();
+            }
+            
+            drawMetadata() {
+                if (!this.data.metadata) return;
+                
+                const metadata = this.data.metadata;
+                const margin = 30;
+                let y = margin;
+                
+                // 标题
+                this.ctx.font = 'bold 24px sans-serif';
+                this.ctx.fillStyle = '#333';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(metadata.title || '未命名', this.canvas.width / (2 * zoomLevel), y);
+                y += 35;
+                
+                // 作曲者、调号、拍号、速度
+                this.ctx.font = '16px sans-serif';
+                this.ctx.fillStyle = '#666';
+                const info = [
+                    metadata.composer ? `作曲: ${metadata.composer}` : '',
+                    metadata.key ? `调号: ${metadata.key}` : '',
+                    metadata.timeSignature ? `拍号: ${metadata.timeSignature}` : '',
+                    metadata.tempo ? `速度: ${metadata.tempo} BPM` : ''
+                ].filter(Boolean).join('   ');
+                
+                if (info) {
+                    this.ctx.fillText(info, this.canvas.width / (2 * zoomLevel), y);
+                    y += 30;
+                }
+                
+                // 记录元数据区域的高度
+                this.metadataHeight = y;
+            }
+            
+            drawMusic() {
+                if (!this.data.measures || !this.data.measures.length) return;
+                
+                const margin = 30;
+                let x = margin;
+                let y = this.metadataHeight || margin + 50;
+                
+                // 计算每行可以容纳的小节数
+                const availableWidth = this.canvas.width / zoomLevel - 2 * margin;
+                const measuresPerLine = Math.max(1, Math.floor(availableWidth / (this.noteWidth * 4 + this.measureSpacing)));
+                
+                // 绘制每个小节
+                let measureIndex = 0;
+                for (let i = 0; i < this.data.measures.length; i++) {
+                    const measure = this.data.measures[i];
+                    
+                    // 如果需要换行
+                    if (measureIndex > 0 && measureIndex % measuresPerLine === 0) {
+                        x = margin;
+                        y += this.systemSpacing + this.noteHeight;
+                    }
+                    
+                    // 绘制小节
+                    this.drawMeasure(measure, x, y);
+                    
+                    // 更新位置
+                    x += this.noteWidth * measure.notes.length + this.measureSpacing;
+                    measureIndex++;
+                }
+            }
+            
+            drawMeasure(measure, x, y) {
+                if (!measure.notes || !measure.notes.length) return;
+                
+                // 绘制小节线
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - 10);
+                this.ctx.lineTo(x, y + this.noteHeight + this.lyricOffset + 10);
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 1.5;
+                this.ctx.stroke();
+                
+                // 绘制小节内的音符
+                let noteX = x + 5;
+                for (const note of measure.notes) {
+                    this.drawNote(note, noteX, y);
+                    noteX += this.noteWidth;
+                }
+                
+                // 绘制小节结束线
+                this.ctx.beginPath();
+                this.ctx.moveTo(noteX - 5, y - 10);
+                this.ctx.lineTo(noteX - 5, y + this.noteHeight + this.lyricOffset + 10);
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+            
+            drawNote(note, x, y) {
+                if (note.type !== 'note') return;
+                
+                // 音符位置计算（基于音高）
+                const pitchPositions = [
+                    y + this.noteHeight * 0.75,  // 低音5
+                    y + this.noteHeight * 0.65,  // 低音6
+                    y + this.noteHeight * 0.55,  // 低音7
+                    y + this.noteHeight * 0.45,  // 中音1
+                    y + this.noteHeight * 0.35,  // 中音2
+                    y + this.noteHeight * 0.25,  // 中音3
+                    y + this.noteHeight * 0.15,  // 中音4
+                    y + this.noteHeight * 0.05   // 中音5
+                ];
+                
+                const baseY = pitchPositions[(note.pitch - 1) % 7];
+                const octaveOffset = note.octaveShift * this.noteHeight * 0.8;
+                const noteY = baseY - octaveOffset;
+                
+                // 绘制音符
+                this.ctx.beginPath();
+                this.ctx.arc(x, noteY, this.noteHeight * 0.1, 0, Math.PI * 2);
+                this.ctx.fillStyle = '#333';
+                this.ctx.fill();
+                
+                // 绘制高低音点
+                if (note.octaveShift > 0) {
+                    // 高音点
+                    for (let i = 0; i < note.octaveShift; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, noteY - this.noteHeight * 0.2 - i * 15, this.dotSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                } else if (note.octaveShift < 0) {
+                    // 低音点
+                    for (let i = 0; i < Math.abs(note.octaveShift); i++) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, noteY + this.noteHeight * 0.2 + i * 15, this.dotSize, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                }
+                
+                // 绘制时值横线
+                if (note.duration < 1) {
+                    const lines = Math.log2(1 / note.duration);
+                    const lineY = noteY + this.noteHeight * 0.15;
+                    
+                    for (let i = 0; i < lines; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x - this.noteWidth * 0.2, lineY + i * 5);
+                        this.ctx.lineTo(x + this.noteWidth * 0.2, lineY + i * 5);
+                        this.ctx.lineWidth = 1.5;
+                        this.ctx.stroke();
+                    }
+                    
+                    // 低音点在横线下方
+                    if (note.octaveShift < 0) {
+                        for (let i = 0; i < Math.abs(note.octaveShift); i++) {
+                            this.ctx.beginPath();
+                            this.ctx.arc(x, lineY + 5 * lines + 10 + i * 15, this.dotSize, 0, Math.PI * 2);
+                            this.ctx.fill();
+                        }
+                    }
+                }
+                
+                // 绘制歌词
+                if (note.lyric) {
+                    this.ctx.font = '16px sans-serif';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(note.lyric, x, y + this.noteHeight + this.lyricOffset);
+                }
+            }
+        }
+
+        // 初始化画布
+        const canvas = document.getElementById('musicCanvas');
+        const jpCanvas = new C4JpCanvas(canvas);
+        
+        // 默认加载第一个乐谱
+        jpCanvas.setData(musicData.twinkle);
+        document.getElementById('musicData').value = JSON.stringify(musicData.twinkle, null, 2);
+        
+        // 窗口拖动功能
+        const windowContent = document.getElementById('windowContent');
+        const windowHeader = windowContent.querySelector('.window-drag');
+        let isDragging = false;
+        let offsetX, offsetY;
+        
+        windowHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = windowContent.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            windowContent.style.transition = 'none';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            const container = document.getElementById('importWindow');
+            const containerRect = container.getBoundingClientRect();
+            
+            let newX = e.clientX - containerRect.left - offsetX;
+            let newY = e.clientY - containerRect.top - offsetY;
+            
+            // 限制在容器内
+            const windowRect = windowContent.getBoundingClientRect();
+            newX = Math.max(0, Math.min(newX, containerRect.width - windowRect.width));
+            newY = Math.max(0, Math.min(newY, containerRect.height - windowRect.height));
+            
+            windowContent.style.transform = `translate(${newX}px, ${newY}px)`;
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                windowContent.style.transition = 'transform 0.3s ease';
+            }
+        });
+        
+        // 按钮事件处理
+        document.getElementById('openImportWindow').addEventListener('click', () => {
+            const importWindow = document.getElementById('importWindow');
+            importWindow.classList.remove('hidden');
+            setTimeout(() => {
+                windowContent.classList.remove('scale-95', 'opacity-0');
+                windowContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        });
+        
+        document.getElementById('closeWindow').addEventListener('click', () => {
+            windowContent.classList.remove('scale-100', 'opacity-100');
+            windowContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('importWindow').classList.add('hidden');
+            }, 300);
+        });
+        
+        // 导入按钮事件
+        document.querySelectorAll('.import-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const source = btn.getAttribute('data-source');
+                if (musicData[source]) {
+                    document.getElementById('musicData').value = JSON.stringify(musicData[source], null, 2);
+                }
+            });
+        });
+        
+        // 应用数据按钮
+        document.getElementById('applyMusicData').addEventListener('click', () => {
+            try {
+                const data = JSON.parse(document.getElementById('musicData').value);
+                jpCanvas.setData(data);
+                document.getElementById('closeWindow').click();
+            } catch (e) {
+                alert('无效的JSON数据: ' + e.message);
+            }
+        });
+        
+        // 缩放功能
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (zoomLevel < maxZoom) {
+                zoomLevel += zoomStep;
+                updateZoom();
+            }
+        });
+        
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (zoomLevel > minZoom) {
+                zoomLevel -= zoomStep;
+                updateZoom();
+            }
+        });
+        
+        document.getElementById('resetZoom').addEventListener('click', () => {
+            zoomLevel = 1;
+            updateZoom();
+        });
+        
+        function updateZoom() {
+            document.getElementById('zoomLevel').textContent = `${Math.round(zoomLevel * 100)}%`;
+            jpCanvas.draw();
+        }
+    </script>
+</body>
+</html>
+    
