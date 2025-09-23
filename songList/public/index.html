@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>歌单生成器 - 支持拖拽排序与高清导出</title>
+  <title>歌单生成器 v1.11 - 支持拖拽排序与高清导出</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
@@ -21,7 +21,18 @@
             dark: '#0f172a',
             original: '#EF4444',
             english: '#10B981',
-            price: '#F59E0B'
+            price: '#F59E0B',
+            // 扩展更多背景颜色选项（多色系）
+            bg1: '#f8fafc', // 浅灰白
+            bg2: '#fffbf5', // 暖白色
+            bg3: '#f0fdfa', // 淡青色
+            bg4: '#fcfafe', // 淡紫色
+            bg5: '#fef2f2', // 淡红色
+            bg6: '#f3f4f6', // 浅灰色
+            bg7: '#fef3c7', // 浅金色
+            bg8: '#dbeafe', // 浅蓝色
+            bg9: '#fae8ff', // 浅粉色
+            bg10: '#ecfdf5', // 浅绿色
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -115,6 +126,33 @@
         font-size: 12px;
         z-index: 10;
       }
+      .bg-color-option {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .bg-color-option:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+      }
+      .bg-color-option.selected {
+        box-shadow: 0 0 0 2px #4F46E5, 0 0 0 4px rgba(79, 70, 229, 0.2);
+      }
+      .price-badge {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+        font-weight: bold;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2);
+        transition: all 0.3s ease;
+      }
+      .price-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px -1px rgba(245, 158, 11, 0.3);
+      }
     }
   </style>
 </head>
@@ -123,10 +161,29 @@
     <header class="mb-8 text-center slide-in">
       <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-neutral mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">🎵 歌单生成器</h1>
       <p class="text-gray-600">创建、编辑并可视化你的专属歌单</p>
-      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 升级：支持高清图片导出</p>
+      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.11 | 支持更多背景颜色与顶部价格展示</p>
     </header>
 
     <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
+      <!-- 价格信息设置（移至顶部） -->
+      <div class="mb-8">
+        <div class="flex items-center">
+          <label for="priceInfo" class="text-sm font-medium text-amber-800 mr-3 flex items-center">
+            <i class="fa fa-tag mr-1"></i> 价格信息:
+          </label>
+          <input 
+            type="text" 
+            id="priceInfo" 
+            class="flex-1 px-4 py-3 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
+            placeholder="请输入价格信息"
+            value="40元1首，100元3首"
+          >
+          <div class="ml-4 price-badge price-tag flex items-center">
+            <i class="fa fa-fire mr-2"></i> 醒目显示
+          </div>
+        </div>
+      </div>
+
       <!-- 歌单基本信息 -->
       <div class="mb-8">
         <label for="playlistName" class="block text-sm font-medium text-gray-700 mb-2">歌单名称</label>
@@ -213,24 +270,21 @@
             <input type="range" id="columnGap" min="10" max="100" value="60" class="w-40 accent-primary">
             <span id="columnGapValue" class="ml-2 text-sm text-gray-700">60px</span>
           </div>
-        </div>
-      </div>
-
-      <!-- 价格信息设置 -->
-      <div class="mb-8 bg-amber-50 p-5 rounded-lg border border-amber-100">
-        <h3 class="text-md font-medium text-amber-800 mb-3 flex items-center">
-          <i class="fa fa-tag mr-2 text-amber-600"></i> 价格信息
-        </h3>
-        <div class="flex items-center">
-          <input 
-            type="text" 
-            id="priceInfo" 
-            class="flex-1 px-4 py-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-            placeholder="请输入价格信息"
-            value="40元1首，100元3首"
-          >
-          <div class="ml-4 px-4 py-2 bg-amber-500/10 text-amber-700 rounded-lg font-medium">
-            <i class="fa fa-info-circle mr-2"></i> 此信息将显示在歌单底部
+          <!-- 更多背景颜色选项 -->
+          <div class="flex items-center flex-wrap">
+            <label class="text-sm text-gray-700 mr-3">背景颜色:</label>
+            <div class="flex gap-2" id="bgColorOptions">
+              <div class="bg-color-option bg-bg1 selected" data-color="#f8fafc" title="浅灰白"></div>
+              <div class="bg-color-option bg-bg2" data-color="#fffbf5" title="暖白色"></div>
+              <div class="bg-color-option bg-bg3" data-color="#f0fdfa" title="淡青色"></div>
+              <div class="bg-color-option bg-bg4" data-color="#fcfafe" title="淡紫色"></div>
+              <div class="bg-color-option bg-bg5" data-color="#fef2f2" title="淡红色"></div>
+              <div class="bg-color-option bg-bg6" data-color="#f3f4f6" title="浅灰色"></div>
+              <div class="bg-color-option bg-bg7" data-color="#fef3c7" title="浅金色"></div>
+              <div class="bg-color-option bg-bg8" data-color="#dbeafe" title="浅蓝色"></div>
+              <div class="bg-color-option bg-bg9" data-color="#fae8ff" title="浅粉色"></div>
+              <div class="bg-color-option bg-bg10" data-color="#ecfdf5" title="浅绿色"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -347,6 +401,9 @@
       const columnGapValue = document.getElementById('columnGapValue');
       const priceInfoInput = document.getElementById('priceInfo');
       const hqIndicator = document.querySelector('.hq-indicator');
+      // 背景颜色相关元素
+      const bgColorOptions = document.getElementById('bgColorOptions');
+      let selectedBgColor = '#f8fafc'; // 默认背景色
       
       // 设置Canvas尺寸为A4比例
       const canvasWidth = 595;
@@ -422,6 +479,22 @@
       // 监听栏间距滑块变化
       columnGapSlider.addEventListener('input', function() {
         columnGapValue.textContent = `${this.value}px`;
+      });
+      
+      // 背景颜色选择事件
+      bgColorOptions.addEventListener('click', function(e) {
+        const colorOption = e.target.closest('.bg-color-option');
+        if (colorOption) {
+          // 移除所有选中状态
+          document.querySelectorAll('.bg-color-option').forEach(option => {
+            option.classList.remove('selected');
+          });
+          // 添加当前选中状态
+          colorOption.classList.add('selected');
+          // 保存选中的颜色
+          selectedBgColor = colorOption.getAttribute('data-color');
+          showHint(`已选择${colorOption.title}背景`);
+        }
       });
       
       // 更新歌曲计数
@@ -570,35 +643,74 @@
         // 清除画布
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         
-        // 绘制背景
+        // 绘制背景（使用选中的颜色）
+        const bgColor = selectedBgColor;
         const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-        gradient.addColorStop(0, '#f8fafc');
-        gradient.addColorStop(1, '#e2e8f0');
+        
+        // 根据选中的背景色创建渐变
+        if (bgColor === '#f8fafc') {
+          gradient.addColorStop(0, '#f8fafc');
+          gradient.addColorStop(1, '#e2e8f0');
+        } else if (bgColor === '#fffbf5') {
+          gradient.addColorStop(0, '#fffbf5');
+          gradient.addColorStop(1, '#fef3c7');
+        } else if (bgColor === '#f0fdfa') {
+          gradient.addColorStop(0, '#f0fdfa');
+          gradient.addColorStop(1, '#ccfbf1');
+        } else if (bgColor === '#fcfafe') {
+          gradient.addColorStop(0, '#fcfafe');
+          gradient.addColorStop(1, '#ede9fe');
+        } else if (bgColor === '#fef2f2') {
+          gradient.addColorStop(0, '#fef2f2');
+          gradient.addColorStop(1, '#fee2e2');
+        } else if (bgColor === '#f3f4f6') {
+          gradient.addColorStop(0, '#f3f4f6');
+          gradient.addColorStop(1, '#d1d5db');
+        } else if (bgColor === '#fef3c7') {
+          gradient.addColorStop(0, '#fef3c7');
+          gradient.addColorStop(1, '#fde68a');
+        } else if (bgColor === '#dbeafe') {
+          gradient.addColorStop(0, '#dbeafe');
+          gradient.addColorStop(1, '#bfdbfe');
+        } else if (bgColor === '#fae8ff') {
+          gradient.addColorStop(0, '#fae8ff');
+          gradient.addColorStop(1, '#f3e8ff');
+        } else if (bgColor === '#ecfdf5') {
+          gradient.addColorStop(0, '#ecfdf5');
+          gradient.addColorStop(1, '#d1fae5');
+        }
+        
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvasWidth, canvasHeight);
         
         // 绘制装饰元素
         drawDecorativeElements();
         
+        // 绘制价格信息（移至顶部更醒目）
+        ctx.fillStyle = '#F59E0B';
+        ctx.font = 'bold 18px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(priceInfo, canvasWidth / 2, 60);
+        
         // 绘制歌单名称
         ctx.fillStyle = '#1e293b';
         ctx.font = 'bold 36px "Inter", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(name, canvasWidth / 2, 90);
+        ctx.fillText(name, canvasWidth / 2, 110);
         
         // 绘制分隔线
         ctx.strokeStyle = '#94a3b8';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(canvasWidth / 2 - 120, 110);
-        ctx.lineTo(canvasWidth / 2 + 120, 110);
+        ctx.moveTo(canvasWidth / 2 - 120, 130);
+        ctx.lineTo(canvasWidth / 2 + 120, 130);
         ctx.stroke();
         
         // 绘制歌曲列表
         const songFontSize = 14;
         const songsPerColumn = Math.ceil(songs.length / 2);
         const ySpacing = 22;
-        const startY = 150;
+        const startY = 170; // 调整起始位置，为顶部价格信息留出空间
         
         const leftMargin = canvasWidth * 0.11;
         const rightMargin = canvasWidth - leftMargin;
@@ -637,7 +749,7 @@
         });
         
         // 绘制底部信息 - 根据设置决定是否显示
-        let strInfo = "----";
+        let strInfo = "";
         const bottomOffset = 66;
         let currentY = canvasHeight - bottomOffset;
         
@@ -652,15 +764,9 @@
         if (showDate) {
             strInfo += '生成于 ' + new Date().toLocaleDateString();
         }
-        strInfo += "----"
+        strInfo += ""
         currentY += 15;
         ctx.fillText(strInfo, canvasWidth / 2, currentY);
-        currentY += 30;
-
-        // 绘制价格信息 - 始终显示
-        ctx.fillStyle = '#F59E0B'; // 使用醒目的橙色
-        ctx.font = 'bold 18px "Inter", sans-serif';
-        ctx.fillText(priceInfo, canvasWidth / 2, currentY);
       }
       
       // 绘制装饰元素
@@ -778,35 +884,74 @@
         // 清除画布
         ctx.clearRect(0, 0, width, height);
         
-        // 绘制背景
+        // 绘制背景（使用选中的颜色）
+        const bgColor = selectedBgColor;
         const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, '#f8fafc');
-        gradient.addColorStop(1, '#e2e8f0');
+        
+        // 根据选中的背景色创建渐变
+        if (bgColor === '#f8fafc') {
+          gradient.addColorStop(0, '#f8fafc');
+          gradient.addColorStop(1, '#e2e8f0');
+        } else if (bgColor === '#fffbf5') {
+          gradient.addColorStop(0, '#fffbf5');
+          gradient.addColorStop(1, '#fef3c7');
+        } else if (bgColor === '#f0fdfa') {
+          gradient.addColorStop(0, '#f0fdfa');
+          gradient.addColorStop(1, '#ccfbf1');
+        } else if (bgColor === '#fcfafe') {
+          gradient.addColorStop(0, '#fcfafe');
+          gradient.addColorStop(1, '#ede9fe');
+        } else if (bgColor === '#fef2f2') {
+          gradient.addColorStop(0, '#fef2f2');
+          gradient.addColorStop(1, '#fee2e2');
+        } else if (bgColor === '#f3f4f6') {
+          gradient.addColorStop(0, '#f3f4f6');
+          gradient.addColorStop(1, '#d1d5db');
+        } else if (bgColor === '#fef3c7') {
+          gradient.addColorStop(0, '#fef3c7');
+          gradient.addColorStop(1, '#fde68a');
+        } else if (bgColor === '#dbeafe') {
+          gradient.addColorStop(0, '#dbeafe');
+          gradient.addColorStop(1, '#bfdbfe');
+        } else if (bgColor === '#fae8ff') {
+          gradient.addColorStop(0, '#fae8ff');
+          gradient.addColorStop(1, '#f3e8ff');
+        } else if (bgColor === '#ecfdf5') {
+          gradient.addColorStop(0, '#ecfdf5');
+          gradient.addColorStop(1, '#d1fae5');
+        }
+        
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
         
         // 绘制装饰元素
         drawHdDecorativeElements(ctx, width, height, scale);
         
+        // 绘制价格信息（移至顶部更醒目）
+        ctx.fillStyle = '#F59E0B';
+        ctx.font = `bold ${18 * scale}px "Inter", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(priceInfo, width / 2, 60 * scale);
+        
         // 绘制歌单名称
         ctx.fillStyle = '#1e293b';
         ctx.font = `bold ${36 * scale}px "Inter", sans-serif`;
         ctx.textAlign = 'center';
-        ctx.fillText(name, width / 2, 90 * scale);
+        ctx.fillText(name, width / 2, 110 * scale);
         
         // 绘制分隔线
         ctx.strokeStyle = '#94a3b8';
         ctx.lineWidth = 2 * scale;
         ctx.beginPath();
-        ctx.moveTo(width / 2 - 120 * scale, 110 * scale);
-        ctx.lineTo(width / 2 + 120 * scale, 110 * scale);
+        ctx.moveTo(width / 2 - 120 * scale, 130 * scale);
+        ctx.lineTo(width / 2 + 120 * scale, 130 * scale);
         ctx.stroke();
         
         // 绘制歌曲列表
         const songFontSize = 14 * scale;
         const songsPerColumn = Math.ceil(songs.length / 2);
         const ySpacing = 22 * scale;
-        const startY = 150 * scale;
+        const startY = 170 * scale; // 调整起始位置，为顶部价格信息留出空间
         
         const leftMargin = width * 0.11;
         const rightMargin = width - leftMargin;
@@ -845,7 +990,7 @@
         });
         
         // 绘制底部信息 - 根据设置决定是否显示
-        let strInfo = "----";
+        let strInfo = "";
         const bottomOffset = 66 * scale;
         let currentY = height - bottomOffset;
         
@@ -860,15 +1005,9 @@
         if (showDate) {
             strInfo += '生成于 ' + new Date().toLocaleDateString();
         }
-        strInfo += "----"
+        strInfo += ""
         currentY += 15 * scale;
         ctx.fillText(strInfo, width / 2, currentY);
-        currentY += 30 * scale;
-
-        // 绘制价格信息 - 始终显示
-        ctx.fillStyle = '#F59E0B';
-        ctx.font = `bold ${18 * scale}px "Inter", sans-serif`;
-        ctx.fillText(priceInfo, width / 2, currentY);
       }
       
       // 在高清Canvas上绘制装饰元素
@@ -954,7 +1093,8 @@
           settings: {
             showSongCount: showSongCount,
             showDate: showDate,
-            columnGap: columnGap
+            columnGap: columnGap,
+            bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
           createdAt: new Date().toISOString()
@@ -1018,6 +1158,19 @@
                   columnGapSlider.value = playlistData.settings.columnGap;
                   columnGapValue.textContent = `${playlistData.settings.columnGap}px`;
                 }
+                
+                // 加载背景颜色设置
+                if (playlistData.settings.bgColor) {
+                  // 移除所有选中状态
+                  document.querySelectorAll('.bg-color-option').forEach(option => {
+                    option.classList.remove('selected');
+                    // 选中匹配的颜色
+                    if (option.getAttribute('data-color') === playlistData.settings.bgColor) {
+                      option.classList.add('selected');
+                      selectedBgColor = playlistData.settings.bgColor;
+                    }
+                  });
+                }
               } else {
                 // 默认为选中状态
                 showSongCountCheckbox.checked = true;
@@ -1059,7 +1212,7 @@
         playlistNameInput.value = sl1.title;
         
         // 设置价格信息
-        priceInfoInput.value = '40元1首，100元3首';
+        priceInfoInput.value = sl1.princeInfo; 
         
         // 设置默认显示选项
         showSongCountCheckbox.checked = true;
@@ -1068,6 +1221,15 @@
         // 设置默认栏间距
         columnGapSlider.value = 60;
         columnGapValue.textContent = '60px';
+        
+        // 设置默认背景颜色
+        document.querySelectorAll('.bg-color-option').forEach(option => {
+          option.classList.remove('selected');
+          if (option.getAttribute('data-color') === '#f8fafc') {
+            option.classList.add('selected');
+            selectedBgColor = '#f8fafc';
+          }
+        });
         
         const sampleSongs = sl1.songs;
         
@@ -1285,7 +1447,8 @@
           settings: {
             showSongCount,
             showDate,
-            columnGap
+            columnGap,
+            bgColor: selectedBgColor
           },
           priceInfo,
           createdAt: new Date().toISOString()
@@ -1318,7 +1481,8 @@
           settings: {
             showSongCount: showSongCount,
             showDate: showDate,
-            columnGap: columnGap
+            columnGap: columnGap,
+            bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
           createdAt: new Date().toISOString()
@@ -1473,8 +1637,11 @@
   </script>
 </body>
 </html>
+
+
 <!--
-升级
-添加背景图片设置
+升级到 v1.12 
+歌单背景颜色,增加更多选项（多色系）
+priceInfo 放在顶部，让它更鲜艳
 return all new code
 -->
