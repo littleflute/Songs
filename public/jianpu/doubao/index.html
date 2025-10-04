@@ -54,7 +54,7 @@
                 <div class="flex items-center space-x-2">
                     <i class="fa fa-music text-primary text-2xl"></i>
                     <h1 class="text-xl font-bold text-neutral">简谱阅读器</h1>
-                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">v0.13</span>
+                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">v0.14</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="importBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 btn-hover btn-active">
@@ -165,10 +165,14 @@
                     {
                         "index": 4,
                         "notes": [
-                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
-                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
-                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
-                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 5, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 6, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 7, "octaveShift": 0, "duration": 0.5, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 1, "octaveShift": 1, "duration": 0.5, "dotted": false, "lyric": "试"}, 
                         ]
                     }
                 ]
@@ -587,51 +591,16 @@
             
             // 绘制延长线
             drawExtensionLines(note, x, y, noteWidth) {
-                // 四分音符（duration: 4）显示为 "1 - - -"
-                if (note.duration === 4) {
-                    // 第一条延长线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + 15, y + 5);
-                    this.ctx.lineTo(x + noteWidth * 0.75, y + 5);
-                    this.ctx.stroke();
-                    
-                    // 第二条延长线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + noteWidth * 0.8, y + 5);
-                    this.ctx.lineTo(x + noteWidth * 1.5, y + 5);
-                    this.ctx.stroke();
-                    
-                    // 第三条延长线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + noteWidth * 1.55, y + 5);
-                    this.ctx.lineTo(x + noteWidth * 2.25, y + 5);
-                    this.ctx.stroke();
-                    
-                    // 绘制连接线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + 10, y + 5);
-                    this.ctx.lineTo(x + 15, y + 5);
-                    this.ctx.stroke();
-                    
-                    // 绘制延长线标记
-                    this.drawExtensionMarkers(x, y, noteWidth, 3);
+                // 全音符（duration: 4）显示为 "1 - - -"
+                if (note.duration === 4) { 
+                    // 三个延长短线
+                    this.drawExtensionMarkers(x + 30, y + 5, 25, 3);
                 }
-                // 二分音符（duration: 2）显示为 "1 -"
-                else if (note.duration === 2) {
-                    // 延长线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + 15, y + 5);
-                    this.ctx.lineTo(x + noteWidth * 0.75, y + 5);
-                    this.ctx.stroke();
+                // 二分音符（duration: 2）显示为 "2 -"
+                else if (note.duration === 2) { 
                     
-                    // 绘制连接线
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(x + 10, y + 5);
-                    this.ctx.lineTo(x + 15, y + 5);
-                    this.ctx.stroke();
-                    
-                    // 绘制延长线标记
-                    this.drawExtensionMarkers(x, y, noteWidth, 1);
+                    // 一个延长短线
+                    this.drawExtensionMarkers(x + 30, y + 5, 25, 1);
                 }
             }
             
@@ -753,14 +722,13 @@
 </body>
 </html>
 
-    
 <!--
-升级程序 到 v0.14
+升级程序 到 v0.15
 1. test1
-"duration = 4 ,为全音符 应该渲染成： 1 - - - （短线有间隙）
-"duration = 2 ,为2分音符 应该渲染成： 2 -  
+"duration = 4 ,为全音符 应该渲染成： 1 - - - （短线相对音符垂直居中）
+"duration = 2 ,为2分音符 应该渲染成： 2 -  （短线相对音符垂直居中）
 "duration = 1 ,为4分音符 应该渲染成： 3 
 
-"duration = 0.5 ,为8分音符 应该渲染成： 音符下有一横线
+"duration = 0.5 ,为8分音符 应该渲染成： 音符下有一横线 （横线离音符不要太远）
 "duration = 0.25 ,为16分音符 应该渲染成： 音符下有2横线
 -->
