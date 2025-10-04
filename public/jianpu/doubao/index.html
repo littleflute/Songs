@@ -54,7 +54,7 @@
                 <div class="flex items-center space-x-2">
                     <i class="fa fa-music text-primary text-2xl"></i>
                     <h1 class="text-xl font-bold text-neutral">简谱阅读器</h1>
-                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">v0.11</span>
+                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">v0.13</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="importBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 btn-hover btn-active">
@@ -99,13 +99,17 @@
             <div class="border-b border-gray-200 px-4 py-2 flex space-x-2">
                 <button class="import-data-btn bg-primary text-white px-3 py-1.5 rounded-md text-sm flex items-center space-x-1 btn-hover btn-active" data-index="1">
                     <i class="fa fa-music"></i>
-                    <span>小星星</span>
+                    <span>test1</span>
                 </button>
                 <button class="import-data-btn bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center space-x-1 btn-hover btn-active" data-index="2">
                     <i class="fa fa-music"></i>
-                    <span>两八度音阶</span>
+                    <span>小星星</span>
                 </button>
                 <button class="import-data-btn bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center space-x-1 btn-hover btn-active" data-index="3">
+                    <i class="fa fa-music"></i>
+                    <span>两八度音阶</span>
+                </button>
+                <button class="import-data-btn bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center space-x-1 btn-hover btn-active" data-index="4">
                     <i class="fa fa-music"></i>
                     <span>四八度音阶</span>
                 </button>
@@ -126,6 +130,50 @@
     <script>
         // 乐谱数据
         const scoreData = [
+            // test1: 
+            {
+                "metadata": {
+                    "title": "test1",
+                    "composer": "littleflute",
+                    "key": "1=C",
+                    "timeSignature": "4/4",
+                    "tempo": 100
+                },
+                "measures": [
+                    {
+                        "index": 1,
+                        "notes": [
+                            {"type": "note", "pitch": 1, "octaveShift": 0, "duration": 4, "dotted": false, "lyric": "测"}, 
+                        ]
+                    },
+                    {
+                        "index": 2,
+                        "notes": [
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 2, "octaveShift": 0, "duration": 2, "dotted": false, "lyric": "试"}, 
+                        ]
+                    },
+                    {
+                        "index": 3,
+                        "notes": [
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
+                        ]
+                    },
+                    {
+                        "index": 4,
+                        "notes": [
+                            {"type": "note", "pitch": 4, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "测"},
+                            {"type": "note", "pitch": 3, "octaveShift": 0, "duration": 1, "dotted": false, "lyric": "试"}, 
+                        ]
+                    }
+                ]
+            },
+            
             // 数据1: 小星星
             {
                 "metadata": {
@@ -172,6 +220,7 @@
                     }
                 ]
             },
+
             // 数据2: 两个8度的音阶，8分音符每个音
             {
                 "metadata": {
@@ -462,8 +511,8 @@
                 notes.forEach((note, index) => {
                     const noteX = x + noteWidth / 2 + index * noteWidth;
                     
-                    // 绘制音符
-                    this.renderSingleNote(note, noteX, y);
+                    // 渲染单个音符
+                    this.renderSingleNote(note, noteX, y, noteWidth);
                     
                     // 绘制歌词（如果有）
                     if (note.lyric) {
@@ -473,17 +522,13 @@
                 });
             }
             
-            // 渲染单个音符
-            renderSingleNote(note, x, y) {
+            // 渲染单个音符 - 修改为在同一水平线上显示
+            renderSingleNote(note, x, y, noteWidth) {
                 // 获取音符符号
                 const symbol = this.noteSymbols[note.pitch - 1];
                 
-                // 计算音符的垂直位置
-                // 中央C在中间位置，高八度向上，低八度向下
-                const baseY = y + 60;
-                const pitchOffset = note.pitch * 15;
-                const octaveOffset = note.octaveShift * 30;
-                const noteY = baseY - pitchOffset + octaveOffset;
+                // 所有音符都在同一水平线上显示
+                const noteY = y + 60;
                 
                 // 设置字体大小
                 this.ctx.font = '28px Arial';
@@ -491,12 +536,12 @@
                 // 绘制音符
                 this.ctx.fillText(symbol, x, noteY);
                 
-                // 绘制高八度点
+                // 绘制高八度点（音符上方）
                 if (note.octaveShift > 0) {
                     this.drawOctaveDots(x, noteY - 20, note.octaveShift);
                 }
                 
-                // 绘制低八度点
+                // 绘制低八度点（音符下方）
                 if (note.octaveShift < 0) {
                     // 普通音符的低八度点
                     if (note.duration >= 1) {
@@ -534,6 +579,74 @@
                         this.ctx.lineTo(x + 10, noteY + 35);
                         this.ctx.stroke();
                     }
+                }
+                
+                // 绘制延长线（用于四分音符和二分音符）
+                this.drawExtensionLines(note, x, noteY, noteWidth);
+            }
+            
+            // 绘制延长线
+            drawExtensionLines(note, x, y, noteWidth) {
+                // 四分音符（duration: 4）显示为 "1 - - -"
+                if (note.duration === 4) {
+                    // 第一条延长线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + 15, y + 5);
+                    this.ctx.lineTo(x + noteWidth * 0.75, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 第二条延长线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + noteWidth * 0.8, y + 5);
+                    this.ctx.lineTo(x + noteWidth * 1.5, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 第三条延长线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + noteWidth * 1.55, y + 5);
+                    this.ctx.lineTo(x + noteWidth * 2.25, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 绘制连接线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + 10, y + 5);
+                    this.ctx.lineTo(x + 15, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 绘制延长线标记
+                    this.drawExtensionMarkers(x, y, noteWidth, 3);
+                }
+                // 二分音符（duration: 2）显示为 "1 -"
+                else if (note.duration === 2) {
+                    // 延长线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + 15, y + 5);
+                    this.ctx.lineTo(x + noteWidth * 0.75, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 绘制连接线
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x + 10, y + 5);
+                    this.ctx.lineTo(x + 15, y + 5);
+                    this.ctx.stroke();
+                    
+                    // 绘制延长线标记
+                    this.drawExtensionMarkers(x, y, noteWidth, 1);
+                }
+            }
+            
+            // 绘制延长线标记（短线）
+            drawExtensionMarkers(x, y, noteWidth, count) {
+                const markerWidth = 10;
+                const markerSpacing = noteWidth * 0.75;
+                
+                for (let i = 0; i < count; i++) {
+                    const markerX = x + 15 + i * markerSpacing;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(markerX, y + 5);
+                    this.ctx.lineTo(markerX + markerWidth, y + 5);
+                    this.ctx.stroke();
                 }
             }
             
@@ -642,6 +755,12 @@
 
     
 <!--
-升级程序 到 v0.12
-1. 简谱渲染在同一水平线上
+升级程序 到 v0.14
+1. test1
+"duration = 4 ,为全音符 应该渲染成： 1 - - - （短线有间隙）
+"duration = 2 ,为2分音符 应该渲染成： 2 -  
+"duration = 1 ,为4分音符 应该渲染成： 3 
+
+"duration = 0.5 ,为8分音符 应该渲染成： 音符下有一横线
+"duration = 0.25 ,为16分音符 应该渲染成： 音符下有2横线
 -->
