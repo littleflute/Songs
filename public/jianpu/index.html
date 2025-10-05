@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>响应式画布网页</title>
+    <title>响应式画布网页 v0.12</title>
+    <script src="class/cTree.js"></script>
     <style>
         * {
             margin: 0;
@@ -108,7 +109,7 @@
 </head>
 <body>
     <div class="toolbar">
-        <span class="toolbar-title">画布应用</span>
+        <span class="toolbar-title">画布应用 v0.12</span>
         <div class="toolbar-buttons">
             <button class="toolbar-button" id="refreshBtn">刷新</button>
             <button class="toolbar-button" id="settingsBtn">设置</button>
@@ -139,108 +140,45 @@
             document.getElementById('currentTime').textContent = timeString;
         }
         
-        // 初始化时间显示并每秒更新
+        // 初始化时间显示并每秒秒更新
         updateTime();
         setInterval(updateTime, 1000);
         
-        // 绘制树木
-        function drawTree() {
-            const canvas = document.getElementById('treeCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            // 设置画布尺寸为容器大小
-            function resizeCanvas() {
-                const container = canvas.parentElement;
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-                
-                // 重新绘制
-                renderTree();
-            }
-            
-            // 绘制树木函数
-            function renderTree() {
-                const width = canvas.width;
-                const height = canvas.height;
-                const groundLevel = height * 0.8;
-                const treeBaseX = width / 2;
-                const treeBaseY = groundLevel;
-                
-                // 清除画布
-                ctx.clearRect(0, 0, width, height);
-                
-                // 绘制天空背景
-                const skyGradient = ctx.createLinearGradient(0, 0, 0, groundLevel);
-                skyGradient.addColorStop(0, '#87CEEB');
-                skyGradient.addColorStop(1, '#E0F7FA');
-                ctx.fillStyle = skyGradient;
-                ctx.fillRect(0, 0, width, groundLevel);
-                
-                // 绘制地面
-                ctx.fillStyle = '#8BC34A';
-                ctx.fillRect(0, groundLevel, width, height - groundLevel);
-                
-                // 绘制树干
-                ctx.fillStyle = '#5D4037';
-                ctx.beginPath();
-                ctx.moveTo(treeBaseX - 15, treeBaseY);
-                ctx.lineTo(treeBaseX + 15, treeBaseY);
-                ctx.lineTo(treeBaseX + 10, treeBaseY - 150);
-                ctx.lineTo(treeBaseX - 10, treeBaseY - 150);
-                ctx.closePath();
-                ctx.fill();
-                
-                // 绘制树冠
-                const leafColors = ['#81C784', '#66BB6A', '#4CAF50', '#388E3C'];
-                
-                // 主树冠
-                drawLeafCluster(treeBaseX, treeBaseY - 180, 100, 120, 50);
-                
-                // 辅助小树冠
-                drawLeafCluster(treeBaseX - 40, treeBaseY - 150, 60, 80, 30);
-                drawLeafCluster(treeBaseX + 40, treeBaseY - 150, 60, 80, 30);
-                
-                function drawLeafCluster(x, y, width, height, density) {
-                    for (let i = 0; i < density; i++) {
-                        const leafX = x + (Math.random() - 0.5) * width;
-                        const leafY = y + (Math.random() - 0.5) * height;
-                        const leafSize = 5 + Math.random() * 15;
-                        const leafColor = leafColors[Math.floor(Math.random() * leafColors.length)];
-                        
-                        ctx.fillStyle = leafColor;
-                        ctx.beginPath();
-                        ctx.arc(leafX, leafY, leafSize, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                }
-            }
-            
-            // 初始调整大小和绘制
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
+       
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 创建CTree实例
+            const treeCanvas = new CTree('treeCanvas');
             
             // 添加按钮事件
             document.getElementById('refreshBtn').addEventListener('click', function() {
                 document.getElementById('loadStatus').textContent = '刷新中...';
                 setTimeout(() => {
-                    renderTree();
+                    treeCanvas.render();
                     document.getElementById('loadStatus').textContent = '已刷新';
                 }, 500);
             });
             
             document.getElementById('settingsBtn').addEventListener('click', function() {
-                alert('设置功能将在未来版本中添加');
+                // 示例：随机调整树木数量（1-5棵）
+                const randomTreeCount = Math.floor(Math.random() * 5) + 1;
+                treeCanvas.setTreeCount(randomTreeCount);
+                document.getElementById('loadStatus').textContent = `已设置${randomTreeCount}棵树`;
             });
             
             document.getElementById('helpBtn').addEventListener('click', function() {
-                alert('这是一个展示树木的响应式画布页面。使用刷新按钮可以重新绘制树木。');
+                alert('画布应用 v0.11\n\n这是一个展示树木的响应式画布页面。\n- 刷新按钮：重新绘制树木\n- 设置按钮：随机调整树木数量\n- 帮助按钮：显示本帮助信息');
             });
-        }
-        
-        // 页面加载完成后初始化
-        window.addEventListener('DOMContentLoaded', function() {
-            drawTree();
+            
+            // 初始状态更新
+            document.getElementById('loadStatus').textContent = 'CTree类已初始化';
         });
     </script>
 </body>
 </html>
+
+<!--
+升级，版本为v0.11
+1. 生成一个类CTree
+
+-->

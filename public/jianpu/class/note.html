@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree v0.15</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .toolbar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .toolbar-button {
+            background-color: #3a5a8f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .toolbar-button:hover {
+            background-color: #2d4a7f;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .status-bar {
+            background-color: #333;
+            color: white;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-icon {
+            margin-right: 5px;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .toolbar {
+                padding: 8px;
+            }
+            
+            .toolbar-title {
+                font-size: 14px;
+            }
+            
+            .toolbar-button {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            .status-bar {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <span class="toolbar-title">CNote Test v0.15</span>
+        <div class="toolbar-buttons">
+            <button class="toolbar-button" id="refreshBtn">刷新</button>
+            <button class="toolbar-button" id="settingsBtn">设置</button>
+            <button class="toolbar-button" id="helpBtn">帮助</button>
+        </div>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="id4Canvas"></canvas>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-icon">⏳</span>
+            <span id="loadStatus">页面已加载</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon">🕒</span>
+            <span id="currentTime"></span>
+        </div>
+    </div>
+
+    <script>
+        // 更新当前时间
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // 初始化时间显示并每秒更新
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // CNote 类 - 音乐简谱绘制
+        class CNote {
+            /**
+             * 构造函数
+             * @param {string} note - 音符值，可选 1,2,3,4,5,6,7,0
+             * @param {number} octave - 八度类型，0-正常，1-高八度，-1-低八度
+             * @param {number} duration - 时值类型，1-全音符，0.5-二分音符，0.25-四分音符，0.125-八分音符，0.0625-十六分音符
+             */
+            constructor(note, octave = 0, duration = 0.25) {
+                this.note = note;
+                this.octave = octave;
+                this.duration = duration;
+                
+                // 验证参数
+                if (!['0', '1', '2', '3', '4', '5', '6', '7'].includes(note)) {
+                    throw new Error('音符值必须是 0,1,2,3,4,5,6,7 中的一个');
+                }
+                
+                if (![1, 0.5, 0.25, 0.125, 0.0625].includes(duration)) {
+                    throw new Error('时值类型必须是 1, 0.5, 0.25, 0.125, 0.0625 中的一个');
+                }
+                
+                if (![-1, 0, 1].includes(octave)) {
+                    throw new Error('八度类型必须是 -1, 0, 1 中的一个');
+                }
+            }
+            
+            /**
+             * 获取音符宽度
+             * @returns {number} 音符宽度
+             */
+            getWidth() {
+                // 根据时值计算宽度
+                switch (this.duration) {
+                    case 1: return 80;    // 全音符
+                    case 0.5: return 40;  // 二分音符
+                    case 0.25: return 20; // 四分音符
+                    case 0.125: return 20; // 八分音符
+                    case 0.0625: return 20; // 十六分音符
+                    default: return 20;
+                }
+            }
+            
+            /**
+             * 绘制音符
+             * @param {string} canvasId - canvas元素ID
+             * @param {number} x - 绘制x坐标
+             * @param {number} y - 绘制y坐标
+             */
+            render(canvasId, x, y) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    throw new Error(`找不到ID为 ${canvasId} 的canvas元素`);
+                }
+                
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    throw new Error('无法获取canvas 2D上下文');
+                }
+                
+                // 设置字体样式
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 绘制音符
+                if (this.note === '0') {
+                    // 绘制休止符
+                    this.drawRest(ctx, x, y);
+                } else {
+                    // 绘制音符
+                    this.drawNote(ctx, x, y);
+                }
+                
+                // 绘制时值线
+                this.drawDurationLines(ctx, x, y);
+                
+                // 绘制八度标记
+                this.drawOctaveMarks(ctx, x, y);
+                
+                return this.getWidth();
+            }
+            
+            /**
+             * 绘制音符
+             * @param {CanvasRenderingContext2D} ctx - canvas上下文
+             * @param {number} x - 绘制x坐标
+             * @param {number} y - 绘制y坐标
+             */
+            drawNote(ctx, x, y) {
+                ctx.fillStyle = '#000';
+                ctx.fillText(this.note, x, y);
+            }
+            
+            /**
+             * 绘制休止符
+             * @param {CanvasRenderingContext2D} ctx - canvas上下文
+             * @param {number} x - 绘制x坐标
+             * @param {number} y - 绘制y坐标
+             */
+            drawRest(ctx, x, y) {
+                ctx.fillStyle = '#000';
+                ctx.fillText(this.note, x, y);
+                
+                switch (this.duration) {
+                    case 1: // 全休止符 - 三个横杠，水平有间隙
+                        // 每个横杠的长度和间隙
+                        const dashLength = 12;
+                        const gapLength = 8;
+                        const totalWidth = 3 * dashLength + 2 * gapLength;
+                        const startX = x + 15;
+                        
+                        // 绘制三个横杠
+                        for (let i = 0; i < 3; i++) {
+                            const dashX = startX + i * (dashLength + gapLength);
+                            ctx.beginPath();
+                            ctx.moveTo(dashX, y);
+                            ctx.lineTo(dashX + dashLength, y);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 0.5: // 二分休止符
+                        ctx.fillRect(x - 8, y - 10, 16, 2);
+                        break;
+                    case 0.25: // 四分休止符
+                        ctx.beginPath();
+                        ctx.moveTo(x - 8, y);
+                        ctx.lineTo(x - 4, y - 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x + 4, y - 8);
+                        ctx.lineTo(x + 8, y);
+                        ctx.lineTo(x + 4, y + 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x - 4, y + 8);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 0.125: // 八分休止符
+                        ctx.beginPath();
+                        ctx.moveTo(x - 8, y);
+                        ctx.lineTo(x - 4, y - 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x + 4, y - 8);
+                        ctx.lineTo(x + 8, y);
+                        ctx.lineTo(x + 4, y + 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x - 4, y + 8);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.fillRect(x + 8, y - 4, 6, 8);
+                        break;
+                    case 0.0625: // 十六分休止符
+                        ctx.beginPath();
+                        ctx.moveTo(x - 8, y);
+                        ctx.lineTo(x - 4, y - 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x + 4, y - 8);
+                        ctx.lineTo(x + 8, y);
+                        ctx.lineTo(x + 4, y + 8);
+                        ctx.lineTo(x, y);
+                        ctx.lineTo(x - 4, y + 8);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.fillRect(x + 8, y - 4, 6, 8);
+                        ctx.fillRect(x + 16, y - 4, 6, 8);
+                        break;
+                }
+            }
+            
+            /**
+             * 绘制时值线
+             * @param {CanvasRenderingContext2D} ctx - canvas上下文
+             * @param {number} x - 绘制x坐标
+             * @param {number} y - 绘制y坐标
+             */
+            drawDurationLines(ctx, x, y) {
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1.5;
+                
+                switch (this.duration) {
+                    case 1: // 全音符 - 三个横杠，水平有间隙
+                        // 每个横杠的长度和间隙
+                        const dashLength = 12;
+                        const gapLength = 8;
+                        const totalWidth = 3 * dashLength + 2 * gapLength;
+                        const startX = x + 15;
+                        
+                        // 绘制三个横杠
+                        for (let i = 0; i < 3; i++) {
+                            const dashX = startX + i * (dashLength + gapLength);
+                            ctx.beginPath();
+                            ctx.moveTo(dashX, y);
+                            ctx.lineTo(dashX + dashLength, y);
+                            ctx.stroke();
+                        }
+                        break;
+                        
+                    case 0.5: // 二分音符 - 一条横线
+                        ctx.beginPath();
+                        ctx.moveTo(x + 15, y);
+                        ctx.lineTo(x + 35, y);
+                        ctx.stroke();
+                        break;
+                        
+                    case 0.125: // 八分音符 - 一条下横线
+                        ctx.beginPath();
+                        ctx.moveTo(x - 10, y + 10);
+                        ctx.lineTo(x + 10, y + 10);
+                        ctx.stroke();
+                        break;
+                        
+                    case 0.0625: // 十六分音符 - 两条下横线
+                        ctx.beginPath();
+                        ctx.moveTo(x - 10, y + 10);
+                        ctx.lineTo(x + 10, y + 10);
+                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x - 10, y + 15);
+                        ctx.lineTo(x + 10, y + 15);
+                        ctx.stroke();
+                        break;
+                }
+            }
+            
+            /**
+             * 绘制八度标记
+             * @param {CanvasRenderingContext2D} ctx - canvas上下文
+             * @param {number} x - 绘制x坐标
+             * @param {number} y - 绘制y坐标
+             */
+            drawOctaveMarks(ctx, x, y) {
+                if (this.note === '0') return; // 休止符没有八度标记
+                
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial'; // 增大字体大小
+                
+                if (this.octave === 1) {
+                    // 高八度 - 音符上方的点
+                    ctx.fillText('●', x, y - 15); // 使用实心圆点并调整位置
+                } else if (this.octave === -1) {
+                    // 低八度 - 音符下方的点
+                    ctx.fillText('●', x, y + 15); // 使用实心圆点并调整位置
+                }
+            }
+            
+            /**
+             * 静态方法：绘制五线谱背景
+             * @param {string} canvasId - canvas元素ID
+             * @param {number} y - 五线谱起始y坐标
+             * @param {number} width - 五线谱宽度
+             */
+            static drawStaff(canvasId, y = 50, width = 800) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    throw new Error(`找不到ID为 ${canvasId} 的canvas元素`);
+                }
+                
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    throw new Error('无法获取canvas 2D上下文');
+                }
+                
+                // 设置线的样式
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                
+                // 绘制五条线
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(20, y + i * 15);
+                    ctx.lineTo(width, y + i * 15);
+                    ctx.stroke();
+                }
+                
+                // 绘制小节线
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(20, y - 5);
+                    ctx.lineTo(20, y + 65);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(width, y - 5);
+                ctx.lineTo(width, y + 65);
+                ctx.stroke();
+                
+                return y + 80; // 返回下一行五线谱的起始位置
+            }
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() { 
+            const canvas = document.getElementById('id4Canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置canvas尺寸
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                
+                // 重新绘制内容
+                drawMusicNotes();
+            }
+            
+            // 绘制音乐音符示例
+            function drawMusicNotes() {
+                // 清除画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制五线谱背景
+                let currentY = 50;
+                currentY = CNote.drawStaff('id4Canvas', currentY, canvas.width - 40);
+                
+                // 创建不同类型的音符
+                const notes = [
+                    new CNote('1', 0, 1),     // 全音符 1 - - - 
+                    new CNote('0', 0, 1),     // 全音符休止 0 - - -
+                    new CNote('2', 1, 0.5),   // 二分音符 2 - （高八度）
+                    new CNote('3', 0, 0.25),  // 四分音符 3
+                    new CNote('4', 0, 0.125), // 八分音符 4（下有一横）
+                    new CNote('5', -1, 0.0625), // 十六分音符 5（下有两横，低八度）
+                    new CNote('0', 0, 0.25),  // 四分休止符
+                    new CNote('6', 0, 0.5),   // 二分音符 6 -
+                    new CNote('7', 1, 0.25),  // 四分音符 7（高八度）
+                    new CNote('1', 0, 0.125), // 八分音符 1（下有一横）
+                    new CNote('2', 0, 0.0625)  // 十六分音符 2（下有两横）
+                ];
+                
+                currentY += 40;
+
+                // 绘制音符
+                let x = 40;
+                const y = currentY; // 音符基线位置
+                
+                notes.forEach(note => {
+                    const width = note.render('id4Canvas', x, y);
+                    x += width + 10; // 增加间距
+                });
+                
+                // 绘制第二行五线谱
+                currentY = CNote.drawStaff('id4Canvas', currentY + 40, canvas.width - 40);
+                
+                // 创建更多音符组合示例
+                const moreNotes = [
+                    new CNote('1', 0, 0.25),
+                    new CNote('2', 0, 0.25),
+                    new CNote('3', 0, 0.25),
+                    new CNote('4', 0, 0.25),
+                    new CNote('5', 0, 0.5),
+                    new CNote('3', 0, 0.5),
+                    new CNote('5', 0, 1),
+                    new CNote('0', 0, 0.5),
+                    new CNote('6', 0, 0.25),
+                    new CNote('7', 0, 0.25),
+                    new CNote('1', 1, 0.5),
+                    new CNote('6', 0, 0.5),
+                    new CNote('1', 1, 1)
+                ];
+                
+                // 绘制更多音符
+                x = 40;
+                moreNotes.forEach(note => {
+                    const width = note.render('id4Canvas', x, currentY + 30);
+                    x += width + 10; // 增加间距
+                });
+            }
+            
+            // 初始调整canvas尺寸
+            resizeCanvas();
+            
+            // 窗口大小改变时重新调整canvas尺寸
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 添加按钮事件
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                location.reload();
+            });
+            
+            document.getElementById('settingsBtn').addEventListener('click', function() {
+                alert('设置功能将在后续版本中实现');
+            });
+            
+            document.getElementById('helpBtn').addEventListener('click', function() {
+                alert('CNote v0.15\n\n功能：\n- 绘制音乐简谱音符\n- 支持全音符、二分音符、四分音符、八分音符、十六分音符和休止符\n- 自动绘制五线谱背景\n- 支持高八度和低八度标记\n\n更新：\n- 修复全音符休止符绘制问题，现在横杠有适当的间隙\n- 增大高八度和低八度标记的点');
+            });
+            
+            // 初始状态更新
+            document.getElementById('loadStatus').textContent = '简谱绘制已初始化 (v0.15)';
+        });
+    </script>
+</body>
+</html>
+<!--
+升级，版本为v0.15
+1. new CNote('0', 0, 1),     // 全音符休止 0 - - -, 画的不对，应该是 0 - - -， 三个横杠 水平有间隙 在音符后铺开
+2. 高八度 上面的点再大一点
+-->
