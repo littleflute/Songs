@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>响应式画布网页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-title {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .toolbar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .toolbar-button {
+            background-color: #3a5a8f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .toolbar-button:hover {
+            background-color: #2d4a7f;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .status-bar {
+            background-color: #333;
+            color: white;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-icon {
+            margin-right: 5px;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .toolbar {
+                padding: 8px;
+            }
+            
+            .toolbar-title {
+                font-size: 14px;
+            }
+            
+            .toolbar-button {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            .status-bar {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <span class="toolbar-title">画布应用</span>
+        <div class="toolbar-buttons">
+            <button class="toolbar-button" id="refreshBtn">刷新</button>
+            <button class="toolbar-button" id="settingsBtn">设置</button>
+            <button class="toolbar-button" id="helpBtn">帮助</button>
+        </div>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="treeCanvas"></canvas>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-icon">⏳</span>
+            <span id="loadStatus">页面已加载</span>
+        </div>
+        <div class="status-item">
+            <span class="status-icon">🕒</span>
+            <span id="currentTime"></span>
+        </div>
+    </div>
+
+    <script>
+        // 更新当前时间
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // 初始化时间显示并每秒更新
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // 绘制树木
+        function drawTree() {
+            const canvas = document.getElementById('treeCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置画布尺寸为容器大小
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                
+                // 重新绘制
+                renderTree();
+            }
+            
+            // 绘制树木函数
+            function renderTree() {
+                const width = canvas.width;
+                const height = canvas.height;
+                const groundLevel = height * 0.8;
+                const treeBaseX = width / 2;
+                const treeBaseY = groundLevel;
+                
+                // 清除画布
+                ctx.clearRect(0, 0, width, height);
+                
+                // 绘制天空背景
+                const skyGradient = ctx.createLinearGradient(0, 0, 0, groundLevel);
+                skyGradient.addColorStop(0, '#87CEEB');
+                skyGradient.addColorStop(1, '#E0F7FA');
+                ctx.fillStyle = skyGradient;
+                ctx.fillRect(0, 0, width, groundLevel);
+                
+                // 绘制地面
+                ctx.fillStyle = '#8BC34A';
+                ctx.fillRect(0, groundLevel, width, height - groundLevel);
+                
+                // 绘制树干
+                ctx.fillStyle = '#5D4037';
+                ctx.beginPath();
+                ctx.moveTo(treeBaseX - 15, treeBaseY);
+                ctx.lineTo(treeBaseX + 15, treeBaseY);
+                ctx.lineTo(treeBaseX + 10, treeBaseY - 150);
+                ctx.lineTo(treeBaseX - 10, treeBaseY - 150);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 绘制树冠
+                const leafColors = ['#81C784', '#66BB6A', '#4CAF50', '#388E3C'];
+                
+                // 主树冠
+                drawLeafCluster(treeBaseX, treeBaseY - 180, 100, 120, 50);
+                
+                // 辅助小树冠
+                drawLeafCluster(treeBaseX - 40, treeBaseY - 150, 60, 80, 30);
+                drawLeafCluster(treeBaseX + 40, treeBaseY - 150, 60, 80, 30);
+                
+                function drawLeafCluster(x, y, width, height, density) {
+                    for (let i = 0; i < density; i++) {
+                        const leafX = x + (Math.random() - 0.5) * width;
+                        const leafY = y + (Math.random() - 0.5) * height;
+                        const leafSize = 5 + Math.random() * 15;
+                        const leafColor = leafColors[Math.floor(Math.random() * leafColors.length)];
+                        
+                        ctx.fillStyle = leafColor;
+                        ctx.beginPath();
+                        ctx.arc(leafX, leafY, leafSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            // 初始调整大小和绘制
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 添加按钮事件
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                document.getElementById('loadStatus').textContent = '刷新中...';
+                setTimeout(() => {
+                    renderTree();
+                    document.getElementById('loadStatus').textContent = '已刷新';
+                }, 500);
+            });
+            
+            document.getElementById('settingsBtn').addEventListener('click', function() {
+                alert('设置功能将在未来版本中添加');
+            });
+            
+            document.getElementById('helpBtn').addEventListener('click', function() {
+                alert('这是一个展示树木的响应式画布页面。使用刷新按钮可以重新绘制树木。');
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            drawTree();
+        });
+    </script>
+</body>
+</html>
