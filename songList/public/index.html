@@ -3,12 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>歌单生成器 v1.11 - 支持拖拽排序与高清导出</title>
+  <title>歌单生成器 v1.14 - 支持拖拽排序与高清导出</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
-  <script src="sample1.js">
-    </script>
+  <script>
+    // 示例数据函数
+    const oSamples = {
+      sample1: function() {
+        return {
+          title: "经典老歌精选",
+          princeInfo: "50元1首，120元3首",
+          songs: [
+            "海阔天空 - Beyond",
+            "同桌的你 - 老狼",
+            "大约在冬季 - 齐秦",
+            "红豆 - 王菲",
+            "青花瓷 - 周杰伦",
+            "光辉岁月 - Beyond",
+            "稻香 - 周杰伦",
+            "小幸运 - 田馥甄",
+            "后来 - 刘若英",
+            "十年 - 陈奕迅",
+            "青春修炼手册 - TFBOYS",
+            "夜空中最亮的星 - 逃跑计划",
+            "平凡之路 - 朴树",
+            "起风了 - 买辣椒也用券",
+            "光年之外 - G.E.M.邓紫棋"
+          ]
+        };
+      }
+    };
+  </script>
 
   <script>
     tailwind.config = {
@@ -33,6 +59,7 @@
             bg8: '#dbeafe', // 浅蓝色
             bg9: '#fae8ff', // 浅粉色
             bg10: '#ecfdf5', // 浅绿色
+            bg11: '#ff0000', // 红色
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -153,6 +180,18 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 8px -1px rgba(245, 158, 11, 0.3);
       }
+      /* 确保所有背景颜色类都有定义 */
+      .bg-bg1 { background-color: theme('colors.bg1'); }
+      .bg-bg2 { background-color: theme('colors.bg2'); }
+      .bg-bg3 { background-color: theme('colors.bg3'); }
+      .bg-bg4 { background-color: theme('colors.bg4'); }
+      .bg-bg5 { background-color: theme('colors.bg5'); }
+      .bg-bg6 { background-color: theme('colors.bg6'); }
+      .bg-bg7 { background-color: theme('colors.bg7'); }
+      .bg-bg8 { background-color: theme('colors.bg8'); }
+      .bg-bg9 { background-color: theme('colors.bg9'); }
+      .bg-bg10 { background-color: theme('colors.bg10'); }
+      .bg-bg11 { background-color: theme('colors.bg11'); }
     }
   </style>
 </head>
@@ -161,7 +200,7 @@
     <header class="mb-8 text-center slide-in">
       <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-neutral mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">🎵 歌单生成器</h1>
       <p class="text-gray-600">创建、编辑并可视化你的专属歌单</p>
-      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.11 | 支持更多背景颜色与顶部价格展示</p>
+      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.14 | 支持图片上传与更多自定义选项</p>
     </header>
 
     <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
@@ -284,6 +323,55 @@
               <div class="bg-color-option bg-bg8" data-color="#dbeafe" title="浅蓝色"></div>
               <div class="bg-color-option bg-bg9" data-color="#fae8ff" title="浅粉色"></div>
               <div class="bg-color-option bg-bg10" data-color="#ecfdf5" title="浅绿色"></div>
+              <div class="bg-color-option bg-bg11" data-color="#ff0000" title="红色"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 新增：图片上传设置 -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+            <i class="fa fa-image mr-2 text-secondary"></i> 图片设置
+          </h4>
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+              <label class="block text-sm text-gray-700 mb-2">上传图片:</label>
+              <div class="flex items-center">
+                <input type="file" id="uploadImage" accept="image/*" class="hidden">
+                <button id="uploadImageBtn" class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+                  <i class="fa fa-upload mr-2"></i> 选择图片
+                </button>
+                <button id="removeImageBtn" class="ml-2 px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center">
+                  <i class="fa fa-trash mr-2"></i> 移除图片
+                </button>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">支持JPG、PNG格式，建议尺寸不超过800x800像素</p>
+            </div>
+            <div class="flex-1">
+              <label for="imagePosition" class="block text-sm text-gray-700 mb-2">图片位置:</label>
+              <select id="imagePosition" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                <option value="top-left">左上角</option>
+                <option value="top-right">右上角</option>
+                <option value="bottom-left">左下角</option>
+                <option value="bottom-right" selected>右下角</option>
+                <option value="center">居中</option>
+                <option value="background">背景</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label for="imageSize" class="block text-sm text-gray-700 mb-2">图片大小:</label>
+              <input type="range" id="imageSize" min="10" max="100" value="50" class="w-full accent-primary">
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>小</span>
+                <span id="imageSizeValue">50%</span>
+                <span>大</span>
+              </div>
+            </div>
+          </div>
+          <div id="imagePreview" class="mt-4 hidden">
+            <p class="text-sm text-gray-700 mb-2">图片预览:</p>
+            <div class="border border-gray-300 rounded-lg p-3 bg-white">
+              <img id="previewImg" class="max-w-full max-h-32 mx-auto" src="" alt="预览图片">
             </div>
           </div>
         </div>
@@ -405,6 +493,20 @@
       const bgColorOptions = document.getElementById('bgColorOptions');
       let selectedBgColor = '#f8fafc'; // 默认背景色
       
+      // 新增：图片相关元素
+      const uploadImage = document.getElementById('uploadImage');
+      const uploadImageBtn = document.getElementById('uploadImageBtn');
+      const removeImageBtn = document.getElementById('removeImageBtn');
+      const imagePosition = document.getElementById('imagePosition');
+      const imageSizeSlider = document.getElementById('imageSize');
+      const imageSizeValue = document.getElementById('imageSizeValue');
+      const imagePreview = document.getElementById('imagePreview');
+      const previewImg = document.getElementById('previewImg');
+      
+      // 图片数据
+      let uploadedImage = null;
+      let imageDataUrl = null;
+      
       // 设置Canvas尺寸为A4比例
       const canvasWidth = 595;
       const canvasHeight = 842;
@@ -495,6 +597,56 @@
           selectedBgColor = colorOption.getAttribute('data-color');
           showHint(`已选择${colorOption.title}背景`);
         }
+      });
+      
+      // 新增：图片上传相关事件
+      uploadImageBtn.addEventListener('click', function() {
+        uploadImage.click();
+      });
+      
+      uploadImage.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // 检查文件类型
+        if (!file.type.match('image.*')) {
+          showHint('请选择图片文件', true);
+          return;
+        }
+        
+        // 检查文件大小（限制为5MB）
+        if (file.size > 5 * 1024 * 1024) {
+          showHint('图片大小不能超过5MB', true);
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          imageDataUrl = event.target.result;
+          previewImg.src = imageDataUrl;
+          imagePreview.classList.remove('hidden');
+          
+          // 创建图片对象
+          uploadedImage = new Image();
+          uploadedImage.onload = function() {
+            showHint('图片上传成功！');
+          };
+          uploadedImage.src = imageDataUrl;
+        };
+        reader.readAsDataURL(file);
+      });
+      
+      removeImageBtn.addEventListener('click', function() {
+        uploadedImage = null;
+        imageDataUrl = null;
+        imagePreview.classList.add('hidden');
+        uploadImage.value = '';
+        showHint('已移除图片');
+      });
+      
+      // 监听图片大小滑块变化
+      imageSizeSlider.addEventListener('input', function() {
+        imageSizeValue.textContent = `${this.value}%`;
       });
       
       // 更新歌曲计数
@@ -678,6 +830,10 @@
         } else if (bgColor === '#ecfdf5') {
           gradient.addColorStop(0, '#ecfdf5');
           gradient.addColorStop(1, '#d1fae5');
+        } else if (bgColor === '#ff0000') {
+          // 红色背景的渐变
+          gradient.addColorStop(0, '#ff0000');
+          gradient.addColorStop(1, '#dc2626');
         }
         
         ctx.fillStyle = gradient;
@@ -767,6 +923,78 @@
         strInfo += ""
         currentY += 15;
         ctx.fillText(strInfo, canvasWidth / 2, currentY);
+        
+        // 新增：绘制上传的图片
+        if (uploadedImage) {
+          drawImageOnCanvas();
+        }
+      }
+      
+      // 新增：在画布上绘制图片
+      function drawImageOnCanvas() {
+        if (!uploadedImage) return;
+        
+        const position = imagePosition.value;
+        const sizePercentage = parseInt(imageSizeSlider.value) / 100;
+        
+        // 计算图片尺寸
+        const maxWidth = canvasWidth * 0.3 * sizePercentage;
+        const maxHeight = canvasHeight * 0.3 * sizePercentage;
+        
+        // 计算宽高比
+        let width = uploadedImage.width;
+        let height = uploadedImage.height;
+        
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+        
+        // 计算位置
+        let x, y;
+        
+        switch(position) {
+          case 'top-left':
+            x = 20;
+            y = 20;
+            break;
+          case 'top-right':
+            x = canvasWidth - width - 20;
+            y = 20;
+            break;
+          case 'bottom-left':
+            x = 20;
+            y = canvasHeight - height - 20;
+            break;
+          case 'bottom-right':
+            x = canvasWidth - width - 20;
+            y = canvasHeight - height - 20;
+            break;
+          case 'center':
+            x = (canvasWidth - width) / 2;
+            y = (canvasHeight - height) / 2;
+            break;
+          case 'background':
+            // 作为背景图片，覆盖整个画布
+            x = 0;
+            y = 0;
+            width = canvasWidth;
+            height = canvasHeight;
+            // 设置透明度
+            ctx.globalAlpha = 0.2;
+            break;
+        }
+        
+        // 绘制图片
+        ctx.drawImage(uploadedImage, x, y, width, height);
+        
+        // 重置透明度
+        ctx.globalAlpha = 1.0;
       }
       
       // 绘制装饰元素
@@ -919,6 +1147,10 @@
         } else if (bgColor === '#ecfdf5') {
           gradient.addColorStop(0, '#ecfdf5');
           gradient.addColorStop(1, '#d1fae5');
+        } else if (bgColor === '#ff0000') {
+          // 红色背景的渐变
+          gradient.addColorStop(0, '#ff0000');
+          gradient.addColorStop(1, '#dc2626');
         }
         
         ctx.fillStyle = gradient;
@@ -1008,6 +1240,78 @@
         strInfo += ""
         currentY += 15 * scale;
         ctx.fillText(strInfo, width / 2, currentY);
+        
+        // 新增：绘制上传的图片
+        if (uploadedImage) {
+          drawHdImageOnCanvas(ctx, width, height, scale);
+        }
+      }
+      
+      // 新增：在高清Canvas上绘制图片
+      function drawHdImageOnCanvas(ctx, width, height, scale) {
+        if (!uploadedImage) return;
+        
+        const position = imagePosition.value;
+        const sizePercentage = parseInt(imageSizeSlider.value) / 100;
+        
+        // 计算图片尺寸
+        const maxWidth = width * 0.3 * sizePercentage;
+        const maxHeight = height * 0.3 * sizePercentage;
+        
+        // 计算宽高比
+        let imgWidth = uploadedImage.width;
+        let imgHeight = uploadedImage.height;
+        
+        if (imgWidth > maxWidth) {
+          imgHeight = (maxWidth / imgWidth) * imgHeight;
+          imgWidth = maxWidth;
+        }
+        
+        if (imgHeight > maxHeight) {
+          imgWidth = (maxHeight / imgHeight) * imgWidth;
+          imgHeight = maxHeight;
+        }
+        
+        // 计算位置
+        let x, y;
+        
+        switch(position) {
+          case 'top-left':
+            x = 20 * scale;
+            y = 20 * scale;
+            break;
+          case 'top-right':
+            x = width - imgWidth - 20 * scale;
+            y = 20 * scale;
+            break;
+          case 'bottom-left':
+            x = 20 * scale;
+            y = height - imgHeight - 20 * scale;
+            break;
+          case 'bottom-right':
+            x = width - imgWidth - 20 * scale;
+            y = height - imgHeight - 20 * scale;
+            break;
+          case 'center':
+            x = (width - imgWidth) / 2;
+            y = (height - imgHeight) / 2;
+            break;
+          case 'background':
+            // 作为背景图片，覆盖整个画布
+            x = 0;
+            y = 0;
+            imgWidth = width;
+            imgHeight = height;
+            // 设置透明度
+            ctx.globalAlpha = 0.2;
+            break;
+        }
+        
+        // 绘制图片
+        ctx.drawImage(uploadedImage, x, y, imgWidth, imgHeight);
+        
+        // 重置透明度
+        ctx.globalAlpha = 1.0;
       }
       
       // 在高清Canvas上绘制装饰元素
@@ -1097,6 +1401,11 @@
             bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
+          image: {
+            dataUrl: imageDataUrl,
+            position: imagePosition.value,
+            size: parseInt(imageSizeSlider.value)
+          },
           createdAt: new Date().toISOString()
         };
         
@@ -1177,6 +1486,35 @@
                 showDateCheckbox.checked = true;
               }
               
+              // 加载图片设置
+              if (playlistData.image && playlistData.image.dataUrl) {
+                imageDataUrl = playlistData.image.dataUrl;
+                previewImg.src = imageDataUrl;
+                imagePreview.classList.remove('hidden');
+                
+                // 创建图片对象
+                uploadedImage = new Image();
+                uploadedImage.onload = function() {
+                  // 设置图片位置和大小
+                  if (playlistData.image.position) {
+                    imagePosition.value = playlistData.image.position;
+                  }
+                  if (playlistData.image.size) {
+                    imageSizeSlider.value = playlistData.image.size;
+                    imageSizeValue.textContent = `${playlistData.image.size}%`;
+                  }
+                  showHint('歌单已成功加载!');
+                };
+                uploadedImage.src = imageDataUrl;
+              } else {
+                // 没有图片数据，重置图片设置
+                uploadedImage = null;
+                imageDataUrl = null;
+                imagePreview.classList.add('hidden');
+                uploadImage.value = '';
+                showHint('歌单已成功加载!');
+              }
+              
               // 添加歌曲
               if (playlistData.songs && Array.isArray(playlistData.songs)) {
                 playlistData.songs.forEach(song => {
@@ -1184,8 +1522,6 @@
                   const inputs = songList.querySelectorAll('input');
                   inputs[inputs.length - 1].value = song;
                 });
-                
-                showHint('歌单已成功加载!');
               }
             } catch (error) {
               console.error('解析JSON失败:', error);
@@ -1230,6 +1566,12 @@
             selectedBgColor = '#f8fafc';
           }
         });
+        
+        // 重置图片设置
+        uploadedImage = null;
+        imageDataUrl = null;
+        imagePreview.classList.add('hidden');
+        uploadImage.value = '';
         
         const sampleSongs = sl1.songs;
         
@@ -1451,6 +1793,11 @@
             bgColor: selectedBgColor
           },
           priceInfo,
+          image: {
+            dataUrl: imageDataUrl,
+            position: imagePosition.value,
+            size: parseInt(imageSizeSlider.value)
+          },
           createdAt: new Date().toISOString()
         };
         
@@ -1485,6 +1832,11 @@
             bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
+          image: {
+            dataUrl: imageDataUrl,
+            position: imagePosition.value,
+            size: parseInt(imageSizeSlider.value)
+          },
           createdAt: new Date().toISOString()
         };
         
@@ -1637,11 +1989,8 @@
   </script>
 </body>
 </html>
-
-
 <!--
-升级到 v1.12 
-歌单背景颜色,增加更多选项（多色系）
-priceInfo 放在顶部，让它更鲜艳
-return all new code
+升级 v1.15
+  可以添加2图片到画布上
+
 -->
