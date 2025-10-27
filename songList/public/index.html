@@ -3,35 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>歌单生成器 v1.14 - 支持拖拽排序与高清导出</title>
+  <title>歌单生成器 v1.15 - 支持拖拽排序与高清导出</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
   <script>
     // 示例数据函数
     const oSamples = {
-      sample1: function() {
-        return {
-          title: "经典老歌精选",
-          princeInfo: "50元1首，120元3首",
+      
+        getSample: function(i){
+        const s = [
+          {
+          title: "小笛歌单v0.61",
+          princeInfo: "60元1首，100元2首",
+          hasCount: false,
+          hasDate: false,
           songs: [
-            "海阔天空 - Beyond",
-            "同桌的你 - 老狼",
-            "大约在冬季 - 齐秦",
-            "红豆 - 王菲",
-            "青花瓷 - 周杰伦",
-            "光辉岁月 - Beyond",
-            "稻香 - 周杰伦",
-            "小幸运 - 田馥甄",
-            "后来 - 刘若英",
-            "十年 - 陈奕迅",
-            "青春修炼手册 - TFBOYS",
-            "夜空中最亮的星 - 逃跑计划",
-            "平凡之路 - 朴树",
-            "起风了 - 买辣椒也用券",
-            "光年之外 - G.E.M.邓紫棋"
+            "背着风流泪-文夫", 
+            "天地龙鳞-王力宏", 
+            "我只在乎你-邓丽君",   
+            "恰似你的温柔-邓丽君", 
+            "后来-刘若英",  
+            "再见-张震岳",  
+            "启程-水木年华",  
+            "在他乡-水木年华",  
+            "萍聚-李翊君",  
+            "回家-王杰",  
+            "忘了你忘了我-王杰",  
+            "安妮-王杰",  
+            "英雄泪-王杰",  
+            "明月夜-张国荣",  
+            "千千阙歌-张国荣", 
+            "伤心太平洋-任贤齐",  
+            "兄弟-任贤齐",   
+            "兄弟抱一下-庞龙",  
+            "朋友的酒-庞龙",  
+            "亲亲的我的宝贝-周华健",
+            "风雨无阻-周华健",
+            "吻别-张学友",
+            "驿动的心-姜育恒",
+            "光阴的故事-罗大佑",
+            "童年-罗大佑",
+            "恋曲1990-罗大佑",
+            "失恋阵线联盟-草蜢",
+            "关于学院路 - 原创",
+            "唱自己的歌，走自己的路-原创",
+            "南方雨季-原创",
+            "彩色的梦-原创",
+            "程序员之歌-原创",
+            "辞职之歌-原创",
+            "近视歌手-原创",
+            "请你放心地走-原创",
+            "城市的夜晚-原创",
+            "我的故乡在南方-原创",
+            "我是一只小小鸟-赵传",
+            "张三的歌",
+            "真心英雄-李宗盛",
+            "El Condor Pasa-英文",
+            "The Sound Of Silence-英文",
+            "500 miles-英文",
+            "Yellow Submarine - 英文",
+            "Yesterday Once More-英文",
+            "I Don't  Like To Sleep Alone-英文",
+            "蜗牛与黄鹂鸟-儿歌",
+            "让我们荡起双桨-儿歌", 
+            "春天里-汪峰",
+            "我想有个家-潘美辰",
+            "睡在我上铺的兄弟-老狼",
+            "同桌的你-老狼", 
+            "爱-小虎队",
+            "水手-郑智化",
+            "星星点灯-郑智化",
+            "游戏人间-郑智化",
+            "朋友别哭-吕方",
+            "站台",
+            "路灯下的小姑娘", 
+            "祝你一路顺风-吴奇隆"
           ]
-        };
+        },
+      {
+        
+          title: "0号漂泊者小笛-唱游中国-热门歌单",
+          princeInfo: "60元1首，100元2首",
+          hasCount: false,
+          hasDate: true,
+          songs: [ 
+            "搀扶-马建涛",
+            "大约在冬季-齐秦", 
+            "朋友-周华健",
+            "与你到永久-伍佰",
+            "突然的自我-伍佰", 
+            "如果再回到从前-张镐哲",
+            "成都-赵雷",
+            "再回首-姜育恒",
+            "西海情歌-刀郎",
+            "海阔天空-Beyond",
+            "真的爱你-Beyond",
+            "光辉岁月-Beyond",
+            "安河桥-宋冬野", 
+      
+            "凡人歌-李宗盛",
+            "鬼迷心窍-李宗盛",
+      
+            "十年-陈奕迅",
+            "我的好兄弟-高进",
+            "老男孩-筷子兄弟",
+            "故乡-许巍",
+            "蓝莲花-许巍",  
+      
+    ]
+
+      }];
+        return s[i];
       }
     };
   </script>
@@ -192,6 +275,77 @@
       .bg-bg9 { background-color: theme('colors.bg9'); }
       .bg-bg10 { background-color: theme('colors.bg10'); }
       .bg-bg11 { background-color: theme('colors.bg11'); }
+      /* 图片对比和调整样式 */
+      .image-comparison {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        border-radius: 8px;
+        margin-top: 1rem;
+      }
+      .image-comparison .before,
+      .image-comparison .after {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .image-comparison .before {
+        left: 0;
+        width: 50%;
+        z-index: 1;
+      }
+      .image-comparison .after {
+        right: 0;
+      }
+      .image-comparison img {
+        width: 200%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .image-comparison .before img {
+        object-position: left;
+      }
+      .image-comparison .after img {
+        object-position: right;
+      }
+      .image-comparison .slider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 4px;
+        background: white;
+        transform: translateX(-50%);
+        z-index: 3;
+        cursor: ew-resize;
+      }
+      .image-comparison .slider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        z-index: 4;
+      }
+      .image-comparison .slider::after {
+        content: '⟷';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #4F46E5;
+        font-size: 20px;
+        font-weight: bold;
+        z-index: 5;
+      }
     }
   </style>
 </head>
@@ -200,7 +354,7 @@
     <header class="mb-8 text-center slide-in">
       <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-neutral mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">🎵 歌单生成器</h1>
       <p class="text-gray-600">创建、编辑并可视化你的专属歌单</p>
-      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.14 | 支持图片上传与更多自定义选项</p>
+      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.15 | 支持双图片上传与更多自定义选项</p>
     </header>
 
     <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
@@ -231,7 +385,7 @@
           id="playlistName" 
           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all"  
           placeholder="请输入歌单名称"
-          value="我的最爱歌单"
+          value="0号漂泊者小笛-唱游中国-热门歌单"
         >
       </div>
 
@@ -278,10 +432,17 @@
             <i class="fa fa-upload mr-2"></i> 从JSON导入
           </button>
           <button 
-            id="sampleDataBtn" 
+            id="sampleDataBtn1" 
             class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
           >
-            <i class="fa fa-magic mr-2"></i> 加载示例
+            <i class="fa fa-magic mr-2"></i> list1
+          </button>
+          
+          <button 
+            id="sampleDataBtn2" 
+            class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
+          >
+            <i class="fa fa-magic mr-2"></i> list2
           </button>
           <button 
             id="clearBtn" 
@@ -333,45 +494,159 @@
           <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
             <i class="fa fa-image mr-2 text-secondary"></i> 图片设置
           </h4>
-          <div class="flex flex-col md:flex-row gap-4">
-            <div class="flex-1">
-              <label class="block text-sm text-gray-700 mb-2">上传图片:</label>
-              <div class="flex items-center">
-                <input type="file" id="uploadImage" accept="image/*" class="hidden">
-                <button id="uploadImageBtn" class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
-                  <i class="fa fa-upload mr-2"></i> 选择图片
-                </button>
-                <button id="removeImageBtn" class="ml-2 px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center">
-                  <i class="fa fa-trash mr-2"></i> 移除图片
-                </button>
+          
+          <!-- 第一张图片设置 -->
+          <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+            <h5 class="text-xs font-medium text-gray-500 mb-3">图片 1 (主图)</h5>
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <input type="file" id="uploadImage1" accept="image/*" class="hidden">
+                  <button id="uploadImageBtn1" class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors flex items-center">
+                    <i class="fa fa-upload mr-2"></i> 选择图片
+                  </button>
+                  <button id="removeImageBtn1" class="ml-2 px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center">
+                    <i class="fa fa-trash mr-2"></i> 移除图片
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">支持JPG、PNG格式，建议尺寸不超过800x800像素</p>
               </div>
-              <p class="text-xs text-gray-500 mt-2">支持JPG、PNG格式，建议尺寸不超过800x800像素</p>
+              <div class="flex-1">
+                <label for="imagePosition1" class="block text-sm text-gray-700 mb-2">图片位置:</label>
+                <select id="imagePosition1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                  <option value="top-left">左上角</option>
+                  <option value="top-right">右上角</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="bottom-right" selected>右下角</option>
+                  <option value="center">居中</option>
+                  <option value="background">背景</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label for="imageSize1" class="block text-sm text-gray-700 mb-2">图片大小:</label>
+                <input type="range" id="imageSize1" min="10" max="100" value="50" class="w-full accent-primary">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>小</span>
+                  <span id="imageSizeValue1">50%</span>
+                  <span>大</span>
+                </div>
+              </div>
             </div>
-            <div class="flex-1">
-              <label for="imagePosition" class="block text-sm text-gray-700 mb-2">图片位置:</label>
-              <select id="imagePosition" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all">
-                <option value="top-left">左上角</option>
-                <option value="top-right">右上角</option>
-                <option value="bottom-left">左下角</option>
-                <option value="bottom-right" selected>右下角</option>
-                <option value="center">居中</option>
-                <option value="background">背景</option>
-              </select>
-            </div>
-            <div class="flex-1">
-              <label for="imageSize" class="block text-sm text-gray-700 mb-2">图片大小:</label>
-              <input type="range" id="imageSize" min="10" max="100" value="50" class="w-full accent-primary">
-              <div class="flex justify-between text-xs text-gray-500 mt-1">
-                <span>小</span>
-                <span id="imageSizeValue">50%</span>
-                <span>大</span>
+            <div id="imagePreview1" class="mt-4 hidden">
+              <p class="text-sm text-gray-700 mb-2">图片预览:</p>
+              <div class="border border-gray-300 rounded-lg p-3 bg-white">
+                <img id="previewImg1" class="max-w-full max-h-32 mx-auto" src="" alt="预览图片1">
               </div>
             </div>
           </div>
-          <div id="imagePreview" class="mt-4 hidden">
-            <p class="text-sm text-gray-700 mb-2">图片预览:</p>
-            <div class="border border-gray-300 rounded-lg p-3 bg-white">
-              <img id="previewImg" class="max-w-full max-h-32 mx-auto" src="" alt="预览图片">
+          
+          <!-- 第二张图片设置 -->
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h5 class="text-xs font-medium text-gray-500 mb-3">图片 2 (副图)</h5>
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <input type="file" id="uploadImage2" accept="image/*" class="hidden">
+                  <button id="uploadImageBtn2" class="px-4 py-2 bg-secondary/10 text-secondary rounded-lg hover:bg-secondary/20 transition-colors flex items-center">
+                    <i class="fa fa-upload mr-2"></i> 选择图片
+                  </button>
+                  <button id="removeImageBtn2" class="ml-2 px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors flex items-center">
+                    <i class="fa fa-trash mr-2"></i> 移除图片
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">支持JPG、PNG格式，建议尺寸不超过800x800像素</p>
+              </div>
+              <div class="flex-1">
+                <label for="imagePosition2" class="block text-sm text-gray-700 mb-2">图片位置:</label>
+                <select id="imagePosition2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary transition-all">
+                  <option value="top-left" selected>左上角</option>
+                  <option value="top-right">右上角</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="bottom-right">右下角</option>
+                  <option value="center">居中</option>
+                  <option value="background">背景</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label for="imageSize2" class="block text-sm text-gray-700 mb-2">图片大小:</label>
+                <input type="range" id="imageSize2" min="10" max="100" value="30" class="w-full accent-secondary">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>小</span>
+                  <span id="imageSizeValue2">30%</span>
+                  <span>大</span>
+                </div>
+              </div>
+            </div>
+            <div id="imagePreview2" class="mt-4 hidden">
+              <p class="text-sm text-gray-700 mb-2">图片预览:</p>
+              <div class="border border-gray-300 rounded-lg p-3 bg-white">
+                <img id="previewImg2" class="max-w-full max-h-32 mx-auto" src="" alt="预览图片2">
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图片透明度设置 -->
+          <div class="mt-4">
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="flex-1">
+                <label for="imageOpacity1" class="block text-sm text-gray-700 mb-2">图片1透明度:</label>
+                <input type="range" id="imageOpacity1" min="10" max="100" value="100" class="w-full accent-primary">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>透明</span>
+                  <span id="imageOpacityValue1">100%</span>
+                  <span>不透明</span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <label for="imageOpacity2" class="block text-sm text-gray-700 mb-2">图片2透明度:</label>
+                <input type="range" id="imageOpacity2" min="10" max="100" value="80" class="w-full accent-secondary">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>透明</span>
+                  <span id="imageOpacityValue2">80%</span>
+                  <span>不透明</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图片叠加顺序设置 -->
+          <div class="mt-4">
+            <label class="block text-sm text-gray-700 mb-2">图片叠加顺序:</label>
+            <div class="flex items-center">
+              <button id="swapImagesBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+                <i class="fa fa-exchange mr-2"></i> 交换图片顺序
+              </button>
+              <div class="ml-4 flex items-center">
+                <span class="text-sm text-gray-600 mr-2">当前顺序:</span>
+                <div class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200">
+                  <span class="inline-block w-3 h-3 rounded-full bg-primary mr-2"></span>
+                  <span class="text-sm mr-3">图片1</span>
+                  <i class="fa fa-arrow-right text-gray-400 mr-3"></i>
+                  <span class="inline-block w-3 h-3 rounded-full bg-secondary mr-2"></span>
+                  <span class="text-sm">图片2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图片对比预览 -->
+          <div class="mt-6">
+            <h5 class="text-sm font-medium text-gray-700 mb-2">图片对比预览:</h5>
+            <div id="imageComparisonContainer" class="hidden">
+              <div class="image-comparison">
+                <div class="before">
+                  <img id="comparisonBefore" src="" alt="对比前">
+                </div>
+                <div class="after">
+                  <img id="comparisonAfter" src="" alt="对比后">
+                </div>
+                <div class="slider"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2 text-center">拖动滑块查看图片叠加效果</p>
+            </div>
+            <div id="noImagesSelected" class="text-center py-4 text-gray-500">
+              <i class="fa fa-picture-o text-2xl mb-2"></i>
+              <p>请上传两张图片以查看对比效果</p>
             </div>
           </div>
         </div>
@@ -472,7 +747,8 @@
       const playlistNameInput = document.getElementById('playlistName');
       const saveJsonBtn = document.getElementById('saveJsonBtn');
       const loadJsonBtn = document.getElementById('loadJsonBtn');
-      const sampleDataBtn = document.getElementById('sampleDataBtn');
+      const sampleDataBtn1 = document.getElementById('sampleDataBtn1');
+      const sampleDataBtn2 = document.getElementById('sampleDataBtn2');
       const printBtn = document.getElementById('printBtn');
       const hint = document.getElementById('hint');
       const clearBtn = document.getElementById('clearBtn');
@@ -493,19 +769,56 @@
       const bgColorOptions = document.getElementById('bgColorOptions');
       let selectedBgColor = '#f8fafc'; // 默认背景色
       
-      // 新增：图片相关元素
-      const uploadImage = document.getElementById('uploadImage');
-      const uploadImageBtn = document.getElementById('uploadImageBtn');
-      const removeImageBtn = document.getElementById('removeImageBtn');
-      const imagePosition = document.getElementById('imagePosition');
-      const imageSizeSlider = document.getElementById('imageSize');
-      const imageSizeValue = document.getElementById('imageSizeValue');
-      const imagePreview = document.getElementById('imagePreview');
-      const previewImg = document.getElementById('previewImg');
+      // 新增：图片相关元素 - 第一张图片
+      const uploadImage1 = document.getElementById('uploadImage1');
+      const uploadImageBtn1 = document.getElementById('uploadImageBtn1');
+      const removeImageBtn1 = document.getElementById('removeImageBtn1');
+      const imagePosition1 = document.getElementById('imagePosition1');
+      const imageSizeSlider1 = document.getElementById('imageSize1');
+      const imageSizeValue1 = document.getElementById('imageSizeValue1');
+      const imagePreview1 = document.getElementById('imagePreview1');
+      const previewImg1 = document.getElementById('previewImg1');
+      const imageOpacity1 = document.getElementById('imageOpacity1');
+      const imageOpacityValue1 = document.getElementById('imageOpacityValue1');
       
-      // 图片数据
-      let uploadedImage = null;
-      let imageDataUrl = null;
+      // 新增：图片相关元素 - 第二张图片
+      const uploadImage2 = document.getElementById('uploadImage2');
+      const uploadImageBtn2 = document.getElementById('uploadImageBtn2');
+      const removeImageBtn2 = document.getElementById('removeImageBtn2');
+      const imagePosition2 = document.getElementById('imagePosition2');
+      const imageSizeSlider2 = document.getElementById('imageSize2');
+      const imageSizeValue2 = document.getElementById('imageSizeValue2');
+      const imagePreview2 = document.getElementById('imagePreview2');
+      const previewImg2 = document.getElementById('previewImg2');
+      const imageOpacity2 = document.getElementById('imageOpacity2');
+      const imageOpacityValue2 = document.getElementById('imageOpacityValue2');
+      
+      // 新增：图片交换按钮
+      const swapImagesBtn = document.getElementById('swapImagesBtn');
+      
+      // 新增：图片对比相关元素
+      const imageComparisonContainer = document.getElementById('imageComparisonContainer');
+      const noImagesSelected = document.getElementById('noImagesSelected');
+      const comparisonBefore = document.getElementById('comparisonBefore');
+      const comparisonAfter = document.getElementById('comparisonAfter');
+      const slider = document.querySelector('.image-comparison .slider');
+      
+      // 图片数据 - 存储两张图片的信息
+      let images = [
+        {
+          uploadedImage: null,
+          dataUrl: null,
+          opacity: 1.0
+        },
+        {
+          uploadedImage: null,
+          dataUrl: null,
+          opacity: 0.8
+        }
+      ];
+      
+      // 图片顺序标志
+      let imageOrder = [0, 1]; // 第一张图片在上面，第二张在下面
       
       // 设置Canvas尺寸为A4比例
       const canvasWidth = 595;
@@ -549,7 +862,9 @@
       loadJsonBtn.addEventListener('click', loadFromJson);
       
       // 加载示例数据
-      sampleDataBtn.addEventListener('click', loadSampleData);
+      sampleDataBtn1.addEventListener('click', () => loadSampleData(0));
+      // 加载示例数据
+      sampleDataBtn2.addEventListener('click', () => loadSampleData(1));
       
       // 打印功能
       printBtn.addEventListener('click', printCanvas);
@@ -599,12 +914,68 @@
         }
       });
       
-      // 新增：图片上传相关事件
-      uploadImageBtn.addEventListener('click', function() {
-        uploadImage.click();
+      // 新增：第一张图片上传相关事件
+      uploadImageBtn1.addEventListener('click', function() {
+        uploadImage1.click();
       });
       
-      uploadImage.addEventListener('change', function(e) {
+      uploadImage1.addEventListener('change', function(e) {
+        handleImageUpload(e, 0);
+      });
+      
+      removeImageBtn1.addEventListener('click', function() {
+        removeImage(0);
+      });
+      
+      // 监听第一张图片大小滑块变化
+      imageSizeSlider1.addEventListener('input', function() {
+        imageSizeValue1.textContent = `${this.value}%`;
+        updateComparisonPreview();
+      });
+      
+      // 监听第一张图片透明度滑块变化
+      imageOpacity1.addEventListener('input', function() {
+        const opacity = parseInt(this.value) / 100;
+        imageOpacityValue1.textContent = `${this.value}%`;
+        images[0].opacity = opacity;
+        updateComparisonPreview();
+      });
+      
+      // 新增：第二张图片上传相关事件
+      uploadImageBtn2.addEventListener('click', function() {
+        uploadImage2.click();
+      });
+      
+      uploadImage2.addEventListener('change', function(e) {
+        handleImageUpload(e, 1);
+      });
+      
+      removeImageBtn2.addEventListener('click', function() {
+        removeImage(1);
+      });
+      
+      // 监听第二张图片大小滑块变化
+      imageSizeSlider2.addEventListener('input', function() {
+        imageSizeValue2.textContent = `${this.value}%`;
+        updateComparisonPreview();
+      });
+      
+      // 监听第二张图片透明度滑块变化
+      imageOpacity2.addEventListener('input', function() {
+        const opacity = parseInt(this.value) / 100;
+        imageOpacityValue2.textContent = `${this.value}%`;
+        images[1].opacity = opacity;
+        updateComparisonPreview();
+      });
+      
+      // 新增：交换图片顺序按钮事件
+      swapImagesBtn.addEventListener('click', swapImages);
+      
+      // 初始化图片对比滑块
+      initImageComparisonSlider();
+      
+      // 处理图片上传
+      function handleImageUpload(e, index) {
         const file = e.target.files[0];
         if (!file) return;
         
@@ -622,32 +993,126 @@
         
         const reader = new FileReader();
         reader.onload = function(event) {
-          imageDataUrl = event.target.result;
-          previewImg.src = imageDataUrl;
-          imagePreview.classList.remove('hidden');
+          images[index].dataUrl = event.target.result;
+          
+          // 更新预览
+          if (index === 0) {
+            previewImg1.src = images[index].dataUrl;
+            imagePreview1.classList.remove('hidden');
+          } else {
+            previewImg2.src = images[index].dataUrl;
+            imagePreview2.classList.remove('hidden');
+          }
           
           // 创建图片对象
-          uploadedImage = new Image();
-          uploadedImage.onload = function() {
-            showHint('图片上传成功！');
+          images[index].uploadedImage = new Image();
+          images[index].uploadedImage.onload = function() {
+            showHint(`图片${index + 1}上传成功！`);
+            updateComparisonPreview();
           };
-          uploadedImage.src = imageDataUrl;
+          images[index].uploadedImage.src = images[index].dataUrl;
         };
         reader.readAsDataURL(file);
-      });
+      }
       
-      removeImageBtn.addEventListener('click', function() {
-        uploadedImage = null;
-        imageDataUrl = null;
-        imagePreview.classList.add('hidden');
-        uploadImage.value = '';
-        showHint('已移除图片');
-      });
+      // 移除图片
+      function removeImage(index) {
+        images[index].uploadedImage = null;
+        images[index].dataUrl = null;
+        
+        if (index === 0) {
+          imagePreview1.classList.add('hidden');
+          uploadImage1.value = '';
+        } else {
+          imagePreview2.classList.add('hidden');
+          uploadImage2.value = '';
+        }
+        
+        showHint(`已移除图片${index + 1}`);
+        updateComparisonPreview();
+      }
       
-      // 监听图片大小滑块变化
-      imageSizeSlider.addEventListener('input', function() {
-        imageSizeValue.textContent = `${this.value}%`;
-      });
+      // 交换图片顺序
+      function swapImages() {
+        // 交换图片数据
+        [images[0], images[1]] = [images[1], images[0]];
+        
+        // 交换图片预览
+        if (images[0].dataUrl) {
+          previewImg1.src = images[0].dataUrl;
+          imagePreview1.classList.remove('hidden');
+        } else {
+          imagePreview1.classList.add('hidden');
+        }
+        
+        if (images[1].dataUrl) {
+          previewImg2.src = images[1].dataUrl;
+          imagePreview2.classList.remove('hidden');
+        } else {
+          imagePreview2.classList.add('hidden');
+        }
+        
+        // 交换图片顺序标志
+        [imageOrder[0], imageOrder[1]] = [imageOrder[1], imageOrder[0]];
+        
+        // 更新图片对比预览
+        updateComparisonPreview();
+        
+        showHint('图片顺序已交换');
+      }
+      
+      // 初始化图片对比滑块
+      function initImageComparisonSlider() {
+        let isDragging = false;
+        
+        slider.addEventListener('mousedown', startSliding);
+        window.addEventListener('mousemove', slide);
+        window.addEventListener('mouseup', stopSliding);
+        
+        function startSliding(e) {
+          e.preventDefault();
+          isDragging = true;
+        }
+        
+        function slide(e) {
+          if (!isDragging) return;
+          
+          const container = document.querySelector('.image-comparison');
+          const rect = container.getBoundingClientRect();
+          let position = (e.clientX - rect.left) / rect.width;
+          
+          // 限制在0-1范围内
+          position = Math.max(0, Math.min(1, position));
+          
+          // 更新滑块位置
+          slider.style.left = `${position * 100}%`;
+          document.querySelector('.image-comparison .before').style.width = `${position * 100}%`;
+        }
+        
+        function stopSliding() {
+          isDragging = false;
+        }
+      }
+      
+      // 更新图片对比预览
+      function updateComparisonPreview() {
+        // 检查是否有两张图片
+        if (images[0].dataUrl && images[1].dataUrl) {
+          imageComparisonContainer.classList.remove('hidden');
+          noImagesSelected.classList.add('hidden');
+          
+          // 设置对比图片
+          comparisonBefore.src = images[0].dataUrl;
+          comparisonAfter.src = images[1].dataUrl;
+          
+          // 调整滑块位置到中间
+          slider.style.left = '50%';
+          document.querySelector('.image-comparison .before').style.width = '50%';
+        } else {
+          imageComparisonContainer.classList.add('hidden');
+          noImagesSelected.classList.remove('hidden');
+        }
+      }
       
       // 更新歌曲计数
       function updateSongCount() {
@@ -924,26 +1389,45 @@
         currentY += 15;
         ctx.fillText(strInfo, canvasWidth / 2, currentY);
         
-        // 新增：绘制上传的图片
-        if (uploadedImage) {
-          drawImageOnCanvas();
+        // 新增：绘制上传的两张图片
+        drawImagesOnCanvas();
+      }
+      
+      // 新增：在画布上绘制两张图片
+      function drawImagesOnCanvas() {
+        // 确定图片绘制顺序
+        const topImageIndex = imageOrder[0];
+        const bottomImageIndex = imageOrder[1];
+        
+        // 先绘制下面的图片
+        if (images[bottomImageIndex].uploadedImage) {
+          drawSingleImageOnCanvas(bottomImageIndex);
+        }
+        
+        // 再绘制上面的图片
+        if (images[topImageIndex].uploadedImage) {
+          drawSingleImageOnCanvas(topImageIndex);
         }
       }
       
-      // 新增：在画布上绘制图片
-      function drawImageOnCanvas() {
-        if (!uploadedImage) return;
+      // 绘制单张图片
+      function drawSingleImageOnCanvas(index) {
+        if (!images[index].uploadedImage) return;
         
-        const position = imagePosition.value;
-        const sizePercentage = parseInt(imageSizeSlider.value) / 100;
+        const positionSelect = index === 0 ? imagePosition1 : imagePosition2;
+        const sizeSlider = index === 0 ? imageSizeSlider1 : imageSizeSlider2;
+        
+        const position = positionSelect.value;
+        const sizePercentage = parseInt(sizeSlider.value) / 100;
+        const opacity = images[index].opacity;
         
         // 计算图片尺寸
         const maxWidth = canvasWidth * 0.3 * sizePercentage;
         const maxHeight = canvasHeight * 0.3 * sizePercentage;
         
         // 计算宽高比
-        let width = uploadedImage.width;
-        let height = uploadedImage.height;
+        let width = images[index].uploadedImage.width;
+        let height = images[index].uploadedImage.height;
         
         if (width > maxWidth) {
           height = (maxWidth / width) * height;
@@ -986,12 +1470,17 @@
             width = canvasWidth;
             height = canvasHeight;
             // 设置透明度
-            ctx.globalAlpha = 0.2;
+            ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
             break;
         }
         
+        // 设置图片透明度
+        if (position !== 'background') {
+          ctx.globalAlpha = opacity;
+        }
+        
         // 绘制图片
-        ctx.drawImage(uploadedImage, x, y, width, height);
+        ctx.drawImage(images[index].uploadedImage, x, y, width, height);
         
         // 重置透明度
         ctx.globalAlpha = 1.0;
@@ -1241,26 +1730,45 @@
         currentY += 15 * scale;
         ctx.fillText(strInfo, width / 2, currentY);
         
-        // 新增：绘制上传的图片
-        if (uploadedImage) {
-          drawHdImageOnCanvas(ctx, width, height, scale);
+        // 新增：绘制上传的两张图片
+        drawHdImagesOnCanvas(ctx, width, height, scale);
+      }
+      
+      // 新增：在高清Canvas上绘制两张图片
+      function drawHdImagesOnCanvas(ctx, width, height, scale) {
+        // 确定图片绘制顺序
+        const topImageIndex = imageOrder[0];
+        const bottomImageIndex = imageOrder[1];
+        
+        // 先绘制下面的图片
+        if (images[bottomImageIndex].uploadedImage) {
+          drawHdSingleImageOnCanvas(ctx, width, height, scale, bottomImageIndex);
+        }
+        
+        // 再绘制上面的图片
+        if (images[topImageIndex].uploadedImage) {
+          drawHdSingleImageOnCanvas(ctx, width, height, scale, topImageIndex);
         }
       }
       
-      // 新增：在高清Canvas上绘制图片
-      function drawHdImageOnCanvas(ctx, width, height, scale) {
-        if (!uploadedImage) return;
+      // 在高清Canvas上绘制单张图片
+      function drawHdSingleImageOnCanvas(ctx, width, height, scale, index) {
+        if (!images[index].uploadedImage) return;
         
-        const position = imagePosition.value;
-        const sizePercentage = parseInt(imageSizeSlider.value) / 100;
+        const positionSelect = index === 0 ? imagePosition1 : imagePosition2;
+        const sizeSlider = index === 0 ? imageSizeSlider1 : imageSizeSlider2;
+        
+        const position = positionSelect.value;
+        const sizePercentage = parseInt(sizeSlider.value) / 100;
+        const opacity = images[index].opacity;
         
         // 计算图片尺寸
         const maxWidth = width * 0.3 * sizePercentage;
         const maxHeight = height * 0.3 * sizePercentage;
         
         // 计算宽高比
-        let imgWidth = uploadedImage.width;
-        let imgHeight = uploadedImage.height;
+        let imgWidth = images[index].uploadedImage.width;
+        let imgHeight = images[index].uploadedImage.height;
         
         if (imgWidth > maxWidth) {
           imgHeight = (maxWidth / imgWidth) * imgHeight;
@@ -1303,12 +1811,17 @@
             imgWidth = width;
             imgHeight = height;
             // 设置透明度
-            ctx.globalAlpha = 0.2;
+            ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
             break;
         }
         
+        // 设置图片透明度
+        if (position !== 'background') {
+          ctx.globalAlpha = opacity;
+        }
+        
         // 绘制图片
-        ctx.drawImage(uploadedImage, x, y, imgWidth, imgHeight);
+        ctx.drawImage(images[index].uploadedImage, x, y, imgWidth, imgHeight);
         
         // 重置透明度
         ctx.globalAlpha = 1.0;
@@ -1401,11 +1914,21 @@
             bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
-          image: {
-            dataUrl: imageDataUrl,
-            position: imagePosition.value,
-            size: parseInt(imageSizeSlider.value)
-          },
+          images: [
+            {
+              dataUrl: images[0].dataUrl,
+              position: imagePosition1.value,
+              size: parseInt(imageSizeSlider1.value),
+              opacity: images[0].opacity
+            },
+            {
+              dataUrl: images[1].dataUrl,
+              position: imagePosition2.value,
+              size: parseInt(imageSizeSlider2.value),
+              opacity: images[1].opacity
+            }
+          ],
+          imageOrder: imageOrder,
           createdAt: new Date().toISOString()
         };
         
@@ -1487,32 +2010,113 @@
               }
               
               // 加载图片设置
-              if (playlistData.image && playlistData.image.dataUrl) {
-                imageDataUrl = playlistData.image.dataUrl;
-                previewImg.src = imageDataUrl;
-                imagePreview.classList.remove('hidden');
+              if (playlistData.images && Array.isArray(playlistData.images)) {
+                // 重置图片数据
+                images = [
+                  {
+                    uploadedImage: null,
+                    dataUrl: null,
+                    opacity: 1.0
+                  },
+                  {
+                    uploadedImage: null,
+                    dataUrl: null,
+                    opacity: 0.8
+                  }
+                ];
                 
-                // 创建图片对象
-                uploadedImage = new Image();
-                uploadedImage.onload = function() {
-                  // 设置图片位置和大小
-                  if (playlistData.image.position) {
-                    imagePosition.value = playlistData.image.position;
-                  }
-                  if (playlistData.image.size) {
-                    imageSizeSlider.value = playlistData.image.size;
-                    imageSizeValue.textContent = `${playlistData.image.size}%`;
-                  }
-                  showHint('歌单已成功加载!');
-                };
-                uploadedImage.src = imageDataUrl;
+                // 加载第一张图片
+                if (playlistData.images[0] && playlistData.images[0].dataUrl) {
+                  images[0].dataUrl = playlistData.images[0].dataUrl;
+                  previewImg1.src = images[0].dataUrl;
+                  imagePreview1.classList.remove('hidden');
+                  
+                  // 创建图片对象
+                  images[0].uploadedImage = new Image();
+                  images[0].uploadedImage.onload = function() {
+                    // 设置图片位置和大小
+                    if (playlistData.images[0].position) {
+                      imagePosition1.value = playlistData.images[0].position;
+                    }
+                    if (playlistData.images[0].size !== undefined) {
+                      imageSizeSlider1.value = playlistData.images[0].size;
+                      imageSizeValue1.textContent = `${playlistData.images[0].size}%`;
+                    }
+                    if (playlistData.images[0].opacity !== undefined) {
+                      images[0].opacity = playlistData.images[0].opacity;
+                      imageOpacity1.value = Math.round(images[0].opacity * 100);
+                      imageOpacityValue1.textContent = `${Math.round(images[0].opacity * 100)}%`;
+                    }
+                  };
+                  images[0].uploadedImage.src = images[0].dataUrl;
+                } else {
+                  // 没有图片数据，重置图片设置
+                  images[0].uploadedImage = null;
+                  images[0].dataUrl = null;
+                  imagePreview1.classList.add('hidden');
+                  uploadImage1.value = '';
+                }
+                
+                // 加载第二张图片
+                if (playlistData.images[1] && playlistData.images[1].dataUrl) {
+                  images[1].dataUrl = playlistData.images[1].dataUrl;
+                  previewImg2.src = images[1].dataUrl;
+                  imagePreview2.classList.remove('hidden');
+                  
+                  // 创建图片对象
+                  images[1].uploadedImage = new Image();
+                  images[1].uploadedImage.onload = function() {
+                    // 设置图片位置和大小
+                    if (playlistData.images[1].position) {
+                      imagePosition2.value = playlistData.images[1].position;
+                    }
+                    if (playlistData.images[1].size !== undefined) {
+                      imageSizeSlider2.value = playlistData.images[1].size;
+                      imageSizeValue2.textContent = `${playlistData.images[1].size}%`;
+                    }
+                    if (playlistData.images[1].opacity !== undefined) {
+                      images[1].opacity = playlistData.images[1].opacity;
+                      imageOpacity2.value = Math.round(images[1].opacity * 100);
+                      imageOpacityValue2.textContent = `${Math.round(images[1].opacity * 100)}%`;
+                    }
+                  };
+                  images[1].uploadedImage.src = images[1].dataUrl;
+                } else {
+                  // 没有图片数据，重置图片设置
+                  images[1].uploadedImage = null;
+                  images[1].dataUrl = null;
+                  imagePreview2.classList.add('hidden');
+                  uploadImage2.value = '';
+                }
+                
+                // 加载图片顺序
+                if (playlistData.imageOrder && Array.isArray(playlistData.imageOrder)) {
+                  imageOrder = playlistData.imageOrder;
+                } else {
+                  imageOrder = [0, 1];
+                }
+                
+                // 更新图片对比预览
+                updateComparisonPreview();
               } else {
                 // 没有图片数据，重置图片设置
-                uploadedImage = null;
-                imageDataUrl = null;
-                imagePreview.classList.add('hidden');
-                uploadImage.value = '';
-                showHint('歌单已成功加载!');
+                images = [
+                  {
+                    uploadedImage: null,
+                    dataUrl: null,
+                    opacity: 1.0
+                  },
+                  {
+                    uploadedImage: null,
+                    dataUrl: null,
+                    opacity: 0.8
+                  }
+                ];
+                imageOrder = [0, 1];
+                imagePreview1.classList.add('hidden');
+                imagePreview2.classList.add('hidden');
+                uploadImage1.value = '';
+                uploadImage2.value = '';
               }
               
               // 添加歌曲
@@ -1523,6 +2127,8 @@
                   inputs[inputs.length - 1].value = song;
                 });
               }
+              
+              showHint('歌单已成功加载!');
             } catch (error) {
               console.error('解析JSON失败:', error);
               showHint('加载歌单失败，请检查文件格式', true);
@@ -1539,11 +2145,11 @@
       }
       
       // 加载示例数据
-      function loadSampleData() {
+      function loadSampleData(i) {
         // 清空现有歌单
-        songList.innerHTML = '';
+        songList.innerHTML = ''; 
         
-        const sl1 = oSamples.sample1();
+        const sl1 = oSamples.getSample(i);
         // 设置歌单名称
         playlistNameInput.value = sl1.title;
         
@@ -1551,8 +2157,8 @@
         priceInfoInput.value = sl1.princeInfo; 
         
         // 设置默认显示选项
-        showSongCountCheckbox.checked = true;
-        showDateCheckbox.checked = true;
+        showSongCountCheckbox.checked = sl1.hasCount;
+        showDateCheckbox.checked = sl1.hasDate;
         
         // 设置默认栏间距
         columnGapSlider.value = 60;
@@ -1568,10 +2174,23 @@
         });
         
         // 重置图片设置
-        uploadedImage = null;
-        imageDataUrl = null;
-        imagePreview.classList.add('hidden');
-        uploadImage.value = '';
+        images = [
+          {
+            uploadedImage: null,
+            dataUrl: null,
+            opacity: 1.0
+          },
+          {
+            uploadedImage: null,
+            dataUrl: null,
+            opacity: 0.8
+          }
+        ];
+        imageOrder = [0, 1];
+        imagePreview1.classList.add('hidden');
+        imagePreview2.classList.add('hidden');
+        uploadImage1.value = '';
+        uploadImage2.value = '';
         
         const sampleSongs = sl1.songs;
         
@@ -1793,11 +2412,21 @@
             bgColor: selectedBgColor
           },
           priceInfo,
-          image: {
-            dataUrl: imageDataUrl,
-            position: imagePosition.value,
-            size: parseInt(imageSizeSlider.value)
-          },
+          images: [
+            {
+              dataUrl: images[0].dataUrl,
+              position: imagePosition1.value,
+              size: parseInt(imageSizeSlider1.value),
+              opacity: images[0].opacity
+            },
+            {
+              dataUrl: images[1].dataUrl,
+              position: imagePosition2.value,
+              size: parseInt(imageSizeSlider2.value),
+              opacity: images[1].opacity
+            }
+          ],
+          imageOrder: imageOrder,
           createdAt: new Date().toISOString()
         };
         
@@ -1832,11 +2461,21 @@
             bgColor: selectedBgColor
           },
           priceInfo: priceInfo,
-          image: {
-            dataUrl: imageDataUrl,
-            position: imagePosition.value,
-            size: parseInt(imageSizeSlider.value)
-          },
+          images: [
+            {
+              dataUrl: images[0].dataUrl,
+              position: imagePosition1.value,
+              size: parseInt(imageSizeSlider1.value),
+              opacity: images[0].opacity
+            },
+            {
+              dataUrl: images[1].dataUrl,
+              position: imagePosition2.value,
+              size: parseInt(imageSizeSlider2.value),
+              opacity: images[1].opacity
+            }
+          ],
+          imageOrder: imageOrder,
           createdAt: new Date().toISOString()
         };
         
@@ -1989,8 +2628,8 @@
   </script>
 </body>
 </html>
-<!--
-升级 v1.15
-  可以添加2图片到画布上
 
+<!--
+升级 v1.21
+  list1, list2 实现不对，更正
 -->
