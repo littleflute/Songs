@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>歌单生成器 v1.22 - 支持拖拽排序与高清导出</title>
+  <title>歌单生成器 v1.23 - 支持拖拽排序与高清导出</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
@@ -117,8 +117,8 @@
                 
         {
           
-            title: "杨秋枫-歌单A",
-            princeInfo: "v0.11",
+            title: "点歌单A",
+            princeInfo: "v0.12",
             hasCount: false,
             hasDate: true,
             songs: [ 
@@ -188,8 +188,8 @@
         },
         {
           
-            title: "杨秋枫-歌单B",
-            princeInfo: "v0.11",
+            title: "点歌单B",
+            princeInfo: "v0.12",
             hasCount: false,
             hasDate: true,
             songs: [ 
@@ -200,9 +200,9 @@
     "鬼迷心窍","挪威的森林", "爱你一万年",  "一半疯了一半算了", "大不了","最后的人",
     "最幸福的人", "最亲的人", "有没有人曾告诉你", "用心良苦", "杯杯敬自己", "月亮惹的祸", "你在他乡还好吗",
     "情网", "一千个伤心的理由", 
-    "朋友", "漂洋过海来看你", "红尖来去一场梦","酒醉的蝴蝶", "你到底爱谁",
+    "朋友", "漂洋过海来看你", "红尘来去一场梦","酒醉的蝴蝶", "你到底爱谁",
     "等你等了那么久", "相遇的意义", "人间半途", 
-    "阿爸阿妈", "人生路", "下辈子", 
+    "阿爸阿妈", "人生路", "下辈子一定还能遇见你", 
     "能不能不要离开我", "我的快乐就是想你", "下定决心忘记你", "不变的情缘",  
     "当我孤独的时候抱着你", "敬天敬地敬爹娘", "奉陪",  "今夜想喝醉", "今夜我无法入睡", 
     "小芳呀小芳",  "你说你会记得我",  "天籁之爱", 
@@ -212,8 +212,8 @@
         },
         {
           
-            title: "杨秋枫-歌单C",
-            princeInfo: "v0.11",
+            title: "点歌单C",
+            princeInfo: "v0.12",
             hasCount: false,
             hasDate: true,
             songs: [ 
@@ -490,6 +490,119 @@
         font-weight: bold;
         z-index: 5;
       }
+      /* 图片位置调整样式 */
+      .image-position-adjuster {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #f9fafb;
+        margin-top: 1rem;
+      }
+      .image-position-adjuster .adjuster-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          linear-gradient(45deg, #e5e7eb 25%, transparent 25%), 
+          linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+          linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      }
+      .image-position-adjuster .adjuster-image {
+        position: absolute;
+        cursor: move;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border-radius: 4px;
+        transition: box-shadow 0.2s;
+      }
+      .image-position-adjuster .adjuster-image:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .image-position-adjuster .adjuster-image.dragging {
+        opacity: 0.8;
+        z-index: 10;
+      }
+      .image-position-adjuster .adjuster-controls {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        z-index: 5;
+      }
+      .image-position-adjuster .adjuster-control-btn {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #4b5563;
+      }
+      .image-position-adjuster .adjuster-control-btn:hover {
+        background-color: white;
+        border-color: #d1d5db;
+      }
+      .image-position-adjuster .adjuster-position-info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 12px;
+        color: #4b5563;
+        z-index: 5;
+      }
+      .image-position-adjuster .adjuster-size-info {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 5px 10px;
+        font-size: 12px;
+        color: #4b5563;
+        z-index: 5;
+      }
+      /* 位置微调按钮样式 */
+      .position-fine-tune {
+        display: flex;
+        gap: 2px;
+        margin-top: 0.5rem;
+      }
+      .position-fine-tune button {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f3f4f6;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #4b5563;
+      }
+      .position-fine-tune button:hover {
+        background-color: #e5e7eb;
+      }
+      .position-fine-tune button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
   </style>
 </head>
@@ -498,7 +611,7 @@
     <header class="mb-8 text-center slide-in">
       <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-neutral mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">🎵 歌单生成器</h1>
       <p class="text-gray-600">创建、编辑并可视化你的专属歌单</p>
-      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.22 | 支持双图片上传与更多自定义选项</p>
+      <p class="text-sm text-primary mt-1"><i class="fa fa-star mr-1"></i> 版本 v1.24 | 支持图片精确定位与坐标输入</p>
     </header>
 
     <main class="bg-white rounded-xl shadow-lg p-6 mb-8 slide-in">
@@ -682,6 +795,7 @@
                   <option value="bottom-right" selected>右下角</option>
                   <option value="center">居中</option>
                   <option value="background">背景</option>
+                  <option value="custom">自定义位置</option>
                 </select>
               </div>
               <div class="flex-1">
@@ -694,6 +808,78 @@
                 </div>
               </div>
             </div>
+            
+            <!-- 新增：位置微调按钮 -->
+            <div id="positionFineTune1" class="mt-4 hidden">
+              <label class="block text-sm text-gray-700 mb-2">位置微调:</label>
+              <div class="position-fine-tune">
+                <button id="moveUp1" title="上移"><i class="fa fa-arrow-up"></i></button>
+                <button id="moveLeft1" title="左移"><i class="fa fa-arrow-left"></i></button>
+                <button id="moveDown1" title="下移"><i class="fa fa-arrow-down"></i></button>
+                <button id="moveRight1" title="右移"><i class="fa fa-arrow-right"></i></button>
+                <button id="resetPosition1" title="重置位置"><i class="fa fa-refresh"></i></button>
+              </div>
+              
+              <!-- 新增：坐标输入 -->
+              <div class="coordinate-inputs mt-3">
+                <div class="coordinate-input-group">
+                  <label for="xCoordinate1">X坐标:</label>
+                  <input type="number" id="xCoordinate1" class="coordinate-input" value="0" placeholder="输入X坐标">
+                </div>
+                <div class="coordinate-input-group">
+                  <label for="yCoordinate1">Y坐标:</label>
+                  <input type="number" id="yCoordinate1" class="coordinate-input" value="0" placeholder="输入Y坐标">
+                </div>
+              </div>
+              
+              <!-- 新增：步长选择器 -->
+              <div class="step-selector mt-2">
+                <label for="stepSize1">微调步长:</label>
+                <select id="stepSize1" class="step-size-select">
+                  <option value="5">5px</option>
+                  <option value="10" selected>10px</option>
+                  <option value="20">20px</option>
+                  <option value="50">50px</option>
+                </select>
+              </div>
+              
+              <!-- 新增：位置锁定 -->
+              <div class="position-lock mt-2">
+                <input type="checkbox" id="positionLock1" class="position-lock-checkbox">
+                <label for="positionLock1">锁定位置</label>
+              </div>
+              
+              <div class="mt-2 text-xs text-gray-500">
+                <span id="positionInfo1">X: 0, Y: 0</span>
+              </div>
+            </div>
+            
+            <!-- 新增：图片位置调整器 -->
+            <div id="imagePositionAdjuster1" class="image-position-adjuster hidden">
+              <div class="adjuster-bg"></div>
+              <div id="adjusterImage1" class="adjuster-image">
+                <img id="adjusterPreview1" src="" alt="调整图片位置">
+              </div>
+              <div class="adjuster-position-info">
+                位置: <span id="adjusterPosition1">X: 0, Y: 0</span>
+              </div>
+              <div class="adjuster-size-info">
+                大小: <span id="adjusterSize1">0%</span>
+              </div>
+              <div class="adjuster-controls">
+                <button class="adjuster-control-btn" id="adjusterReset1">
+                  <i class="fa fa-refresh mr-1"></i> 重置位置
+                </button>
+                <button class="adjuster-control-btn" id="adjusterCenter1">
+                  <i class="fa fa-crosshairs mr-1"></i> 居中
+                </button>
+                <label class="adjuster-control-btn cursor-pointer">
+                  <input type="checkbox" id="gridToggle1" class="hidden grid-toggle-checkbox">
+                  <i class="fa fa-th mr-1"></i> 显示网格
+                </label>
+              </div>
+            </div>
+            
             <div id="imagePreview1" class="mt-4 hidden">
               <p class="text-sm text-gray-700 mb-2">图片预览:</p>
               <div class="border border-gray-300 rounded-lg p-3 bg-white">
@@ -727,6 +913,7 @@
                   <option value="bottom-right">右下角</option>
                   <option value="center">居中</option>
                   <option value="background">背景</option>
+                  <option value="custom">自定义位置</option>
                 </select>
               </div>
               <div class="flex-1">
@@ -739,6 +926,78 @@
                 </div>
               </div>
             </div>
+            
+            <!-- 新增：位置微调按钮 -->
+            <div id="positionFineTune2" class="mt-4 hidden">
+              <label class="block text-sm text-gray-700 mb-2">位置微调:</label>
+              <div class="position-fine-tune">
+                <button id="moveUp2" title="上移"><i class="fa fa-arrow-up"></i></button>
+                <button id="moveLeft2" title="左移"><i class="fa fa-arrow-left"></i></button>
+                <button id="moveDown2" title="下移"><i class="fa fa-arrow-down"></i></button>
+                <button id="moveRight2" title="右移"><i class="fa fa-arrow-right"></i></button>
+                <button id="resetPosition2" title="重置位置"><i class="fa fa-refresh"></i></button>
+              </div>
+              
+              <!-- 新增：坐标输入 -->
+              <div class="coordinate-inputs mt-3">
+                <div class="coordinate-input-group">
+                  <label for="xCoordinate2">X坐标:</label>
+                  <input type="number" id="xCoordinate2" class="coordinate-input" value="0" placeholder="输入X坐标">
+                </div>
+                <div class="coordinate-input-group">
+                  <label for="yCoordinate2">Y坐标:</label>
+                  <input type="number" id="yCoordinate2" class="coordinate-input" value="0" placeholder="输入Y坐标">
+                </div>
+              </div>
+              
+              <!-- 新增：步长选择器 -->
+              <div class="step-selector mt-2">
+                <label for="stepSize2">微调步长:</label>
+                <select id="stepSize2" class="step-size-select">
+                  <option value="5">5px</option>
+                  <option value="10" selected>10px</option>
+                  <option value="20">20px</option>
+                  <option value="50">50px</option>
+                </select>
+              </div>
+              
+              <!-- 新增：位置锁定 -->
+              <div class="position-lock mt-2">
+                <input type="checkbox" id="positionLock2" class="position-lock-checkbox">
+                <label for="positionLock2">锁定位置</label>
+              </div>
+              
+              <div class="mt-2 text-xs text-gray-500">
+                <span id="positionInfo2">X: 0, Y: 0</span>
+              </div>
+            </div>
+            
+            <!-- 新增：图片位置调整器 -->
+            <div id="imagePositionAdjuster2" class="image-position-adjuster hidden">
+              <div class="adjuster-bg"></div>
+              <div id="adjusterImage2" class="adjuster-image">
+                <img id="adjusterPreview2" src="" alt="调整图片位置">
+              </div>
+              <div class="adjuster-position-info">
+                位置: <span id="adjusterPosition2">X: 0, Y: 0</span>
+              </div>
+              <div class="adjuster-size-info">
+                大小: <span id="adjusterSize2">0%</span>
+              </div>
+              <div class="adjuster-controls">
+                <button class="adjuster-control-btn" id="adjusterReset2">
+                  <i class="fa fa-refresh mr-1"></i> 重置位置
+                </button>
+                <button class="adjuster-control-btn" id="adjusterCenter2">
+                  <i class="fa fa-crosshairs mr-1"></i> 居中
+                </button>
+                <label class="adjuster-control-btn cursor-pointer">
+                  <input type="checkbox" id="gridToggle2" class="hidden grid-toggle-checkbox">
+                  <i class="fa fa-th mr-1"></i> 显示网格
+                </label>
+              </div>
+            </div>
+            
             <div id="imagePreview2" class="mt-4 hidden">
               <p class="text-sm text-gray-700 mb-2">图片预览:</p>
               <div class="border border-gray-300 rounded-lg p-3 bg-white">
@@ -946,6 +1205,22 @@
       const imageOpacity1 = document.getElementById('imageOpacity1');
       const imageOpacityValue1 = document.getElementById('imageOpacityValue1');
       
+      // 新增：第一张图片位置调整相关元素
+      const positionFineTune1 = document.getElementById('positionFineTune1');
+      const moveUp1 = document.getElementById('moveUp1');
+      const moveLeft1 = document.getElementById('moveLeft1');
+      const moveDown1 = document.getElementById('moveDown1');
+      const moveRight1 = document.getElementById('moveRight1');
+      const resetPosition1 = document.getElementById('resetPosition1');
+      const positionInfo1 = document.getElementById('positionInfo1');
+      const imagePositionAdjuster1 = document.getElementById('imagePositionAdjuster1');
+      const adjusterImage1 = document.getElementById('adjusterImage1');
+      const adjusterPreview1 = document.getElementById('adjusterPreview1');
+      const adjusterPosition1 = document.getElementById('adjusterPosition1');
+      const adjusterSize1 = document.getElementById('adjusterSize1');
+      const adjusterReset1 = document.getElementById('adjusterReset1');
+      const adjusterCenter1 = document.getElementById('adjusterCenter1');
+      
       // 新增：图片相关元素 - 第二张图片
       const uploadImage2 = document.getElementById('uploadImage2');
       const uploadImageBtn2 = document.getElementById('uploadImageBtn2');
@@ -957,6 +1232,22 @@
       const previewImg2 = document.getElementById('previewImg2');
       const imageOpacity2 = document.getElementById('imageOpacity2');
       const imageOpacityValue2 = document.getElementById('imageOpacityValue2');
+      
+      // 新增：第二张图片位置调整相关元素
+      const positionFineTune2 = document.getElementById('positionFineTune2');
+      const moveUp2 = document.getElementById('moveUp2');
+      const moveLeft2 = document.getElementById('moveLeft2');
+      const moveDown2 = document.getElementById('moveDown2');
+      const moveRight2 = document.getElementById('moveRight2');
+      const resetPosition2 = document.getElementById('resetPosition2');
+      const positionInfo2 = document.getElementById('positionInfo2');
+      const imagePositionAdjuster2 = document.getElementById('imagePositionAdjuster2');
+      const adjusterImage2 = document.getElementById('adjusterImage2');
+      const adjusterPreview2 = document.getElementById('adjusterPreview2');
+      const adjusterPosition2 = document.getElementById('adjusterPosition2');
+      const adjusterSize2 = document.getElementById('adjusterSize2');
+      const adjusterReset2 = document.getElementById('adjusterReset2');
+      const adjusterCenter2 = document.getElementById('adjusterCenter2');
       
       // 新增：图片交换按钮
       const swapImagesBtn = document.getElementById('swapImagesBtn');
@@ -973,12 +1264,20 @@
         {
           uploadedImage: null,
           dataUrl: null,
-          opacity: 1.0
+          opacity: 1.0,
+          position: 'bottom-right',
+          size: 50,
+          customPosition: { x: 0, y: 0 },
+          originalPosition: { x: 0, y: 0 }
         },
         {
           uploadedImage: null,
           dataUrl: null,
-          opacity: 0.8
+          opacity: 0.8,
+          position: 'top-left',
+          size: 30,
+          customPosition: { x: 0, y: 0 },
+          originalPosition: { x: 0, y: 0 }
         }
       ];
       
@@ -1001,6 +1300,10 @@
       
       // 歌曲拖拽相关变量
       let draggedItem = null;
+      
+      // 图片拖拽相关变量
+      let draggedImageIndex = -1;
+      let dragStartX, dragStartY;
       
       // 初始化时添加默认歌曲
       addDefaultSongs();
@@ -1098,6 +1401,13 @@
       // 监听第一张图片大小滑块变化
       imageSizeSlider1.addEventListener('input', function() {
         imageSizeValue1.textContent = `${this.value}%`;
+        images[0].size = parseInt(this.value);
+        
+        // 更新位置调整器中的图片大小
+        if (images[0].dataUrl) {
+          updateAdjusterImageSize(0);
+        }
+        
         updateComparisonPreview();
       });
       
@@ -1108,6 +1418,191 @@
         images[0].opacity = opacity;
         updateComparisonPreview();
       });
+      
+      // 监听第一张图片位置选择变化
+      imagePosition1.addEventListener('change', function() {
+        images[0].position = this.value;
+        
+        // 如果选择了自定义位置，显示位置调整器
+        if (this.value === 'custom') {
+          if (images[0].dataUrl) {
+            imagePreview1.classList.add('hidden');
+            imagePositionAdjuster1.classList.remove('hidden');
+            positionFineTune1.classList.remove('hidden');
+          }
+        } else {
+          // 否则隐藏位置调整器，显示普通预览
+          imagePositionAdjuster1.classList.add('hidden');
+          positionFineTune1.classList.add('hidden');
+          if (images[0].dataUrl) {
+            imagePreview1.classList.remove('hidden');
+          }
+          
+          // 重置自定义位置
+          images[0].customPosition = { x: 0, y: 0 };
+          positionInfo1.textContent = `X: 0, Y: 0`;
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第一张图片位置微调按钮事件
+      moveUp1.addEventListener('click', function() {
+        if (positionLock1.checked) return;
+        
+        const step = parseInt(stepSize1.value);
+        images[0].customPosition.y -= step;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveLeft1.addEventListener('click', function() {
+        if (positionLock1.checked) return;
+        
+        const step = parseInt(stepSize1.value);
+        images[0].customPosition.x -= step;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveDown1.addEventListener('click', function() {
+        if (positionLock1.checked) return;
+        
+        const step = parseInt(stepSize1.value);
+        images[0].customPosition.y += step;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveRight1.addEventListener('click', function() {
+        if (positionLock1.checked) return;
+        
+        const step = parseInt(stepSize1.value);
+        images[0].customPosition.x += step;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第一张图片坐标输入事件
+      xCoordinate1.addEventListener('input', function() {
+        if (positionLock1.checked) return;
+        
+        const value = parseInt(this.value) || 0;
+        images[0].customPosition.x = value;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      yCoordinate1.addEventListener('input', function() {
+        if (positionLock1.checked) return;
+        
+        const value = parseInt(this.value) || 0;
+        images[0].customPosition.y = value;
+        updatePositionInfo(0);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(0);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第一张图片位置锁定事件
+      positionLock1.addEventListener('change', function() {
+        const isLocked = this.checked;
+        const controls = positionFineTune1.querySelectorAll('button');
+        const inputs = positionFineTune1.querySelectorAll('.coordinate-input');
+        
+        controls.forEach(control => {
+          control.disabled = isLocked;
+        });
+        
+        inputs.forEach(input => {
+          input.disabled = isLocked;
+        });
+        
+        // 更新位置调整器中的图片样式
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+          if (isLocked) {
+            adjusterImage1.classList.add('locked');
+            showHint('位置已锁定');
+          } else {
+            adjusterImage1.classList.remove('locked');
+            showHint('位置已解锁');
+          }
+        }
+      });
+      
+      // 新增：第一张图片网格线切换事件
+      gridToggle1.addEventListener('change', function() {
+        const adjusterBg = imagePositionAdjuster1.querySelector('.adjuster-bg');
+        if (this.checked) {
+          adjusterBg.classList.add('grid');
+          showHint('网格线已显示');
+        } else {
+          adjusterBg.classList.remove('grid');
+          showHint('网格线已隐藏');
+        }
+      });
+      
+      resetPosition1.addEventListener('click', function() {
+        images[0].customPosition = { x: 0, y: 0 };
+        positionInfo1.textContent = `X: 0, Y: 0`;
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster1.classList.contains('hidden') === false) {
+          resetAdjusterPosition(0);
+        }
+        
+        updateComparisonPreview();
+        showHint('位置已重置');
+      });
+      
+      // 新增：第一张图片位置调整器控制按钮事件
+      adjusterReset1.addEventListener('click', function() {
+        resetAdjusterPosition(0);
+        showHint('位置已重置');
+      });
+      
+      adjusterCenter1.addEventListener('click', function() {
+        centerAdjusterImage(0);
+        showHint('图片已居中');
+      });
+      
+      // 新增：初始化第一张图片位置调整器拖拽功能
+      initAdjusterDragging(0);
       
       // 新增：第二张图片上传相关事件
       uploadImageBtn2.addEventListener('click', function() {
@@ -1125,6 +1620,13 @@
       // 监听第二张图片大小滑块变化
       imageSizeSlider2.addEventListener('input', function() {
         imageSizeValue2.textContent = `${this.value}%`;
+        images[1].size = parseInt(this.value);
+        
+        // 更新位置调整器中的图片大小
+        if (images[1].dataUrl) {
+          updateAdjusterImageSize(1);
+        }
+        
         updateComparisonPreview();
       });
       
@@ -1136,10 +1638,205 @@
         updateComparisonPreview();
       });
       
+      // 监听第二张图片位置选择变化
+      imagePosition2.addEventListener('change', function() {
+        images[1].position = this.value;
+        
+        // 如果选择了自定义位置，显示位置调整器
+        if (this.value === 'custom') {
+          if (images[1].dataUrl) {
+            imagePreview2.classList.add('hidden');
+            imagePositionAdjuster2.classList.remove('hidden');
+            positionFineTune2.classList.remove('hidden');
+          }
+        } else {
+          // 否则隐藏位置调整器，显示普通预览
+          imagePositionAdjuster2.classList.add('hidden');
+          positionFineTune2.classList.add('hidden');
+          if (images[1].dataUrl) {
+            imagePreview2.classList.remove('hidden');
+          }
+          
+          // 重置自定义位置
+          images[1].customPosition = { x: 0, y: 0 };
+          positionInfo2.textContent = `X: 0, Y: 0`;
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第二张图片位置微调按钮事件
+      moveUp2.addEventListener('click', function() {
+        if (positionLock2.checked) return;
+        
+        const step = parseInt(stepSize2.value);
+        images[1].customPosition.y -= step;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveLeft2.addEventListener('click', function() {
+        if (positionLock2.checked) return;
+        
+        const step = parseInt(stepSize2.value);
+        images[1].customPosition.x -= step;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveDown2.addEventListener('click', function() {
+        if (positionLock2.checked) return;
+        
+        const step = parseInt(stepSize2.value);
+        images[1].customPosition.y += step;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      moveRight2.addEventListener('click', function() {
+        if (positionLock2.checked) return;
+        
+        const step = parseInt(stepSize2.value);
+        images[1].customPosition.x += step;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第二张图片坐标输入事件
+      xCoordinate2.addEventListener('input', function() {
+        if (positionLock2.checked) return;
+        
+        const value = parseInt(this.value) || 0;
+        images[1].customPosition.x = value;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      yCoordinate2.addEventListener('input', function() {
+        if (positionLock2.checked) return;
+        
+        const value = parseInt(this.value) || 0;
+        images[1].customPosition.y = value;
+        updatePositionInfo(1);
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          updateAdjusterImagePosition(1);
+        }
+        
+        updateComparisonPreview();
+      });
+      
+      // 新增：第二张图片位置锁定事件
+      positionLock2.addEventListener('change', function() {
+        const isLocked = this.checked;
+        const controls = positionFineTune2.querySelectorAll('button');
+        const inputs = positionFineTune2.querySelectorAll('.coordinate-input');
+        
+        controls.forEach(control => {
+          control.disabled = isLocked;
+        });
+        
+        inputs.forEach(input => {
+          input.disabled = isLocked;
+        });
+        
+        // 更新位置调整器中的图片样式
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          if (isLocked) {
+            adjusterImage2.classList.add('locked');
+            showHint('位置已锁定');
+          } else {
+            adjusterImage2.classList.remove('locked');
+            showHint('位置已解锁');
+          }
+        }
+      });
+      
+      // 新增：第二张图片网格线切换事件
+      gridToggle2.addEventListener('change', function() {
+        const adjusterBg = imagePositionAdjuster2.querySelector('.adjuster-bg');
+        if (this.checked) {
+          adjusterBg.classList.add('grid');
+          showHint('网格线已显示');
+        } else {
+          adjusterBg.classList.remove('grid');
+          showHint('网格线已隐藏');
+        }
+      });
+      
+      // 新增：更新位置信息函数
+      function updatePositionInfo(index) {
+        const positionInfo = index === 0 ? positionInfo1 : positionInfo2;
+        const xCoordinate = index === 0 ? xCoordinate1 : xCoordinate2;
+        const yCoordinate = index === 0 ? yCoordinate1 : yCoordinate2;
+        
+        positionInfo.textContent = `X: ${images[index].customPosition.x}, Y: ${images[index].customPosition.y}`;
+        xCoordinate.value = images[index].customPosition.x;
+        yCoordinate.value = images[index].customPosition.y;
+      }
+      
+      resetPosition2.addEventListener('click', function() {
+        images[1].customPosition = { x: 0, y: 0 };
+        positionInfo2.textContent = `X: 0, Y: 0`;
+        
+        // 更新位置调整器中的图片位置
+        if (imagePositionAdjuster2.classList.contains('hidden') === false) {
+          resetAdjusterPosition(1);
+        }
+        
+        updateComparisonPreview();
+        showHint('位置已重置');
+      });
+      
+      // 新增：第二张图片位置调整器控制按钮事件
+      adjusterReset2.addEventListener('click', function() {
+        resetAdjusterPosition(1);
+        showHint('位置已重置');
+      });
+      
+      adjusterCenter2.addEventListener('click', function() {
+        centerAdjusterImage(1);
+        showHint('图片已居中');
+      });
+      
+      // 新增：初始化第二张图片位置调整器拖拽功能
+      initAdjusterDragging(1);
+      
       // 新增：交换图片顺序按钮事件
       swapImagesBtn.addEventListener('click', swapImages);
       
-      // 初始化图片对比滑块
+      // 新增：初始化图片对比滑块
       initImageComparisonSlider();
       
       // 处理图片上传
@@ -1166,10 +1863,38 @@
           // 更新预览
           if (index === 0) {
             previewImg1.src = images[index].dataUrl;
-            imagePreview1.classList.remove('hidden');
+            adjusterPreview1.src = images[index].dataUrl;
+            
+            // 如果选择了自定义位置，显示位置调整器
+            if (imagePosition1.value === 'custom') {
+              imagePreview1.classList.add('hidden');
+              imagePositionAdjuster1.classList.remove('hidden');
+              positionFineTune1.classList.remove('hidden');
+              
+              // 初始化位置调整器中的图片大小和位置
+              initAdjusterImage(index);
+            } else {
+              imagePreview1.classList.remove('hidden');
+              imagePositionAdjuster1.classList.add('hidden');
+              positionFineTune1.classList.add('hidden');
+            }
           } else {
             previewImg2.src = images[index].dataUrl;
-            imagePreview2.classList.remove('hidden');
+            adjusterPreview2.src = images[index].dataUrl;
+            
+            // 如果选择了自定义位置，显示位置调整器
+            if (imagePosition2.value === 'custom') {
+              imagePreview2.classList.add('hidden');
+              imagePositionAdjuster2.classList.remove('hidden');
+              positionFineTune2.classList.remove('hidden');
+              
+              // 初始化位置调整器中的图片大小和位置
+              initAdjusterImage(index);
+            } else {
+              imagePreview2.classList.remove('hidden');
+              imagePositionAdjuster2.classList.add('hidden');
+              positionFineTune2.classList.add('hidden');
+            }
           }
           
           // 创建图片对象
@@ -1177,6 +1902,12 @@
           images[index].uploadedImage.onload = function() {
             showHint(`图片${index + 1}上传成功！`);
             updateComparisonPreview();
+            
+            // 如果选择了自定义位置，初始化位置调整器
+            if ((index === 0 && imagePosition1.value === 'custom') || 
+                (index === 1 && imagePosition2.value === 'custom')) {
+              initAdjusterImage(index);
+            }
           };
           images[index].uploadedImage.src = images[index].dataUrl;
         };
@@ -1190,9 +1921,13 @@
         
         if (index === 0) {
           imagePreview1.classList.add('hidden');
+          imagePositionAdjuster1.classList.add('hidden');
+          positionFineTune1.classList.add('hidden');
           uploadImage1.value = '';
         } else {
           imagePreview2.classList.add('hidden');
+          imagePositionAdjuster2.classList.add('hidden');
+          positionFineTune2.classList.add('hidden');
           uploadImage2.value = '';
         }
         
@@ -1208,16 +1943,34 @@
         // 交换图片预览
         if (images[0].dataUrl) {
           previewImg1.src = images[0].dataUrl;
-          imagePreview1.classList.remove('hidden');
+          adjusterPreview1.src = images[0].dataUrl;
+          
+          // 更新位置调整器
+          if (imagePosition1.value === 'custom') {
+            initAdjusterImage(0);
+          } else {
+            imagePreview1.classList.remove('hidden');
+            imagePositionAdjuster1.classList.add('hidden');
+          }
         } else {
           imagePreview1.classList.add('hidden');
+          imagePositionAdjuster1.classList.add('hidden');
         }
         
         if (images[1].dataUrl) {
           previewImg2.src = images[1].dataUrl;
-          imagePreview2.classList.remove('hidden');
+          adjusterPreview2.src = images[1].dataUrl;
+          
+          // 更新位置调整器
+          if (imagePosition2.value === 'custom') {
+            initAdjusterImage(1);
+          } else {
+            imagePreview2.classList.remove('hidden');
+            imagePositionAdjuster2.classList.add('hidden');
+          }
         } else {
           imagePreview2.classList.add('hidden');
+          imagePositionAdjuster2.classList.add('hidden');
         }
         
         // 交换图片顺序标志
@@ -1227,6 +1980,345 @@
         updateComparisonPreview();
         
         showHint('图片顺序已交换');
+      }
+      
+      // 初始化图片位置调整器中的图片
+      function initAdjusterImage(index) {
+        if (!images[index].dataUrl || !images[index].uploadedImage) return;
+        
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterSize = index === 0 ? adjusterSize1 : adjusterSize2;
+        const adjusterPosition = index === 0 ? adjusterPosition1 : adjusterPosition2;
+        const positionInfo = index === 0 ? positionInfo1 : positionInfo2;
+        
+        // 获取调整器容器尺寸
+        const adjusterContainer = index === 0 ? imagePositionAdjuster1 : imagePositionAdjuster2;
+        const containerWidth = adjusterContainer.clientWidth;
+        const containerHeight = adjusterContainer.clientHeight;
+        
+        // 计算图片尺寸
+        const sizePercentage = images[index].size / 100;
+        const maxWidth = containerWidth * 0.7 * sizePercentage;
+        const maxHeight = containerHeight * 0.7 * sizePercentage;
+        
+        let width = images[index].uploadedImage.width;
+        let height = images[index].uploadedImage.height;
+        
+        // 保持宽高比缩放图片
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+        
+        // 设置图片尺寸
+        adjusterImage.style.width = `${width}px`;
+        adjusterImage.style.height = `${height}px`;
+        
+        // 保存原始位置（居中）
+        images[index].originalPosition = {
+          x: (containerWidth - width) / 2,
+          y: (containerHeight - height) / 2
+        };
+        
+        // 如果有自定义位置，则使用自定义位置，否则使用原始位置
+        let x, y;
+        if (images[index].customPosition && 
+            (images[index].customPosition.x !== 0 || images[index].customPosition.y !== 0)) {
+          x = images[index].originalPosition.x + images[index].customPosition.x;
+          y = images[index].originalPosition.y + images[index].customPosition.y;
+        } else {
+          x = images[index].originalPosition.x;
+          y = images[index].originalPosition.y;
+        }
+        
+        // 设置图片位置
+        adjusterImage.style.left = `${x}px`;
+        adjusterImage.style.top = `${y}px`;
+        
+        // 更新信息显示
+        adjusterSize.textContent = `${images[index].size}%`;
+        adjusterPosition.textContent = `X: ${Math.round(x)}, Y: ${Math.round(y)}`;
+        positionInfo.textContent = `X: ${images[index].customPosition.x}, Y: ${images[index].customPosition.y}`;
+      }
+      
+      // 更新位置调整器中的图片大小
+      function updateAdjusterImageSize(index) {
+        if (!images[index].dataUrl || !images[index].uploadedImage) return;
+        
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterSize = index === 0 ? adjusterSize1 : adjusterSize2;
+        
+        // 获取调整器容器尺寸
+        const adjusterContainer = index === 0 ? imagePositionAdjuster1 : imagePositionAdjuster2;
+        const containerWidth = adjusterContainer.clientWidth;
+        const containerHeight = adjusterContainer.clientHeight;
+        
+        // 计算图片尺寸
+        const sizePercentage = images[index].size / 100;
+        const maxWidth = containerWidth * 0.7 * sizePercentage;
+        const maxHeight = containerHeight * 0.7 * sizePercentage;
+        
+        let width = images[index].uploadedImage.width;
+        let height = images[index].uploadedImage.height;
+        
+        // 保持宽高比缩放图片
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+        
+        // 保存当前位置
+        const currentX = parseInt(adjusterImage.style.left) || 0;
+        const currentY = parseInt(adjusterImage.style.top) || 0;
+        
+        // 设置图片尺寸
+        adjusterImage.style.width = `${width}px`;
+        adjusterImage.style.height = `${height}px`;
+        
+        // 更新原始位置（居中）
+        images[index].originalPosition = {
+          x: (containerWidth - width) / 2,
+          y: (containerHeight - height) / 2
+        };
+        
+        // 调整位置以保持相对位置不变
+        const newX = images[index].originalPosition.x + images[index].customPosition.x;
+        const newY = images[index].originalPosition.y + images[index].customPosition.y;
+        
+        adjusterImage.style.left = `${newX}px`;
+        adjusterImage.style.top = `${newY}px`;
+        
+        // 更新信息显示
+        adjusterSize.textContent = `${images[index].size}%`;
+        
+        // 更新位置信息
+        const adjusterPosition = index === 0 ? adjusterPosition1 : adjusterPosition2;
+        adjusterPosition.textContent = `X: ${Math.round(newX)}, Y: ${Math.round(newY)}`;
+      }
+      
+      // 更新位置调整器中的图片位置
+      function updateAdjusterImagePosition(index) {
+        if (!images[index].dataUrl || !images[index].uploadedImage) return;
+        
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterPosition = index === 0 ? adjusterPosition1 : adjusterPosition2;
+        
+        // 获取调整器容器尺寸
+        const adjusterContainer = index === 0 ? imagePositionAdjuster1 : imagePositionAdjuster2;
+        
+        // 计算新位置
+        const x = images[index].originalPosition.x + images[index].customPosition.x;
+        const y = images[index].originalPosition.y + images[index].customPosition.y;
+        
+        // 设置图片位置
+        adjusterImage.style.left = `${x}px`;
+        adjusterImage.style.top = `${y}px`;
+        
+        // 更新信息显示
+        adjusterPosition.textContent = `X: ${Math.round(x)}, Y: ${Math.round(y)}`;
+      }
+      
+      // 重置位置调整器中的图片位置
+      function resetAdjusterPosition(index) {
+        if (!images[index].dataUrl || !images[index].uploadedImage) return;
+        
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterPosition = index === 0 ? adjusterPosition1 : adjusterPosition2;
+        const positionInfo = index === 0 ? positionInfo1 : positionInfo2;
+        
+        // 重置自定义位置
+        images[index].customPosition = { x: 0, y: 0 };
+        
+        // 设置图片位置为原始位置（居中）
+        adjusterImage.style.left = `${images[index].originalPosition.x}px`;
+        adjusterImage.style.top = `${images[index].originalPosition.y}px`;
+        
+        // 更新信息显示
+        adjusterPosition.textContent = `X: ${Math.round(images[index].originalPosition.x)}, Y: ${Math.round(images[index].originalPosition.y)}`;
+        positionInfo.textContent = `X: 0, Y: 0`;
+        
+        updateComparisonPreview();
+      }
+      
+      // 将位置调整器中的图片居中
+      function centerAdjusterImage(index) {
+        if (!images[index].dataUrl || !images[index].uploadedImage) return;
+        
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterPosition = index === 0 ? adjusterPosition1 : adjusterPosition2;
+        const positionInfo = index === 0 ? positionInfo1 : positionInfo2;
+        
+        // 获取调整器容器尺寸
+        const adjusterContainer = index === 0 ? imagePositionAdjuster1 : imagePositionAdjuster2;
+        const containerWidth = adjusterContainer.clientWidth;
+        const containerHeight = adjusterContainer.clientHeight;
+        
+        // 获取图片尺寸
+        const width = parseInt(adjusterImage.style.width);
+        const height = parseInt(adjusterImage.style.height);
+        
+        // 计算居中位置
+        const centerX = (containerWidth - width) / 2;
+        const centerY = (containerHeight - height) / 2;
+        
+        // 更新原始位置
+        images[index].originalPosition = { x: centerX, y: centerY };
+        
+        // 重置自定义位置
+        images[index].customPosition = { x: 0, y: 0 };
+        
+        // 设置图片位置
+        adjusterImage.style.left = `${centerX}px`;
+        adjusterImage.style.top = `${centerY}px`;
+        
+        // 更新信息显示
+        adjusterPosition.textContent = `X: ${Math.round(centerX)}, Y: ${Math.round(centerY)}`;
+        positionInfo.textContent = `X: 0, Y: 0`;
+        
+        updateComparisonPreview();
+      }
+      
+      // 初始化位置调整器拖拽功能
+      function initAdjusterDragging(index) {
+        const adjusterImage = index === 0 ? adjusterImage1 : adjusterImage2;
+        const adjusterContainer = index === 0 ? imagePositionAdjuster1 : imagePositionAdjuster2;
+        const positionLock = index === 0 ? positionLock1 : positionLock2;
+        
+        adjusterImage.addEventListener('mousedown', function(e) {
+          // 如果位置锁定，则不允许拖拽
+          if (positionLock.checked) return;
+          
+          startDrag(e, index);
+        });
+        
+        adjusterImage.addEventListener('touchstart', function(e) {
+          // 如果位置锁定，则不允许拖拽
+          if (positionLock.checked) return;
+          
+          const touch = e.touches[0];
+          const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+          });
+          startDrag(mouseEvent, index);
+          e.preventDefault();
+        });
+        
+        function startDrag(e, dragIndex) {
+          draggedImageIndex = dragIndex;
+          
+          // 添加拖拽中的样式
+          adjusterImage.classList.add('dragging');
+          
+          // 记录拖拽开始时的鼠标位置和图片位置
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          
+          // 添加事件监听器
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('touchmove', dragTouch);
+          document.addEventListener('mouseup', endDrag);
+          document.addEventListener('touchend', endDragTouch);
+        }
+        
+        function drag(e) {
+          if (draggedImageIndex !== index) return;
+          
+          // 如果位置锁定，则停止拖拽
+          if (positionLock.checked) {
+            endDrag();
+            return;
+          }
+          
+          // 计算鼠标移动的距离
+          const dx = e.clientX - dragStartX;
+          const dy = e.clientY - dragStartY;
+          
+          // 更新自定义位置
+          images[index].customPosition.x += dx;
+          images[index].customPosition.y += dy;
+          
+          // 限制拖拽范围，确保图片不会完全移出调整区域
+          const containerRect = adjusterContainer.getBoundingClientRect();
+          const imageRect = adjusterImage.getBoundingClientRect();
+          
+          const containerWidth = containerRect.width;
+          const containerHeight = containerRect.height;
+          const imageWidth = imageRect.width;
+          const imageHeight = imageRect.height;
+          
+          // 计算图片在容器中的位置
+          const currentLeft = parseInt(adjusterImage.style.left) || 0;
+          const currentTop = parseInt(adjusterImage.style.top) || 0;
+          
+          // 计算新位置
+          let newLeft = currentLeft + dx;
+          let newTop = currentTop + dy;
+          
+          // 限制图片不会完全移出容器
+          newLeft = Math.max(-imageWidth / 2, Math.min(newLeft, containerWidth - imageWidth / 2));
+          newTop = Math.max(-imageHeight / 2, Math.min(newTop, containerHeight - imageHeight / 2));
+          
+          // 更新图片位置
+          adjusterImage.style.left = `${newLeft}px`;
+          adjusterImage.style.top = `${newTop}px`;
+          
+          // 更新自定义位置
+          images[index].customPosition.x = newLeft - images[index].originalPosition.x;
+          images[index].customPosition.y = newTop - images[index].originalPosition.y;
+          
+          // 更新位置信息
+          updatePositionInfo(index);
+          
+          // 更新拖拽开始时的鼠标位置
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          
+          // 更新对比预览
+          updateComparisonPreview();
+        }
+        
+        function dragTouch(e) {
+          if (draggedImageIndex !== index) return;
+          
+          const touch = e.touches[0];
+          const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+          });
+          drag(mouseEvent);
+          e.preventDefault();
+        }
+        
+        function endDrag() {
+          if (draggedImageIndex !== index) return;
+          
+          // 移除拖拽中的样式
+          adjusterImage.classList.remove('dragging');
+          
+          // 移除事件监听器
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('touchmove', dragTouch);
+          document.removeEventListener('mouseup', endDrag);
+          document.removeEventListener('touchend', endDragTouch);
+          
+          // 重置拖拽索引
+          draggedImageIndex = -1;
+        }
+        
+        function endDragTouch() {
+          endDrag();
+        }
       }
       
       // 初始化图片对比滑块
@@ -1269,13 +2361,183 @@
           imageComparisonContainer.classList.remove('hidden');
           noImagesSelected.classList.add('hidden');
           
-          // 设置对比图片
-          comparisonBefore.src = images[0].dataUrl;
-          comparisonAfter.src = images[1].dataUrl;
+          // 创建临时画布用于对比预览
+          const tempCanvas = document.createElement('canvas');
+          const tempCtx = tempCanvas.getContext('2d');
           
-          // 调整滑块位置到中间
-          slider.style.left = '50%';
-          document.querySelector('.image-comparison .before').style.width = '50%';
+          // 设置临时画布尺寸
+          tempCanvas.width = 800;
+          tempCanvas.height = 450;
+          
+          // 绘制背景
+          tempCtx.fillStyle = '#f8fafc';
+          tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+          
+          // 绘制第一张图片
+          if (images[0].dataUrl) {
+            const img1 = new Image();
+            img1.src = images[0].dataUrl;
+            
+            img1.onload = function() {
+              // 计算图片尺寸
+              const sizePercentage1 = images[0].size / 100;
+              const maxWidth1 = tempCanvas.width * 0.4 * sizePercentage1;
+              const maxHeight1 = tempCanvas.height * 0.8 * sizePercentage1;
+              
+              let width1 = img1.width;
+              let height1 = img1.height;
+              
+              // 保持宽高比缩放图片
+              if (width1 > maxWidth1) {
+                height1 = (maxWidth1 / width1) * height1;
+                width1 = maxWidth1;
+              }
+              
+              if (height1 > maxHeight1) {
+                width1 = (maxHeight1 / height1) * width1;
+                height1 = maxHeight1;
+              }
+              
+              // 计算位置
+              let x1, y1;
+              
+              if (images[0].position === 'custom') {
+                // 使用自定义位置
+                const centerX = (tempCanvas.width - width1) / 2;
+                const centerY = (tempCanvas.height - height1) / 2;
+                x1 = centerX + images[0].customPosition.x / 2; // 缩小自定义位置的影响
+                y1 = centerY + images[0].customPosition.y / 2;
+              } else {
+                // 使用预设位置
+                switch(images[0].position) {
+                  case 'top-left':
+                    x1 = 20;
+                    y1 = 20;
+                    break;
+                  case 'top-right':
+                    x1 = tempCanvas.width - width1 - 20;
+                    y1 = 20;
+                    break;
+                  case 'bottom-left':
+                    x1 = 20;
+                    y1 = tempCanvas.height - height1 - 20;
+                    break;
+                  case 'bottom-right':
+                    x1 = tempCanvas.width - width1 - 20;
+                    y1 = tempCanvas.height - height1 - 20;
+                    break;
+                  case 'center':
+                    x1 = (tempCanvas.width - width1) / 2;
+                    y1 = (tempCanvas.height - height1) / 2;
+                    break;
+                  case 'background':
+                    x1 = 0;
+                    y1 = 0;
+                    width1 = tempCanvas.width;
+                    height1 = tempCanvas.height;
+                    break;
+                  default:
+                    x1 = (tempCanvas.width - width1) / 2;
+                    y1 = (tempCanvas.height - height1) / 2;
+                }
+              }
+              
+              // 设置透明度
+              tempCtx.globalAlpha = images[0].opacity;
+              
+              // 绘制图片
+              tempCtx.drawImage(img1, x1, y1, width1, height1);
+              
+              // 重置透明度
+              tempCtx.globalAlpha = 1.0;
+              
+              // 绘制第二张图片
+              if (images[1].dataUrl) {
+                const img2 = new Image();
+                img2.src = images[1].dataUrl;
+                
+                img2.onload = function() {
+                  // 计算图片尺寸
+                  const sizePercentage2 = images[1].size / 100;
+                  const maxWidth2 = tempCanvas.width * 0.4 * sizePercentage2;
+                  const maxHeight2 = tempCanvas.height * 0.8 * sizePercentage2;
+                  
+                  let width2 = img2.width;
+                  let height2 = img2.height;
+                  
+                  // 保持宽高比缩放图片
+                  if (width2 > maxWidth2) {
+                    height2 = (maxWidth2 / width2) * height2;
+                    width2 = maxWidth2;
+                  }
+                  
+                  if (height2 > maxHeight2) {
+                    width2 = (maxHeight2 / height2) * width2;
+                    height2 = maxHeight2;
+                  }
+                  
+                  // 计算位置
+                  let x2, y2;
+                  
+                  if (images[1].position === 'custom') {
+                    // 使用自定义位置
+                    const centerX = (tempCanvas.width - width2) / 2;
+                    const centerY = (tempCanvas.height - height2) / 2;
+                    x2 = centerX + images[1].customPosition.x / 2; // 缩小自定义位置的影响
+                    y2 = centerY + images[1].customPosition.y / 2;
+                  } else {
+                    // 使用预设位置
+                    switch(images[1].position) {
+                      case 'top-left':
+                        x2 = 20;
+                        y2 = 20;
+                        break;
+                      case 'top-right':
+                        x2 = tempCanvas.width - width2 - 20;
+                        y2 = 20;
+                        break;
+                      case 'bottom-left':
+                        x2 = 20;
+                        y2 = tempCanvas.height - height2 - 20;
+                        break;
+                      case 'bottom-right':
+                        x2 = tempCanvas.width - width2 - 20;
+                        y2 = tempCanvas.height - height2 - 20;
+                        break;
+                      case 'center':
+                        x2 = (tempCanvas.width - width2) / 2;
+                        y2 = (tempCanvas.height - height2) / 2;
+                        break;
+                      case 'background':
+                        x2 = 0;
+                        y2 = 0;
+                        width2 = tempCanvas.width;
+                        height2 = tempCanvas.height;
+                        break;
+                      default:
+                        x2 = (tempCanvas.width - width2) / 2;
+                        y2 = (tempCanvas.height - height2) / 2;
+                    }
+                  }
+                  
+                  // 设置透明度
+                  tempCtx.globalAlpha = images[1].opacity;
+                  
+                  // 绘制图片
+                  tempCtx.drawImage(img2, x2, y2, width2, height2);
+                  
+                  // 重置透明度
+                  tempCtx.globalAlpha = 1.0;
+                  
+                  // 更新对比图片
+                  comparisonAfter.src = tempCanvas.toDataURL('image/png');
+                };
+              }
+            };
+          }
+          
+          // 设置对比前的图片（仅第一张图片）
+          comparisonBefore.src = images[0].dataUrl;
         } else {
           imageComparisonContainer.classList.add('hidden');
           noImagesSelected.classList.remove('hidden');
@@ -1610,36 +2872,52 @@
         // 计算位置
         let x, y;
         
-        switch(position) {
-          case 'top-left':
-            x = 20;
-            y = 20;
-            break;
-          case 'top-right':
-            x = canvasWidth - width - 20;
-            y = 20;
-            break;
-          case 'bottom-left':
-            x = 20;
-            y = canvasHeight - height - 20;
-            break;
-          case 'bottom-right':
-            x = canvasWidth - width - 20;
-            y = canvasHeight - height - 20;
-            break;
-          case 'center':
-            x = (canvasWidth - width) / 2;
-            y = (canvasHeight - height) / 2;
-            break;
-          case 'background':
-            // 作为背景图片，覆盖整个画布
-            x = 0;
-            y = 0;
-            width = canvasWidth;
-            height = canvasHeight;
-            // 设置透明度
-            ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
-            break;
+        if (position === 'custom') {
+          // 使用自定义位置
+          const centerX = (canvasWidth - width) / 2;
+          const centerY = (canvasHeight - height) / 2;
+          x = centerX + images[index].customPosition.x;
+          y = centerY + images[index].customPosition.y;
+          
+          // 确保图片不会完全超出画布
+          x = Math.max(-width / 2, Math.min(x, canvasWidth - width / 2));
+          y = Math.max(-height / 2, Math.min(y, canvasHeight - height / 2));
+        } else {
+          // 使用预设位置
+          switch(position) {
+            case 'top-left':
+              x = 20;
+              y = 20;
+              break;
+            case 'top-right':
+              x = canvasWidth - width - 20;
+              y = 20;
+              break;
+            case 'bottom-left':
+              x = 20;
+              y = canvasHeight - height - 20;
+              break;
+            case 'bottom-right':
+              x = canvasWidth - width - 20;
+              y = canvasHeight - height - 20;
+              break;
+            case 'center':
+              x = (canvasWidth - width) / 2;
+              y = (canvasHeight - height) / 2;
+              break;
+            case 'background':
+              // 作为背景图片，覆盖整个画布
+              x = 0;
+              y = 0;
+              width = canvasWidth;
+              height = canvasHeight;
+              // 设置透明度
+              ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
+              break;
+            default:
+              x = (canvasWidth - width) / 2;
+              y = (canvasHeight - height) / 2;
+          }
         }
         
         // 设置图片透明度
@@ -1951,36 +3229,52 @@
         // 计算位置
         let x, y;
         
-        switch(position) {
-          case 'top-left':
-            x = 20 * scale;
-            y = 20 * scale;
-            break;
-          case 'top-right':
-            x = width - imgWidth - 20 * scale;
-            y = 20 * scale;
-            break;
-          case 'bottom-left':
-            x = 20 * scale;
-            y = height - imgHeight - 20 * scale;
-            break;
-          case 'bottom-right':
-            x = width - imgWidth - 20 * scale;
-            y = height - imgHeight - 20 * scale;
-            break;
-          case 'center':
-            x = (width - imgWidth) / 2;
-            y = (height - imgHeight) / 2;
-            break;
-          case 'background':
-            // 作为背景图片，覆盖整个画布
-            x = 0;
-            y = 0;
-            imgWidth = width;
-            imgHeight = height;
-            // 设置透明度
-            ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
-            break;
+        if (position === 'custom') {
+          // 使用自定义位置
+          const centerX = (width - imgWidth) / 2;
+          const centerY = (height - imgHeight) / 2;
+          x = centerX + images[index].customPosition.x * scale;
+          y = centerY + images[index].customPosition.y * scale;
+          
+          // 确保图片不会完全超出画布
+          x = Math.max(-imgWidth / 2, Math.min(x, width - imgWidth / 2));
+          y = Math.max(-imgHeight / 2, Math.min(y, height - imgHeight / 2));
+        } else {
+          // 使用预设位置
+          switch(position) {
+            case 'top-left':
+              x = 20 * scale;
+              y = 20 * scale;
+              break;
+            case 'top-right':
+              x = width - imgWidth - 20 * scale;
+              y = 20 * scale;
+              break;
+            case 'bottom-left':
+              x = 20 * scale;
+              y = height - imgHeight - 20 * scale;
+              break;
+            case 'bottom-right':
+              x = width - imgWidth - 20 * scale;
+              y = height - imgHeight - 20 * scale;
+              break;
+            case 'center':
+              x = (width - imgWidth) / 2;
+              y = (height - imgHeight) / 2;
+              break;
+            case 'background':
+              // 作为背景图片，覆盖整个画布
+              x = 0;
+              y = 0;
+              imgWidth = width;
+              imgHeight = height;
+              // 设置透明度
+              ctx.globalAlpha = opacity * 0.2; // 背景图片额外降低透明度
+              break;
+            default:
+              x = (width - imgWidth) / 2;
+              y = (height - imgHeight) / 2;
+          }
         }
         
         // 设置图片透明度
@@ -2087,13 +3381,15 @@
               dataUrl: images[0].dataUrl,
               position: imagePosition1.value,
               size: parseInt(imageSizeSlider1.value),
-              opacity: images[0].opacity
+              opacity: images[0].opacity,
+              customPosition: images[0].customPosition
             },
             {
               dataUrl: images[1].dataUrl,
               position: imagePosition2.value,
               size: parseInt(imageSizeSlider2.value),
-              opacity: images[1].opacity
+              opacity: images[1].opacity,
+              customPosition: images[1].customPosition
             }
           ],
           imageOrder: imageOrder,
@@ -2184,12 +3480,20 @@
                   {
                     uploadedImage: null,
                     dataUrl: null,
-                    opacity: 1.0
+                    opacity: 1.0,
+                    position: 'bottom-right',
+                    size: 50,
+                    customPosition: { x: 0, y: 0 },
+                    originalPosition: { x: 0, y: 0 }
                   },
                   {
                     uploadedImage: null,
                     dataUrl: null,
-                    opacity: 0.8
+                    opacity: 0.8,
+                    position: 'top-left',
+                    size: 30,
+                    customPosition: { x: 0, y: 0 },
+                    originalPosition: { x: 0, y: 0 }
                   }
                 ];
                 
@@ -2197,23 +3501,49 @@
                 if (playlistData.images[0] && playlistData.images[0].dataUrl) {
                   images[0].dataUrl = playlistData.images[0].dataUrl;
                   previewImg1.src = images[0].dataUrl;
-                  imagePreview1.classList.remove('hidden');
+                  adjusterPreview1.src = images[0].dataUrl;
+                  
+                  // 设置图片位置
+                  if (playlistData.images[0].position) {
+                    images[0].position = playlistData.images[0].position;
+                    imagePosition1.value = images[0].position;
+                  }
+                  
+                  // 设置图片大小
+                  if (playlistData.images[0].size !== undefined) {
+                    images[0].size = playlistData.images[0].size;
+                    imageSizeSlider1.value = images[0].size;
+                    imageSizeValue1.textContent = `${images[0].size}%`;
+                  }
+                  
+                  // 设置图片透明度
+                  if (playlistData.images[0].opacity !== undefined) {
+                    images[0].opacity = playlistData.images[0].opacity;
+                    imageOpacity1.value = Math.round(images[0].opacity * 100);
+                    imageOpacityValue1.textContent = `${Math.round(images[0].opacity * 100)}%`;
+                  }
+                  
+                  // 设置自定义位置
+                  if (playlistData.images[0].customPosition) {
+                    images[0].customPosition = playlistData.images[0].customPosition;
+                    positionInfo1.textContent = `X: ${images[0].customPosition.x}, Y: ${images[0].customPosition.y}`;
+                  }
                   
                   // 创建图片对象
                   images[0].uploadedImage = new Image();
                   images[0].uploadedImage.onload = function() {
-                    // 设置图片位置和大小
-                    if (playlistData.images[0].position) {
-                      imagePosition1.value = playlistData.images[0].position;
-                    }
-                    if (playlistData.images[0].size !== undefined) {
-                      imageSizeSlider1.value = playlistData.images[0].size;
-                      imageSizeValue1.textContent = `${playlistData.images[0].size}%`;
-                    }
-                    if (playlistData.images[0].opacity !== undefined) {
-                      images[0].opacity = playlistData.images[0].opacity;
-                      imageOpacity1.value = Math.round(images[0].opacity * 100);
-                      imageOpacityValue1.textContent = `${Math.round(images[0].opacity * 100)}%`;
+                    // 如果选择了自定义位置，显示位置调整器
+                    if (images[0].position === 'custom') {
+                      imagePreview1.classList.add('hidden');
+                      imagePositionAdjuster1.classList.remove('hidden');
+                      positionFineTune1.classList.remove('hidden');
+                      
+                      // 初始化位置调整器
+                      initAdjusterImage(0);
+                    } else {
+                      imagePreview1.classList.remove('hidden');
+                      imagePositionAdjuster1.classList.add('hidden');
+                      positionFineTune1.classList.add('hidden');
                     }
                   };
                   images[0].uploadedImage.src = images[0].dataUrl;
@@ -2222,6 +3552,8 @@
                   images[0].uploadedImage = null;
                   images[0].dataUrl = null;
                   imagePreview1.classList.add('hidden');
+                  imagePositionAdjuster1.classList.add('hidden');
+                  positionFineTune1.classList.add('hidden');
                   uploadImage1.value = '';
                 }
                 
@@ -2229,23 +3561,49 @@
                 if (playlistData.images[1] && playlistData.images[1].dataUrl) {
                   images[1].dataUrl = playlistData.images[1].dataUrl;
                   previewImg2.src = images[1].dataUrl;
-                  imagePreview2.classList.remove('hidden');
+                  adjusterPreview2.src = images[1].dataUrl;
+                  
+                  // 设置图片位置
+                  if (playlistData.images[1].position) {
+                    images[1].position = playlistData.images[1].position;
+                    imagePosition2.value = images[1].position;
+                  }
+                  
+                  // 设置图片大小
+                  if (playlistData.images[1].size !== undefined) {
+                    images[1].size = playlistData.images[1].size;
+                    imageSizeSlider2.value = images[1].size;
+                    imageSizeValue2.textContent = `${images[1].size}%`;
+                  }
+                  
+                  // 设置图片透明度
+                  if (playlistData.images[1].opacity !== undefined) {
+                    images[1].opacity = playlistData.images[1].opacity;
+                    imageOpacity2.value = Math.round(images[1].opacity * 100);
+                    imageOpacityValue2.textContent = `${Math.round(images[1].opacity * 100)}%`;
+                  }
+                  
+                  // 设置自定义位置
+                  if (playlistData.images[1].customPosition) {
+                    images[1].customPosition = playlistData.images[1].customPosition;
+                    positionInfo2.textContent = `X: ${images[1].customPosition.x}, Y: ${images[1].customPosition.y}`;
+                  }
                   
                   // 创建图片对象
                   images[1].uploadedImage = new Image();
                   images[1].uploadedImage.onload = function() {
-                    // 设置图片位置和大小
-                    if (playlistData.images[1].position) {
-                      imagePosition2.value = playlistData.images[1].position;
-                    }
-                    if (playlistData.images[1].size !== undefined) {
-                      imageSizeSlider2.value = playlistData.images[1].size;
-                      imageSizeValue2.textContent = `${playlistData.images[1].size}%`;
-                    }
-                    if (playlistData.images[1].opacity !== undefined) {
-                      images[1].opacity = playlistData.images[1].opacity;
-                      imageOpacity2.value = Math.round(images[1].opacity * 100);
-                      imageOpacityValue2.textContent = `${Math.round(images[1].opacity * 100)}%`;
+                    // 如果选择了自定义位置，显示位置调整器
+                    if (images[1].position === 'custom') {
+                      imagePreview2.classList.add('hidden');
+                      imagePositionAdjuster2.classList.remove('hidden');
+                      positionFineTune2.classList.remove('hidden');
+                      
+                      // 初始化位置调整器
+                      initAdjusterImage(1);
+                    } else {
+                      imagePreview2.classList.remove('hidden');
+                      imagePositionAdjuster2.classList.add('hidden');
+                      positionFineTune2.classList.add('hidden');
                     }
                   };
                   images[1].uploadedImage.src = images[1].dataUrl;
@@ -2254,6 +3612,8 @@
                   images[1].uploadedImage = null;
                   images[1].dataUrl = null;
                   imagePreview2.classList.add('hidden');
+                  imagePositionAdjuster2.classList.add('hidden');
+                  positionFineTune2.classList.add('hidden');
                   uploadImage2.value = '';
                 }
                 
@@ -2272,17 +3632,29 @@
                   {
                     uploadedImage: null,
                     dataUrl: null,
-                    opacity: 1.0
+                    opacity: 1.0,
+                    position: 'bottom-right',
+                    size: 50,
+                    customPosition: { x: 0, y: 0 },
+                    originalPosition: { x: 0, y: 0 }
                   },
                   {
                     uploadedImage: null,
                     dataUrl: null,
-                    opacity: 0.8
+                    opacity: 0.8,
+                    position: 'top-left',
+                    size: 30,
+                    customPosition: { x: 0, y: 0 },
+                    originalPosition: { x: 0, y: 0 }
                   }
                 ];
                 imageOrder = [0, 1];
                 imagePreview1.classList.add('hidden');
                 imagePreview2.classList.add('hidden');
+                imagePositionAdjuster1.classList.add('hidden');
+                imagePositionAdjuster2.classList.add('hidden');
+                positionFineTune1.classList.add('hidden');
+                positionFineTune2.classList.add('hidden');
                 uploadImage1.value = '';
                 uploadImage2.value = '';
               }
@@ -2346,17 +3718,29 @@
           {
             uploadedImage: null,
             dataUrl: null,
-            opacity: 1.0
+            opacity: 1.0,
+            position: 'bottom-right',
+            size: 50,
+            customPosition: { x: 0, y: 0 },
+            originalPosition: { x: 0, y: 0 }
           },
           {
             uploadedImage: null,
             dataUrl: null,
-            opacity: 0.8
+            opacity: 0.8,
+            position: 'top-left',
+            size: 30,
+            customPosition: { x: 0, y: 0 },
+            originalPosition: { x: 0, y: 0 }
           }
         ];
         imageOrder = [0, 1];
         imagePreview1.classList.add('hidden');
         imagePreview2.classList.add('hidden');
+        imagePositionAdjuster1.classList.add('hidden');
+        imagePositionAdjuster2.classList.add('hidden');
+        positionFineTune1.classList.add('hidden');
+        positionFineTune2.classList.add('hidden');
         uploadImage1.value = '';
         uploadImage2.value = '';
         
@@ -2585,13 +3969,15 @@
               dataUrl: images[0].dataUrl,
               position: imagePosition1.value,
               size: parseInt(imageSizeSlider1.value),
-              opacity: images[0].opacity
+              opacity: images[0].opacity,
+              customPosition: images[0].customPosition
             },
             {
               dataUrl: images[1].dataUrl,
               position: imagePosition2.value,
               size: parseInt(imageSizeSlider2.value),
-              opacity: images[1].opacity
+              opacity: images[1].opacity,
+              customPosition: images[1].customPosition
             }
           ],
           imageOrder: imageOrder,
@@ -2634,13 +4020,15 @@
               dataUrl: images[0].dataUrl,
               position: imagePosition1.value,
               size: parseInt(imageSizeSlider1.value),
-              opacity: images[0].opacity
+              opacity: images[0].opacity,
+              customPosition: images[0].customPosition
             },
             {
               dataUrl: images[1].dataUrl,
               position: imagePosition2.value,
               size: parseInt(imageSizeSlider2.value),
-              opacity: images[1].opacity
+              opacity: images[1].opacity,
+              customPosition: images[1].customPosition
             }
           ],
           imageOrder: imageOrder,
@@ -2796,8 +4184,3 @@
   </script>
 </body>
 </html>
-
-<!--
-升级 v1.21
-  list1, list2 实现不对，更正
--->
